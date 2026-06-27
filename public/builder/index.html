@@ -4548,7 +4548,7 @@
               <span>Total</span>
               <strong id="cartTotalPreview">$0.00</strong>
             </div>
-            <button class="btn btn-primary" onclick="addToShopifyCart()">Checkout</button>
+            <button class="btn btn-primary" onclick="addToLaunchAccess()">Checkout</button>
           </div>
         </div>
       </div>
@@ -4814,7 +4814,7 @@
           <select class="preset-dropdown" id="corePresetDropdown" onchange="applyCorePreset(this.value)">
             <option value="">Select a preset…</option>
             <option value="portrait_gift">Portrait Gift • 48×48 Metallic Magnetic</option>
-            <option value="budget_sticker">Budget Sticker Kit • 32×32 Solid Vinyl</option>
+            <option value="budget_sticker">Budget Sticker Pack • 32×32 Solid Vinyl</option>
             <option value="lego_showcase">LEGO Showcase • Transparent 48×48</option>
             <option value="gallery_luxe">Gallery Luxe • 64×64 Glow + Premium Backing</option>
           </select>
@@ -4823,7 +4823,7 @@
           <div class="product-type-selector">
             <div class="product-type popular active" onclick="setProductType('bricks')" id="product-bricks">
               <span class="product-icon">🧱</span>
-              <div class="product-name">Brick Kits</div>
+              <div class="product-name">Brick Packs</div>
               <div class="product-desc">LEGO-compatible with baseplates & instructions</div>
               <div class="product-price">From <strong>$79</strong></div>
             </div>
@@ -5243,8 +5243,8 @@
             <div style="margin-top: 1rem;">
           <!-- Generate button removed: image regenerates automatically on changes -->
             </div>
-            <div id="shopifyBuyButton" style="display: none; margin-top: 1rem;">
-              <button class="btn btn-primary" onclick="addToShopifyCart()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
+            <div id="launchAccessButton" style="display: none; margin-top: 1rem;">
+              <button class="btn btn-primary" onclick="addToLaunchAccess()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
                 Launch Access Not Open
               </button>
               <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
@@ -5317,8 +5317,8 @@
           </div>
 
           <!-- Checkout access button (shown after generation) -->
-          <div id="shopifyBuyButton" style="display: none; margin-top: 1rem;">
-            <button class="btn btn-primary" onclick="addToShopifyCart()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
+          <div id="launchAccessButton" style="display: none; margin-top: 1rem;">
+            <button class="btn btn-primary" onclick="addToLaunchAccess()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
               Launch Access Not Open
             </button>
             <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
@@ -5412,7 +5412,7 @@
         size: 48
       },
       budget_sticker: {
-        label: 'Budget Sticker Kit',
+        label: 'Budget Sticker Pack',
         productType: 'stickers',
         material: 'solid-bricks',
         finish: null,
@@ -6268,7 +6268,7 @@
           id: 'core',
           complete: hasPreview,
           pills: [
-            { label: currentProductType === 'bricks' ? 'Brick Kits' : 'Sticker Kits', complete: true },
+            { label: currentProductType === 'bricks' ? 'Brick Packs' : 'Sticker Packs', complete: true },
             { label: `${currentSize}×${currentSize}`, complete: true },
             { label: titleize(currentMaterialType), complete: true }
           ]
@@ -6778,7 +6778,7 @@
 
       const addToCartCompact = document.getElementById('addToCartCompact');
       if (addToCartCompact) {
-        addToCartCompact.addEventListener('click', () => addToShopifyCart());
+        addToCartCompact.addEventListener('click', () => addToLaunchAccess());
       }
 
       const insightsToggleBtn = document.getElementById('insightsToggleBtn');
@@ -7887,7 +7887,7 @@
       };
     }
 
-    function addToShopifyCart(options = {}) {
+    function addToLaunchAccess(options = {}) {
       showToast('Checkout is temporarily disabled while we finalize launch access.', 'error');
     }
 
@@ -7898,7 +7898,7 @@
         google_pay: 'Google Pay'
       };
       const label = labels[method] || 'Express checkout';
-      addToShopifyCart({ express: true, method, expressLabel: label });
+      addToLaunchAccess({ express: true, method, expressLabel: label });
     }
 
     function renderSizeOptions() {
@@ -8039,7 +8039,7 @@
         showToast('Mosaic generated successfully!');
         updateGroupStatus();
 
-        const buyButton = document.getElementById('shopifyBuyButton');
+        const buyButton = document.getElementById('launchAccessButton');
         if (buyButton) buyButton.style.display = 'block';
 
         setTimeout(() => {
@@ -8996,15 +8996,15 @@
 
       let html = '<div style="margin-bottom: 1rem;"><h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;">💰 Bill of Materials</h4></div>';
       const summaryItems = [];
-      const kitLabel = `${currentProductType === 'bricks' ? 'Brick Kit' : 'Sticker Kit'}`;
+      const packageLabel = `${currentProductType === 'bricks' ? 'Brick Pack' : 'Sticker Pack'}`;
       const kitDetail = `${currentSize}×${currentSize}`;
-      summaryItems.push({ name: kitLabel, detail: kitDetail, price: currentPrice });
+      summaryItems.push({ name: packageLabel, detail: kitDetail, price: currentPrice });
       let totalCost = currentPrice;
 
       html += `
         <div class="cost-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
           <div style="flex: 1;">
-            <div style="font-weight: 600; font-size: 0.875rem;">${kitLabel}</div>
+            <div style="font-weight: 600; font-size: 0.875rem;">${packageLabel}</div>
             <div style="font-size: 0.75rem; color: var(--text-muted);">${kitDetail}</div>
           </div>
           <div style="font-weight: 700; color: var(--primary);">${formatCurrency(currentPrice)}</div>
@@ -9183,7 +9183,7 @@
         banner.innerHTML = `
           <div class="upsell-header">
             <span class="upsell-icon">🧱</span>
-            <div class="upsell-title">Upgrade to Premium Brick Kit</div>
+            <div class="upsell-title">Upgrade to Premium Brick Pack</div>
           </div>
           <div class="upsell-desc">
             Build a permanent, display-quality mosaic with LEGO-compatible bricks!
@@ -9345,7 +9345,7 @@
         doc.setFontSize(12);
         doc.setTextColor(64, 64, 64);
 
-        const productType = currentProductType === 'bricks' ? 'Brick Kit' : 'Sticker Pack';
+        const productType = currentProductType === 'bricks' ? 'Brick Pack' : 'Sticker Pack';
         const mosaicWidth = processedData.width;
         const mosaicHeight = processedData.height;
         const totalPieces = mosaicWidth * mosaicHeight;

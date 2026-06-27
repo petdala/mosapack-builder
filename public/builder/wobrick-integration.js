@@ -175,7 +175,7 @@ function downloadWobrickCSV() {
   // Add metadata comments
   rows.push('');
   rows.push(`# MosaPack Export - ${new Date().toISOString()}`);
-  rows.push(`# Product: ${currentProductType === 'bricks' ? 'Brick Kit' : 'Sticker Pack'}`);
+  rows.push(`# Product: ${currentProductType === 'bricks' ? 'Brick Pack' : 'Sticker Pack'}`);
   rows.push(`# Size: ${currentSize}x${currentSize} studs`);
   rows.push(`# Total Bricks: ${totalBricks}`);
   rows.push(`# Unique Colors: ${processedData.counts.filter(c => c > 0).length}`);
