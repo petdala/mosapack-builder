@@ -111,3 +111,22 @@ Verification command after production deploy:
 ```bash
 bash scripts/verify-live-exposure.sh
 ```
+
+## A2 Production Verification Update
+
+- Date/time: `2026-06-27T23:02:00Z`
+- Production URL: `https://mosapack.netlify.app`
+- Unique deploy URL: `https://6a4051e679913903c354099b--mosapack.netlify.app`
+- Previous verifier failure: `scripts/verify-live-exposure.sh` used a broad case-insensitive `NETLIFY` pattern, which incorrectly flagged required Netlify Forms markup such as `data-netlify="true"` and the public Netlify Forms submission error string.
+- Verifier fix summary: removed the broad `NETLIFY` match, added specific Netlify secret/deploy-hook patterns, split required and forbidden route checks, and added live HTML detection for the three Netlify Forms.
+- Required route status: `/`, `/builder/`, `/contact/`, `/legal/privacy.html`, `/legal/terms.html`, `/legal/returns.html`, and `/404.html` returned `200`.
+- Forbidden route status: old builder/dashboard routes returned `404`.
+- Live exposure result: `bash scripts/verify-live-exposure.sh` exited `0`; no burned key ending `4cCw`, old provider references, dashboard pages, or forbidden builder versions were found in fetched live HTML.
+- Netlify Forms live detection result: live HTML contains `mosapack-waitlist`, `mosapack-save-design`, and `mosapack-contact` with Netlify form attributes and hidden `form-name` inputs.
+- A2 complete: yes for clean production deploy, route cleanup, exposure scan, and live form markup detection. A3 capture is tracked separately.
+
+Manual Netlify settings still required:
+
+- Base directory: blank / repo root
+- Build command: blank
+- Publish directory: `public`
