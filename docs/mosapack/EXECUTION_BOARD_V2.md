@@ -1,5 +1,32 @@
 # MosaPack Execution Board V2
 
-TODO: paste final approved content from current MosaPack v2 board / A0 checklist / A4 analytics spec.
+This clean repo is for A0/A1/A2/A3/A4 foundation work only. Do not expand product scope or create new builder versions from this file.
 
-This placeholder exists so root router instructions have a stable target. Do not treat this file as the complete source of truth until the approved execution board content is pasted here.
+## Current Operating Constraints
+
+- Digital launches first.
+- Physical R&D runs in parallel and does not block digital.
+- Upload builder remains core.
+- First monetized product is the $12–15 digital Mystery Pet Reveal Pack.
+- No new builder/app/partner system/internal reporting UI/automation/public quality score until first 5 orders are fulfilled.
+- No physical sale until sample, safety, assembly, shipping, and landed-margin gates pass.
+
+## A3 — Netlify Forms Capture Verification
+
+A3 — Verify waitlist/save/contact capture writes to Netlify Forms; export manually until funnel proves demand.
+
+Definition of Done:
+- Waitlist form submission appears in Netlify Forms.
+- Save-design form submission appears in Netlify Forms.
+- Contact form submission appears in Netlify Forms.
+- No Kit/ConvertKit dependency remains.
+- Manual CSV export works.
+
+Metric:
+- 3/3 forms captured end-to-end.
+
+Stop Rule:
+- If Netlify Forms capture fails, do not start traffic/E-stream work.
+
+Note:
+- Paid ESP/automation is deferred until after 3–5 paid customers or meaningful list growth. Do not add Kit/ConvertKit.

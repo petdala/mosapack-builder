@@ -7,6 +7,7 @@ FAIL=0
 required_files=(
   "public/index.html"
   "public/builder/index.html"
+  "public/404.html"
   "public/legal/privacy.html"
   "public/legal/terms.html"
   "public/legal/returns.html"
@@ -14,6 +15,8 @@ required_files=(
   "docs/mosapack/EXECUTION_BOARD_V2.md"
   "docs/mosapack/A0_CREDENTIAL_ROTATION_CHECKLIST.md"
   "docs/mosapack/A4_ANALYTICS_EVENT_SPEC.md"
+  "docs/mosapack/A2_DEPLOY_CLEANUP_CHECKLIST.md"
+  "docs/mosapack/A2_DEPLOY_COMMANDS.md"
 )
 
 for file in "${required_files[@]}"; do
@@ -56,11 +59,26 @@ else
     echo "INVALID netlify.toml: publish must be public"
     FAIL=1
   fi
+  if ! grep -Eq 'command[[:space:]]*=[[:space:]]*""' "$ROOT/netlify.toml"; then
+    echo "INVALID netlify.toml: static deploy command must be empty"
+    FAIL=1
+  fi
   if grep -Eq 'from[[:space:]]*=[[:space:]]*"/\*"' "$ROOT/netlify.toml"; then
     echo "INVALID netlify.toml: catch-all rewrite is not allowed for this static launch repo"
     FAIL=1
   fi
 fi
+
+if ! bash "$ROOT/scripts/verify-netlify-forms.sh"; then
+  FAIL=1
+fi
+
+if rg -n -i "order placed|checkout successful|payment received|Shopify checkout payload|Package staged|Check your email|You're on the list|Already subscribed" "$ROOT/public" >/tmp/mosapack-clean-fake-success.txt; then
+  echo "POSSIBLE fake success state found:"
+  cat /tmp/mosapack-clean-fake-success.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-clean-fake-success.txt
 
 if [ "$FAIL" -ne 0 ]; then
   echo "Clean repo verification failed."

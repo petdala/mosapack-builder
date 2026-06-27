@@ -3783,11 +3783,22 @@
           </ul>
         </div>
         <div class="waitlist-form">
-          <form id="waitlistForm" class="email-capture-form">
+          <form id="waitlistForm" name="mosapack-waitlist" class="email-capture-form" method="POST" data-netlify="true" netlify-honeypot="bot-field">
             <h3>Save Your Spot</h3>
-            <input type="email" id="waitlistEmail" placeholder="Enter your email" required>
+            <input type="hidden" name="form-name" value="mosapack-waitlist">
+            <input type="hidden" name="bot-field">
+            <input type="hidden" name="source" value="landing-waitlist">
+            <input type="hidden" name="page" value="/">
+            <input type="hidden" name="interest" value="launch-access">
+            <input type="hidden" name="timestamp" id="waitlistTimestamp">
+            <input type="hidden" name="utm_source" id="waitlistUtmSource">
+            <input type="hidden" name="utm_medium" id="waitlistUtmMedium">
+            <input type="hidden" name="utm_campaign" id="waitlistUtmCampaign">
+            <input type="hidden" name="project_id" value="">
+            <input type="email" id="waitlistEmail" name="email" placeholder="Enter your email" required>
             <button type="submit" class="btn btn-gold">Join the Waitlist</button>
-            <p class="form-privacy">No spam. Unsubscribe anytime. Your email is safe with us.</p>
+            <p class="form-privacy">No spam. We export signups manually while launch access is finalized.</p>
+            <p id="waitlistMessage" class="form-privacy" aria-live="polite"></p>
           </form>
           <div class="waitlist-stats">
             <div class="stat-item">
@@ -4198,22 +4209,70 @@
     const waitlistForm = document.getElementById("waitlistForm");
     const waitlistEmail = document.getElementById("waitlistEmail");
     const waitlistCount = document.getElementById("waitlistCount");
+    const waitlistMessage = document.getElementById("waitlistMessage");
+
+    function setHiddenValue(id, value) {
+      const field = document.getElementById(id);
+      if (field) field.value = value || "";
+    }
+
+    function getQueryValue(name) {
+      return new URLSearchParams(window.location.search).get(name) || "";
+    }
 
     if (waitlistCount) {
       waitlistCount.textContent = "--";
     }
 
     if (waitlistForm) {
-      const button = waitlistForm.querySelector("button");
-      if (button) {
-        button.textContent = "Waitlist Unavailable";
-        button.disabled = true;
-        button.style.background = "#6b7280";
-      }
-
-      waitlistForm.addEventListener("submit", (e) => {
+      waitlistForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (waitlistEmail) waitlistEmail.value = "";
+
+        const button = waitlistForm.querySelector("button");
+        if (waitlistMessage) {
+          waitlistMessage.textContent = "";
+          waitlistMessage.style.color = "";
+        }
+
+        setHiddenValue("waitlistTimestamp", new Date().toISOString());
+        setHiddenValue("waitlistUtmSource", getQueryValue("utm_source"));
+        setHiddenValue("waitlistUtmMedium", getQueryValue("utm_medium"));
+        setHiddenValue("waitlistUtmCampaign", getQueryValue("utm_campaign"));
+
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Saving...";
+        }
+
+        try {
+          const formData = new FormData(waitlistForm);
+          const response = await fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(formData).toString()
+          });
+
+          if (!response.ok) {
+            throw new Error("Netlify Forms submission failed");
+          }
+
+          if (waitlistMessage) {
+            waitlistMessage.textContent = "Saved. We will email launch access when it is ready.";
+            waitlistMessage.style.color = "#047857";
+          }
+          waitlistForm.reset();
+        } catch (error) {
+          if (waitlistMessage) {
+            waitlistMessage.textContent = "We could not save your email. Please try again or contact support.";
+            waitlistMessage.style.color = "#b91c1c";
+          }
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Join the Waitlist";
+          }
+          if (waitlistEmail) waitlistEmail.value = "";
+        }
       });
     }
 

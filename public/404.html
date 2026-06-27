@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found | MosaPack</title>
+  <meta name="robots" content="noindex">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0bbf92;
+      --accent: #e91e8c;
+      --cta: #fbbf24;
+      --ink: #111827;
+      --muted: #6b7280;
+      --bg: #fafafa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      padding: 2rem;
+    }
+    main {
+      width: min(620px, 100%);
+      text-align: center;
+    }
+    .mark {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin: 0 auto 1.5rem;
+    }
+    .mark span { border-radius: 3px; background: var(--primary); }
+    .mark span:nth-child(3n) { background: var(--accent); }
+    .mark span:nth-child(4n) { background: var(--cta); }
+    h1 { font-size: clamp(2rem, 7vw, 4rem); margin: 0 0 0.75rem; letter-spacing: 0; }
+    p { color: var(--muted); font-size: 1.05rem; line-height: 1.6; margin: 0 auto 1.5rem; }
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      background: var(--ink);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="mark" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <h1>Page Not Found</h1>
+    <p>This MosaPack page is not part of the clean launch site.</p>
+    <a href="/">Return Home</a>
+  </main>
+</body>
+</html>

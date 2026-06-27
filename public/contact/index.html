@@ -332,9 +332,11 @@
       <!-- Contact Form -->
       <div class="form-section">
         <h2>Send Us a Message</h2>
-        <form id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-          <input type="hidden" name="form-name" value="contact">
+        <form id="contactForm" name="mosapack-contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+          <input type="hidden" name="form-name" value="mosapack-contact">
           <input type="hidden" name="bot-field">
+          <input type="hidden" name="source" value="contact-page">
+          <input type="hidden" name="timestamp" id="contactTimestamp">
 
           <div class="form-group">
             <label class="form-label" for="name">
@@ -445,6 +447,9 @@
 
       try {
         // Netlify Forms automatically handles the submission
+        const timestamp = document.getElementById("contactTimestamp");
+        if (timestamp) timestamp.value = new Date().toISOString();
+
         const formData = new FormData(form);
 
         const response = await fetch('/', {

@@ -31,10 +31,11 @@ mask_output() {
 }
 
 echo "Live exposure check: $BASE_URL"
+echo "Known burned Kit/ConvertKit-style key last 4 only: 4cCw"
+echo "A failure is expected until A2 clean deploy replaces the dirty live site."
 
 FOUND_SUSPICIOUS=0
 FETCHED=0
-NETWORK_ERRORS=0
 INDEX=0
 
 for path in "${paths[@]}"; do
@@ -45,7 +46,6 @@ for path in "${paths[@]}"; do
   STATUS="$(curl -L -sS --max-time 15 -o "$OUT" -w '%{http_code}' "$URL" || true)"
   if [ -z "$STATUS" ] || [ "$STATUS" = "000" ]; then
     echo "$path -> network-error"
-    NETWORK_ERRORS=$((NETWORK_ERRORS + 1))
     continue
   fi
 
@@ -65,7 +65,7 @@ if [ "$FETCHED" -eq 0 ]; then
 fi
 
 if [ "$FOUND_SUSPICIOUS" -ne 0 ]; then
-  echo "Live exposure check found suspicious strings. Inspect before deploy cleanup."
+  echo "Live exposure check found suspicious strings. This must be cleaned by A2 deploy; do not rollback to this dirty deploy."
   exit 1
 fi
 

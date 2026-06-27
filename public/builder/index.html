@@ -62,15 +62,6 @@
 
     window.addEventListener('DOMContentLoaded', initTabs);
   </script>
-  <!-- Email capture is disabled in this clean repo until A0 provider wiring is verified. -->
-  <script>
-    window.MosaPackLeadCapture = {
-      captureLead: async function() {
-        return { ok: false, disabled: true, reason: "Email capture is not connected yet." };
-      }
-    };
-  </script>
-
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="wobrick-integration.js"></script>
@@ -4919,7 +4910,7 @@
           <ul class="mega-tips">
             <li>Need a fresh start? Use the Reset button beside the zoom controls.</li>
             <li>Toggle grid &amp; numbers via the Display controls above the canvas.</li>
-            <li class="pro-note">Pro members also unlock Shopify export, color analytics, and automated restock alerts.</li>
+            <li class="pro-note">Pro member export options are deferred until launch access is verified.</li>
           </ul>
           <div id="finish-selector" class="finish-selector">
             <h4 class="mega-subtitle">Premium Finishes</h4>
@@ -5254,10 +5245,10 @@
             </div>
             <div id="shopifyBuyButton" style="display: none; margin-top: 1rem;">
               <button class="btn btn-primary" onclick="addToShopifyCart()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
-                🛒 Buy Materials on MosaPack.com
+                Launch Access Not Open
               </button>
               <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
-                Exact materials for your mosaic, pre-filled in cart
+                Checkout is temporarily disabled while we finalize launch access
               </div>
             </div>
             <div class="btn-group" style="margin-top: 0.75rem;">
@@ -5325,13 +5316,13 @@
             <!-- Generate button removed: image regenerates automatically on changes -->
           </div>
 
-          <!-- Shopify Buy Button (shown after generation) -->
+          <!-- Checkout access button (shown after generation) -->
           <div id="shopifyBuyButton" style="display: none; margin-top: 1rem;">
             <button class="btn btn-primary" onclick="addToShopifyCart()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
-              🛒 Buy Materials on MosaPack.com
+              Launch Access Not Open
             </button>
             <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
-              Exact materials for your mosaic, pre-filled in cart
+              Checkout is temporarily disabled while we finalize launch access
             </div>
           </div>
 
@@ -6676,47 +6667,27 @@
       });
     }
 
-    // Show email gate after image is processed
+    // Show save-interest gate after image is processed
     function showEmailGate() {
-      // Check localStorage for persistent email capture (expires after 30 days)
-      const storedCapture = localStorage.getItem('mosapack_email_captured');
-      if (storedCapture) {
-        const expiryDate = new Date(storedCapture);
-        const now = new Date();
-        if (now < expiryDate) {
-          // Email already captured and not expired
-          return;
-        } else {
-          // Expired, clear it
-          localStorage.removeItem('mosapack_email_captured');
-        }
-      }
-
       if (hasSeenEmailGate) return; // Only show once per session
 
-      const overlay = document.getElementById('emailGateOverlay');
-      overlay.classList.add('active');
-      updateFunnelProgress(2); // Move to "Unlock" step
+      const overlay = document.getElementById("emailGateOverlay");
+      if (!overlay) return;
+      overlay.classList.add("active");
+      updateFunnelProgress(2);
 
-      // Track in analytics
-      if (typeof gtag !== 'undefined') {
-        gtag('event', 'email_gate_shown', {
-          'event_category': 'conversion',
-          'event_label': 'builder_v6'
+      if (typeof gtag !== "undefined") {
+        gtag("event", "email_gate_shown", {
+          "event_category": "conversion",
+          "event_label": "builder_v6"
         });
       }
     }
 
-    // Hide email gate
     function hideEmailGate() {
-      const overlay = document.getElementById('emailGateOverlay');
-      overlay.classList.remove('active');
+      const overlay = document.getElementById("emailGateOverlay");
+      if (overlay) overlay.classList.remove("active");
       hasSeenEmailGate = true;
-
-      // Store in localStorage with 30-day expiry
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 30);
-      localStorage.setItem('mosapack_email_captured', expiryDate.toISOString());
     }
 
     // Email validation function
@@ -6878,14 +6849,72 @@
         });
       }
 
-      const emailForm = document.getElementById('emailGateForm');
+      const emailForm = document.getElementById("emailGateForm");
       if (emailForm) {
-        const submitButton = emailForm.querySelector("button[type='submit']");
-        const submitDefaultText = submitButton ? submitButton.textContent : '';
+        const submitButton = emailForm.querySelector("button[type=submit]");
+        const submitDefaultText = submitButton ? submitButton.textContent : "Save My Preview";
+        const emailInput = document.getElementById("emailInput");
 
-        emailForm.addEventListener('submit', async function(e) {
+        function setGateField(id, value) {
+          const field = document.getElementById(id);
+          if (field) field.value = value || "";
+        }
+
+        function getGateQueryValue(name) {
+          return new URLSearchParams(window.location.search).get(name) || "";
+        }
+
+        emailForm.addEventListener("submit", async function(e) {
           e.preventDefault();
-          showToast('⚠️ Email capture is disabled until provider wiring is verified.', 'error');
+
+          const email = emailInput ? emailInput.value.trim() : "";
+          if (!isValidEmail(email)) {
+            showToast("Enter a valid email address.", "error");
+            return;
+          }
+          if (isDisposableEmail(email)) {
+            showToast("Use a permanent email address so we can send launch access.", "error");
+            return;
+          }
+
+          setGateField("saveProjectId", "mosapack-" + Date.now().toString(36));
+          setGateField("saveProductInterest", currentProductType || "unknown");
+          setGateField("saveGridSize", String(currentSize || ""));
+          setGateField("savePreviewShape", currentMaterialType || "mosaic");
+          setGateField("savePhotoCategory", currentPreset || "unknown");
+          setGateField("saveTimestamp", new Date().toISOString());
+          setGateField("saveUtmSource", getGateQueryValue("utm_source"));
+          setGateField("saveUtmMedium", getGateQueryValue("utm_medium"));
+          setGateField("saveUtmCampaign", getGateQueryValue("utm_campaign"));
+
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = "Saving...";
+          }
+
+          try {
+            const formData = new FormData(emailForm);
+            const response = await fetch("/", {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams(formData).toString()
+            });
+
+            if (!response.ok) {
+              throw new Error("Netlify Forms submission failed");
+            }
+
+            showToast("Saved. We will email launch access when it is ready.", "success");
+            emailForm.reset();
+            hideEmailGate();
+          } catch (error) {
+            showToast("We could not save your preview. Try again or contact support.", "error");
+          } finally {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = submitDefaultText;
+            }
+          }
         });
       }
     });
@@ -7859,7 +7888,7 @@
     }
 
     function addToShopifyCart(options = {}) {
-      showToast('⚠️ Checkout is disabled until provider wiring is verified.', 'error');
+      showToast('Checkout is temporarily disabled while we finalize launch access.', 'error');
     }
 
     function startExpressCheckout(method) {
@@ -10817,8 +10846,8 @@
   <!-- PATCH 2: Email Gate Overlay -->
   <div class="email-gate-overlay" id="emailGateOverlay">
     <div class="email-gate-card">
-      <h2>🎨 Unlock Your Preview!</h2>
-      <p class="subtitle">See your materials, pricing, and checkout options</p>
+      <h2>Save Your Preview</h2>
+      <p class="subtitle">Send metadata only so we can follow up when launch access opens.</p>
 
       <ul class="benefits">
         <li>View exact material costs (Magnetic, Solid, Transparent)</li>
@@ -10827,14 +10856,26 @@
         <li>Receive exclusive 15% launch discount code</li>
       </ul>
 
-      <form class="email-gate-form" id="emailGateForm">
+      <form class="email-gate-form" id="emailGateForm" name="mosapack-save-design" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="mosapack-save-design">
+        <input type="hidden" name="bot-field">
+        <input type="hidden" name="project_id" id="saveProjectId">
+        <input type="hidden" name="product_interest" id="saveProductInterest">
+        <input type="hidden" name="grid_size" id="saveGridSize">
+        <input type="hidden" name="preview_shape" id="savePreviewShape">
+        <input type="hidden" name="photo_category" id="savePhotoCategory">
+        <input type="hidden" name="timestamp" id="saveTimestamp">
+        <input type="hidden" name="utm_source" id="saveUtmSource">
+        <input type="hidden" name="utm_medium" id="saveUtmMedium">
+        <input type="hidden" name="utm_campaign" id="saveUtmCampaign">
         <input
           type="email"
           id="emailInput"
+          name="email"
           placeholder="Enter your email"
           required
         />
-        <button type="submit">Unlock My Preview</button>
+        <button type="submit">Save My Preview</button>
       </form>
 
       <p class="email-gate-privacy">
