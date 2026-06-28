@@ -20,8 +20,8 @@ if [ ! -f "$BUILDER" ]; then
   exit 1
 fi
 
-require_rg "Position your pet" "$BUILDER" "crop editor heading"
-require_rg "Drag to center the face" "$BUILDER" "drag-to-pan instruction"
+require_rg "Position your subject" "$BUILDER" "crop editor heading"
+require_rg "Drag to center the subject" "$BUILDER" "drag-to-pan instruction"
 require_rg "id=\"cropCanvas\"" "$BUILDER" "crop preview canvas"
 require_rg "id=\"cropZoomSlider\"" "$BUILDER" "zoom slider"
 require_rg "Reset crop" "$BUILDER" "reset crop control"
@@ -32,7 +32,7 @@ require_rg "cropState" "$BUILDER" "crop state object"
 require_rg "function initializeCropEditor" "$BUILDER" "crop editor initializer"
 require_rg "function getCropSourceRect" "$BUILDER" "crop source rectangle sampler"
 require_rg "drawImage\(currentImage, sx, sy, sw, sh" "$BUILDER" "mosaic generation uses cropped source"
-require_rg "Your pet may be too close to the edge" "$BUILDER" "crop edge warning copy"
+require_rg "Your subject may be too close to the edge" "$BUILDER" "crop edge warning copy"
 
 require_rg "/assets/scenes/office-1920x1080\.jpg" "$BUILDER" "root office scene path"
 require_rg "/assets/scenes/gallery-1920x1080\.jpg" "$BUILDER" "root gallery scene path"
@@ -43,8 +43,8 @@ require_rg "focus-visible" "$BUILDER" "visible keyboard focus style"
 require_rg "role=\"img\"" "$BUILDER" "canvas text alternative"
 require_rg "aria-pressed" "$BUILDER" "toggle selected state"
 
-require_rg "MosaPack Custom Pet Mosaic Builder" "$BUILDER" "single accessible builder h1"
-require_rg "Create a free pet mosaic preview" "$BUILDER" "free preview public copy"
+require_rg "MosaPack Custom Photo Mosaic Builder" "$BUILDER" "single accessible builder h1"
+require_rg "Create a free photo mosaic preview" "$BUILDER" "free preview public copy"
 require_rg "Made-to-order custom proof" "$BUILDER" "made-to-order proof public copy"
 require_rg "Custom quote" "$BUILDER" "custom quote public copy"
 require_rg "Checkout is temporarily disabled while we finalize launch access" "$BUILDER" "honest disabled checkout copy"
@@ -64,7 +64,7 @@ require_rg "Request My Custom Proof" "$BUILDER" "proof request CTA"
 require_rg "name=\"request_type\"" "$BUILDER" "proof request type field"
 require_rg "name=\"proof_requested\"" "$BUILDER" "proof requested field"
 require_rg "name=\"recommended_format\"" "$BUILDER" "recommended format field"
-require_rg "Digital Mystery Pet Reveal Pack" "$BUILDER" "default recommended format"
+require_rg "Digital Mystery Reveal Pack" "$BUILDER" "default recommended format"
 require_rg "Proof request saved" "$BUILDER" "proof request success copy"
 
 if rg -n "/builder/assets/scenes/|-[Tt]humb\.jpg" "$BUILDER"; then

@@ -31,7 +31,7 @@ Harden the canonical builder for trust, accessibility, and launch-scope clarity 
 | Format | Public state |
 | --- | --- |
 | Free pet preview | Active. User can upload, crop, and generate a free preview. |
-| Digital Mystery Pet Reveal Pack | First paid path after D1; current wording is launch access. |
+| Digital Mystery Reveal Pack | First paid path after D1; current wording is launch access. |
 | Sticker Reveal Kit | Made-to-order custom proof request. |
 | Magnetic Reveal Kit | Made-to-order premium custom proof option. |
 | Premium Brick Kit | Premium custom quote path. |

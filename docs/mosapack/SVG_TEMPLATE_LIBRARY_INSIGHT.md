@@ -10,7 +10,7 @@ Mosaic, layered, and mystery-reveal SVGs are more relevant because they connect 
 
 ## Best MosaPack Application
 
-Use SVG/template assets inside the Digital Mystery Pet Reveal Pack:
+Use SVG/template assets inside the Digital Mystery Reveal Pack:
 
 - printable grid
 - SVG/Cricut-compatible cut template
@@ -23,4 +23,4 @@ An Etsy or digital download expansion may make sense only after the core MosaPac
 
 ## Decision
 
-Do not start a separate SVG business now. Keep SVG/template work attached to the Digital Mystery Pet Reveal Pack and exact-design-save workflow.
+Do not start a separate SVG business now. Keep SVG/template work attached to the Digital Mystery Reveal Pack and exact-design-save workflow.

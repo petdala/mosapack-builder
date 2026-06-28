@@ -6,7 +6,7 @@ Canonical builder: `public/builder/index.html`
 
 ## Scope
 
-This audit reviewed the current MosaPack launch journey as a first-time pet owner or gift buyer. The review used the existing v6-derived canonical builder, with v7/v8 treated as pattern references only.
+This audit reviewed the current MosaPack launch journey as a first-time gift buyer or custom photo customer. The review used the existing v6-derived canonical builder, with v7/v8 treated as pattern references only.
 
 No B2 exact design save, checkout, supplier automation, public quality scores, hard email gate, new builder version, or framework migration was started.
 
@@ -34,11 +34,11 @@ Screenshots are stored in `docs/mosapack/qa/b1-3-visual-cx/screenshots/`.
 
 | Area | Score | Evidence | Issues | Recommendation |
 | --- | ---: | --- | --- | --- |
-| First impression / trust | 3 | Landing and builder communicate pet preview, but old trust copy included physical-sale promises. | P1 | Fixed landing shipping/guarantee promises. Keep physical language proof-based. |
-| Clarity of product | 4 | Hero and upload overlay state free pet mosaic preview. | P2 | Add stronger example output later. |
+| First impression / trust | 3 | Landing and builder communicate photo preview, but old trust copy included physical-sale promises. | P1 | Fixed landing shipping/guarantee promises. Keep physical language proof-based. |
+| Clarity of product | 4 | Hero and upload overlay state free photo mosaic preview. | P2 | Add stronger example output later. |
 | Available now vs later | 4 | Builder says no checkout today and proof/launch access follow-up. | P1 | Fixed landing promises; keep B2 caveat in docs. |
 | Upload friction | 4 | Upload overlay is obvious and first preview remains free. | P2 | Real-device upload still needed. |
-| Crop/positioning clarity | 4 | Crop overlay says Position your pet and supports drag/zoom/reset. | P2 | Add keyboard crop controls later. |
+| Crop/positioning clarity | 4 | Crop overlay says Position your subject and supports drag/zoom/reset. | P2 | Add keyboard crop controls later. |
 | Preview emotional wow | 3 | Preview generates, but scene/product context remains secondary. | P2 | Before/after and better example scenes later. |
 | Proof request clarity | 4 | Proof CTA appears after preview and says no checkout today. | P1 | Fixed automatic handoff to proof tab after generation. |
 | Recommended format clarity | 3 | Card helps but still competes with product path controls. | P2 | Simplify product path further after B2. |
@@ -56,7 +56,7 @@ Overall score after fixes: 3.7 / 5.
 
 ## Specific Checklist Answers
 
-1. User immediately knows this is for pet photos: yes.
+1. User immediately understands the custom photo path, with pets supported as the first campaign wedge: yes.
 2. User knows first preview is free: yes.
 3. User knows physical kits are made-to-order/proof-based, not instant checkout: mostly yes after landing copy fix.
 4. User knows checkout is disabled: yes.
@@ -96,7 +96,7 @@ None found after smoke testing. Upload, crop, preview generation, proof CTA, and
 - Add optional clean-background or center-pet coaching later, without AI overclaiming.
 - Add keyboard crop controls.
 - Move processing to a worker or otherwise reduce synchronous generation blocking.
-- Run 20-photo pet test set and real-device mobile QA.
+- Run 20-photo mixed category test set and real-device mobile QA.
 
 ## Design Debt Classification
 
@@ -160,8 +160,21 @@ Do not production deploy from this task yet. Preview deploy only.
 
 The builder is materially safer and clearer after B1.3, but production approval still requires Derek's manual QA:
 
-- 20-photo pet test set.
+- 20-photo mixed category test set.
 - Real mobile device upload/crop/generate test.
 - Live Netlify proof-request submission on the preview deploy.
 
 If manual B1/B1.2/B1.3 QA passes, the next true build gate is B2 exact design save.
+
+## B1.4 Brand Architecture Correction
+
+MosaPack core positioning is photo-agnostic: turn any meaningful photo into a custom mosaic reveal kit. Pets remain the first GTM vertical and a strong campaign example, but the canonical builder should not be pet-only.
+
+What changed:
+
+- Global builder copy now uses photo, image, subject, gift, and custom proof language.
+- Pet-specific copy remains only as example/campaign language.
+- Proof request metadata includes `photo_category` so future verticals can reuse the same builder.
+- B2 exact design save must support multiple photo categories and must not fork the builder by vertical.
+
+New success test: can a user with a pet, couple, family, memorial, baby/kids, corporate/logo, holiday, or other meaningful photo understand the preview to proof path?

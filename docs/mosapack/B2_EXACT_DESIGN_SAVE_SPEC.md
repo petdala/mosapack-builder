@@ -32,6 +32,8 @@ Before real proof fulfillment or checkout, MosaPack must persist the exact appro
 - crop state
 - grid size
 - selected format
+- photo category
+- selected vertical
 - palette
 - generated mosaic output
 - color/BOM summary
@@ -94,3 +96,16 @@ B2 exact design save is required before real proof fulfillment, physical checkou
 B1.3 visual QA confirmed the upload/crop/preview/proof path works locally, but manual QA is still required before production approval. The visual fix moved the post-preview journey to the Formats & Proofs stage, hid advanced controls until preview generation, and kept the proof request metadata-only.
 
 B2 exact design save remains the next true build gate before real proof fulfillment, paid custom proof, or physical checkout.
+
+## B1.4 Brand Architecture Correction
+
+MosaPack core positioning is photo-agnostic: turn any meaningful photo into a custom mosaic reveal kit. Pets remain the first GTM vertical and a strong campaign example, but the canonical builder should not be pet-only.
+
+What changed:
+
+- Global builder copy now uses photo, image, subject, gift, and custom proof language.
+- Pet-specific copy remains only as example/campaign language.
+- Proof request metadata includes `photo_category` so future verticals can reuse the same builder.
+- B2 exact design save must support multiple photo categories and must not fork the builder by vertical.
+
+New success test: can a user with a pet, couple, family, memorial, baby/kids, corporate/logo, holiday, or other meaningful photo understand the preview to proof path?

@@ -45,7 +45,7 @@ No raw photo/file input is inside Netlify Forms.
 
 Rule-based only, with no public AI, DeltaE, SSIM, or quality score language:
 
-- default/unsure: Digital Mystery Pet Reveal Pack
+- default/unsure: Digital Mystery Reveal Pack
 - centered medium preview: Magnetic Reveal Kit or Sticker Reveal Kit
 - larger grid or large brick path: Premium Brick Kit Quote
 
@@ -77,12 +77,12 @@ Users can choose another format in the post-preview card before submitting the p
 
 ## Production Readiness Status
 
-Preview deploy only. Production is not recommended until Derek verifies the preview, a live Netlify proof request reaches Forms, and the 20-photo pet test set/mobile/keyboard checks are complete.
+Preview deploy only. Production is not recommended until Derek verifies the preview, a live Netlify proof request reaches Forms, and the 20-photo mixed category test set/mobile/keyboard checks are complete.
 
 ## Remaining Risks
 
 - The builder remains a large single HTML file, so regressions need verifier coverage.
-- Rule-based format recommendation is intentionally simple and should be reviewed against real pet photos.
+- Rule-based format recommendation is intentionally simple and should be reviewed against mixed-category photos.
 - Live Netlify Forms receipt still requires a preview-deploy submission.
 
 ## Post-Implementation Audit
@@ -111,7 +111,7 @@ Preview URL status: `https://6a412cd172ca55a4d6fa7aa2--mosapack.netlify.app` ret
 
 Manual QA still needed:
 
-- 20-photo pet test set
+- 20-photo mixed category test set
 - mobile test
 - keyboard/focus test
 - one real live Netlify Forms proof-request submission
@@ -121,3 +121,16 @@ Manual QA still needed:
 B1.3 visual QA confirmed the upload/crop/preview/proof path works locally, but manual QA is still required before production approval. The visual fix moved the post-preview journey to the Formats & Proofs stage, hid advanced controls until preview generation, and kept the proof request metadata-only.
 
 B2 exact design save remains the next true build gate before real proof fulfillment, paid custom proof, or physical checkout.
+
+## B1.4 Brand Architecture Correction
+
+MosaPack core positioning is photo-agnostic: turn any meaningful photo into a custom mosaic reveal kit. Pets remain the first GTM vertical and a strong campaign example, but the canonical builder should not be pet-only.
+
+What changed:
+
+- Global builder copy now uses photo, image, subject, gift, and custom proof language.
+- Pet-specific copy remains only as example/campaign language.
+- Proof request metadata includes `photo_category` so future verticals can reuse the same builder.
+- B2 exact design save must support multiple photo categories and must not fork the builder by vertical.
+
+New success test: can a user with a pet, couple, family, memorial, baby/kids, corporate/logo, holiday, or other meaningful photo understand the preview to proof path?

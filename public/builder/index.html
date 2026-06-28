@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MosaPack Builder - Custom Pet Mosaic Preview</title>
-  <meta name="description" content="Create a free custom pet mosaic preview, then save your design for digital launch access or made-to-order proof requests.">
+  <title>MosaPack Builder - Custom Photo Mosaic Preview</title>
+  <meta name="description" content="Create a free custom photo mosaic preview, then save your design for digital launch access or made-to-order proof requests.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230bbf92'/%3E%3Crect x='12' y='12' width='8' height='8' rx='1' fill='%23e91e8c'/%3E%3C/svg%3E">
   
   <!-- Google Analytics 4 -->
@@ -55,7 +55,7 @@
       const hasSeenTabs = localStorage.getItem('mosapack_seen_tabs');
       if (!hasSeenTabs && tabName === 'builder') {
         if (typeof showToast === 'function') {
-          showToast('💎 Bundle Builder loaded! Compare packages and customize your order.', 'success');
+          showToast('💎 Builder loaded. Compare formats and preview options.', 'success');
         }
         localStorage.setItem('mosapack_seen_tabs', 'true');
       }
@@ -4161,6 +4161,7 @@
     }
 
     .email-gate-form input,
+    .email-gate-form select,
     .email-gate-form textarea {
       padding: 14px;
       border: 2px solid #e5e5e5;
@@ -4170,6 +4171,7 @@
     }
 
     .email-gate-form input:focus,
+    .email-gate-form select:focus,
     .email-gate-form textarea:focus {
       outline: none;
       border-color: #007bff;
@@ -4815,8 +4817,8 @@
     </div>
   </div>
 
-  <h1 class="sr-only">MosaPack Custom Pet Mosaic Builder</h1>
-  <div id="builderStatus" class="sr-only" role="status" aria-live="polite">Create a free pet mosaic preview.</div>
+  <h1 class="sr-only">MosaPack Custom Photo Mosaic Builder</h1>
+  <div id="builderStatus" class="sr-only" role="status" aria-live="polite">Create a free photo mosaic preview.</div>
 
   <div class="workspace-tabs">
     <button class="workspace-tab active" data-tab="designer" onclick="showTab('designer')">
@@ -4923,7 +4925,7 @@
           <!-- POD-style: Product label above hero visual -->
           <div class="pod-product-label" id="podProductLabel">
             <span class="product-icon" aria-hidden="true">Format</span>
-            <span class="product-name">Free pet mosaic preview</span>
+            <span class="product-name">Free photo mosaic preview</span>
             <span class="product-size" id="podProductSize">48×48</span>
           </div>
           <div class="canvas-viewport" id="canvasViewport">
@@ -4954,16 +4956,16 @@
             <div class="upload-overlay" id="uploadOverlay" onclick="document.getElementById('fileInput').click()">
               <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(this)" aria-label="Upload photo">
               <div class="upload-icon" aria-hidden="true">Upload</div>
-              <div class="upload-text">Create a free pet mosaic preview</div>
-              <div class="upload-hint">Upload your pet photo and adjust the crop before generating.</div>
+              <div class="upload-text">Create a free photo mosaic preview</div>
+              <div class="upload-hint">Upload your photo and adjust the crop before generating.</div>
             </div>
             <!-- B1 Crop / Focal Control -->
             <div class="crop-editor" id="cropEditor" aria-live="polite">
               <div class="crop-card">
-                <h3 class="crop-heading">Position your pet</h3>
-                <p class="crop-subtitle">Drag to center the face, then zoom if you want a tighter preview.</p>
-                <div class="crop-frame" id="cropFrame" aria-label="Drag to center the face">
-                  <canvas id="cropCanvas" width="420" height="420" role="img" aria-label="Crop preview canvas. Drag the image to center the face."></canvas>
+                <h3 class="crop-heading">Position your subject</h3>
+                <p class="crop-subtitle">Drag to center the subject, then zoom if you want a tighter preview.</p>
+                <div class="crop-frame" id="cropFrame" aria-label="Drag to center the subject">
+                  <canvas id="cropCanvas" width="420" height="420" role="img" aria-label="Crop preview canvas. Drag the image to center the subject."></canvas>
                   <div class="crop-crosshair" aria-hidden="true"></div>
                 </div>
                 <div class="crop-controls">
@@ -4987,7 +4989,7 @@
       <div id="workspacePanelTemplates" class="workspace-panel-templates">
         <section class="workspace-mega-content" data-panel="upload">
           <h3 class="mega-title">Create a Free Pet Preview</h3>
-          <p class="mega-description">Upload your pet photo and adjust the crop before generating your free preview.</p>
+          <p class="mega-description">Upload your photo and adjust the crop before generating your free preview.</p>
           <div class="mega-button-row">
             <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Select Photo</button>
             <button class="btn btn-secondary" onclick="resetBuilder()">Clear Canvas</button>
@@ -5310,7 +5312,7 @@
             <span class="trust-icon" aria-hidden="true">Preview</span>
             <div class="trust-copy">
               <strong>Color-calibrated preview</strong>
-              <span>Preview your pet mosaic before choosing a digital or custom proof path.</span>
+              <span>Preview your photo mosaic before choosing a digital or custom proof path.</span>
             </div>
           </div>
           <div class="trust-item">
@@ -5527,11 +5529,11 @@
             <section class="post-preview-flow" id="postPreviewFlow" aria-labelledby="proofRequestTitle" hidden>
               <div class="recommended-format-card" id="recommendedFormatCard">
                 <span class="recommended-format-eyebrow">Recommended format</span>
-                <h3 class="recommended-format-title" id="recommendedFormatTitle">Digital Mystery Pet Reveal Pack</h3>
+                <h3 class="recommended-format-title" id="recommendedFormatTitle">Digital Mystery Reveal Pack</h3>
                 <p class="recommended-format-body" id="recommendedFormatReason">Best for instant keepsake files and sharing.</p>
                 <label class="sr-only" for="proofFormatSelect">Choose another format</label>
                 <select class="premium-select" id="proofFormatSelect" aria-label="Choose another format">
-                  <option value="Digital Mystery Pet Reveal Pack">Digital Mystery Pet Reveal Pack</option>
+                  <option value="Digital Mystery Reveal Pack">Digital Mystery Reveal Pack</option>
                   <option value="Sticker Reveal Kit">Sticker Reveal Kit</option>
                   <option value="Magnetic Reveal Kit">Magnetic Reveal Kit</option>
                   <option value="Premium Brick Kit Quote">Premium Brick Kit Quote</option>
@@ -5539,7 +5541,7 @@
               </div>
               <div class="proof-request-card">
                 <h3 id="proofRequestTitle">Request Your Custom Proof</h3>
-                <p class="proof-request-body">We'll follow up with the next step to confirm your approved design before production.</p>
+                <p class="proof-request-body">We'll review your mosaic details and follow up with the next step to confirm your approved design. Production starts only after proof approval when your selected format is ready.</p>
                 <ul class="proof-points">
                   <li>Free preview first</li>
                   <li>Design confirmation before production</li>
@@ -6937,7 +6939,7 @@
     let hasSeenEmailGate = false;
     let currentBrickCount = 0;
     let pendingRequestType = 'save_design';
-    let lastRecommendedFormat = 'Digital Mystery Pet Reveal Pack';
+    let lastRecommendedFormat = 'Digital Mystery Reveal Pack';
 
     // PATCH 5: Finish Benefits Data
     const finishBenefits = {
@@ -7033,7 +7035,7 @@
       if (title) title.textContent = isProof ? 'Request Your Custom Proof' : 'Save Your Design';
       if (subtitle) {
         subtitle.textContent = isProof
-          ? 'Send metadata only so we can follow up with the next step to confirm your approved design.'
+          ? "We'll review your mosaic details and follow up with the next step to confirm your approved design. Production starts only after proof approval when your selected format is ready."
           : 'Send metadata only so we can follow up with digital launch access or proof options.';
       }
       if (benefits) {
@@ -7091,7 +7093,7 @@
     }
 
     const FORMAT_REASONS = {
-      'Digital Mystery Pet Reveal Pack': 'Best for instant keepsake files and sharing.',
+      'Digital Mystery Reveal Pack': 'Best for instant keepsake files and sharing.',
       'Sticker Reveal Kit': 'Best for a hands-on reveal kit with lower cost.',
       'Magnetic Reveal Kit': 'Best for a reusable display experience.',
       'Premium Brick Kit Quote': 'Best for a larger display piece.'
@@ -7110,7 +7112,7 @@
       if (centered && currentSize >= 48) {
         return currentMaterialType === 'magnetic' ? 'Magnetic Reveal Kit' : 'Sticker Reveal Kit';
       }
-      return 'Digital Mystery Pet Reveal Pack';
+      return 'Digital Mystery Reveal Pack';
     }
 
     function updateRecommendedFormatCard(format) {
@@ -7123,7 +7125,7 @@
 
       if (flow && processedData) flow.hidden = false;
       if (title) title.textContent = selected;
-      if (reason) reason.textContent = FORMAT_REASONS[selected] || FORMAT_REASONS['Digital Mystery Pet Reveal Pack'];
+      if (reason) reason.textContent = FORMAT_REASONS[selected] || FORMAT_REASONS['Digital Mystery Reveal Pack'];
       if (select && select.value !== selected) select.value = selected;
     }
 
@@ -7329,7 +7331,9 @@
           setGateField("saveProductInterest", currentProductType || "unknown");
           setGateField("saveGridSize", String(currentSize || ""));
           setGateField("savePreviewShape", currentMaterialType || "mosaic");
-          setGateField("savePhotoCategory", currentPreset || "unknown");
+          const photoCategory = document.getElementById("photoCategoryInput")?.value || "Pet";
+          setGateField("savePhotoCategory", photoCategory);
+          setGateField("saveSelectedVertical", photoCategory);
           setGateField("savePage", window.location.pathname || "/builder/");
           setGateField("saveSource", requestType === "custom_proof" ? "builder-proof-request" : "builder-save-design");
           setGateField("saveCropX", Number.isFinite(cropState.cropX) ? cropState.cropX.toFixed(2) : "");
@@ -8591,7 +8595,7 @@
       const asymmetricEdge = (nearLeft !== nearRight) || (nearTop !== nearBottom);
       const zoomedEdge = cropState.zoom > 1.02 && (nearLeft || nearRight || nearTop || nearBottom);
       cropState.warning = asymmetricEdge || zoomedEdge
-        ? 'Your pet may be too close to the edge. Try zooming out or dragging the face toward the center.'
+        ? 'Your subject may be too close to the edge. Try zooming out or dragging the subject toward the center.'
         : '';
       const warningEl = document.getElementById('cropWarning');
       if (warningEl) warningEl.textContent = cropState.warning;
@@ -11613,6 +11617,7 @@
         <input type="hidden" name="grid_size" id="saveGridSize">
         <input type="hidden" name="preview_shape" id="savePreviewShape">
         <input type="hidden" name="photo_category" id="savePhotoCategory">
+        <input type="hidden" name="selected_vertical" id="saveSelectedVertical">
         <input type="hidden" name="crop_x" id="saveCropX">
         <input type="hidden" name="crop_y" id="saveCropY">
         <input type="hidden" name="crop_zoom" id="saveCropZoom">
@@ -11638,11 +11643,27 @@
           name="name"
           placeholder="Name (optional)"
         />
+        <label class="sr-only" for="photoCategoryInput">What kind of photo is this?</label>
+        <select
+          id="photoCategoryInput"
+          name="photo_category_visible"
+          aria-label="What kind of photo is this?"
+        >
+          <option value="">What kind of photo is this?</option>
+          <option value="Pet" selected>Pet</option>
+          <option value="Couple / Wedding">Couple / Wedding</option>
+          <option value="Family">Family</option>
+          <option value="Baby / Kids">Baby / Kids</option>
+          <option value="Memorial">Memorial</option>
+          <option value="Corporate / Logo">Corporate / Logo</option>
+          <option value="Holiday Gift">Holiday Gift</option>
+          <option value="Other">Other</option>
+        </select>
         <textarea
           id="noteInput"
           name="note"
           rows="3"
-          placeholder="Anything we should know about your pet or the gift?"
+          placeholder="Anything we should know about this photo or gift?"
         ></textarea>
         <button type="submit" id="emailGateSubmit">Save design</button>
       </form>

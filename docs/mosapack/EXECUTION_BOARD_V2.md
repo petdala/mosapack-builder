@@ -7,7 +7,7 @@ This clean repo is for A0/A1/A2/A3/A4 foundation work only. Do not expand produc
 - Digital launches first.
 - Physical R&D runs in parallel and does not block digital.
 - Upload builder remains core.
-- First monetized product is the $12–15 digital Mystery Pet Reveal Pack.
+- First monetized product is the $12-15 digital Mystery Reveal Pack.
 - No new builder/app/partner system/internal reporting UI/automation/public quality score until first 5 orders are fulfilled.
 - No physical sale until sample, safety, assembly, shipping, and landed-margin gates pass.
 
@@ -60,3 +60,16 @@ Required workstream:
 - test shipping/packaging
 - model landed cost
 - no instant physical checkout until gates pass
+
+## B1.4 Brand Architecture Correction
+
+MosaPack core positioning is photo-agnostic: turn any meaningful photo into a custom mosaic reveal kit. Pets remain the first GTM vertical and a strong campaign example, but the canonical builder should not be pet-only.
+
+What changed:
+
+- Global builder copy now uses photo, image, subject, gift, and custom proof language.
+- Pet-specific copy remains only as example/campaign language.
+- Proof request metadata includes `photo_category` so future verticals can reuse the same builder.
+- B2 exact design save must support multiple photo categories and must not fork the builder by vertical.
+
+New success test: can a user with a pet, couple, family, memorial, baby/kids, corporate/logo, holiday, or other meaningful photo understand the preview to proof path?

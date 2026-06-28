@@ -158,7 +158,7 @@ if rg -n -i "shopify|stripe|order placed|checkout successful|payment received|fa
 fi
 rm -f /tmp/mosapack-public-checkout.txt
 
-if ! rg -q "Create a free pet mosaic preview|Free preview first" "$BUILDER"; then
+if ! rg -q "Create a free photo mosaic preview|Free preview first" "$BUILDER"; then
   echo "MISSING first-preview-free builder copy."
   FAIL=1
 fi
