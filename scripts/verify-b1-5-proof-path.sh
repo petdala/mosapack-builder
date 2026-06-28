@@ -89,6 +89,18 @@ RESULT="$("$PWCLI" --raw run-code "async () => {
   await page.fill('#nameInput', 'B1.5 proof path verification');
   await page.selectOption('#photoCategoryInput', 'Pet');
   await page.fill('#noteInput', 'Automated B1.5 proof path verification. Safe to delete.');
+  await page.check('#designStorageConsent');
+
+  let capturedSaveProjectPost = '';
+  await page.route('http://127.0.0.1:$SERVER_PORT/.netlify/functions/save-project', async (route) => {
+    const request = route.request();
+    capturedSaveProjectPost = request.postData() || '';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, project_id: '11111111-1111-4111-8111-111111111111', saved_at: new Date().toISOString(), save_version: 'b2-v1' })
+    });
+  });
 
   let capturedPost = '';
   await page.route('http://127.0.0.1:$SERVER_PORT/', async (route) => {
@@ -112,15 +124,25 @@ RESULT="$("$PWCLI" --raw run-code "async () => {
       emailField: !!document.querySelector('#emailInput'),
       categoryField: !!document.querySelector('#photoCategoryInput'),
       closeButton: !!document.querySelector('.email-gate-close'),
-      noFileInputs: fileInputs === 0
+      noFileInputs: fileInputs === 0,
+      consentField: !!document.querySelector('#designStorageConsent')
     };
   }));
+
+  result.saveProjectPayloadSafe = capturedSaveProjectPost.length > 0 &&
+    /\"consent_to_store_design\":true/.test(capturedSaveProjectPost) &&
+    /\"preview_image_data_url\":\"data:image\//.test(capturedSaveProjectPost) &&
+    /\"cropped_source_data_url\":\"data:image\//.test(capturedSaveProjectPost);
 
   result.payloadSafe = capturedPost.length > 0 &&
     /request_type=custom_proof/.test(capturedPost) &&
     /proof_requested=true/.test(capturedPost) &&
     /recommended_format=/.test(capturedPost) &&
     /photo_category=/.test(capturedPost) &&
+    /project_id=11111111-1111-4111-8111-111111111111/.test(capturedPost) &&
+    /project_saved=true/.test(capturedPost) &&
+    /save_version=b2-v1/.test(capturedPost) &&
+    /design_storage=netlify_blobs/.test(capturedPost) &&
     !/filename=|image=|file=|data%3Aimage|data:image|base64/i.test(capturedPost);
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -128,7 +150,7 @@ RESULT="$("$PWCLI" --raw run-code "async () => {
   result.mobileOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   result.pass = result.flowVisible && !result.parentHidden && result.ctaVisible && result.ctaFocusable &&
     result.modalInitiallyHidden && result.modalOpened && result.emailField && result.categoryField &&
-    result.closeButton && result.noFileInputs && result.payloadSafe && result.mobileOverflow <= 2 &&
+    result.closeButton && result.noFileInputs && result.consentField && result.saveProjectPayloadSafe && result.payloadSafe && result.mobileOverflow <= 2 &&
     result.noQualityScore && result.checkoutHonest;
   return result;
 }")"

@@ -35,7 +35,6 @@ forbidden_paths=(
   "affiliate"
   "financial-dashboard"
   "data.zip"
-  "node_modules"
   ".venv"
   "builder-pro-v3"
   "builder-pro-v4"
@@ -46,11 +45,16 @@ forbidden_paths=(
 )
 
 for pattern in "${forbidden_paths[@]}"; do
-  if find "$ROOT" \( -path "$ROOT/.git" \) -prune -o -path "*$pattern*" -print -quit | grep -q .; then
+  if find "$ROOT" \( -path "$ROOT/.git" -o -path "$ROOT/node_modules" -o -path "$ROOT/.netlify" \) -prune -o -path "*$pattern*" -print -quit | grep -q .; then
     echo "FORBIDDEN path/name found: $pattern"
     FAIL=1
   fi
 done
+
+if git -C "$ROOT" ls-files | rg -q '(^|/)node_modules/'; then
+  echo "FORBIDDEN tracked node_modules files found"
+  FAIL=1
+fi
 
 if [ ! -f "$ROOT/netlify.toml" ]; then
   echo "MISSING netlify.toml"

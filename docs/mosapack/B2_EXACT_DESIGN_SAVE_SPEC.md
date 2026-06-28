@@ -109,3 +109,17 @@ What changed:
 - B2 exact design save must support multiple photo categories and must not fork the builder by vertical.
 
 New success test: can a user with a pet, couple, family, memorial, baby/kids, corporate/logo, holiday, or other meaningful photo understand the preview to proof path?
+
+## B2 Implementation Update - 2026-06-28
+
+B2 has been implemented as a Netlify Functions + Netlify Blobs path. The implementation saves the approved cropped source image, rendered preview image, crop state, render settings, palette/color data, tile map, BOM summary where available, and proof metadata under a server-generated `project_id`.
+
+The implementation intentionally does not store the full original image by default. It also does not send raw image data through Netlify Forms. The Netlify Form receives only metadata plus the saved `project_id` after `save-project` succeeds.
+
+Admin retrieval is token-protected through `get-project`. Deletion is token-protected through `delete-project`. Production use requires `MOSA_ADMIN_TOKEN` to be configured in Netlify.
+
+B2 remains blocked from production until the preview proof-save test passes and admin retrieval is verified.
+
+## B2 Preview Gate Status - 2026-06-28
+
+The preview proof-save path passed for save and metadata-only form submission. Admin retrieval remains blocked until `MOSA_ADMIN_TOKEN` is configured in Netlify. B2 should not be production-deployed until retrieval and deletion are verified on the saved preview project.

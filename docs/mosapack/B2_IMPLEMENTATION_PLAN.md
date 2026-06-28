@@ -207,3 +207,50 @@ Before B2 collects images or saved renders:
 - Admin retrieval UI now or CSV/link only?
 - Should `project_id` be generated client-side before save or only server-side?
 - Should B2 support delete-by-email immediately, or start with a manual support path?
+
+## B2 Implementation Status - 2026-06-28
+
+Implemented on branch `feature/b2-exact-design-save` using Option A: Netlify Functions + Netlify Blobs.
+
+Built pieces:
+
+- `netlify/functions/save-project.mjs`
+- `netlify/functions/get-project.mjs`
+- `netlify/functions/delete-project.mjs`
+- `@netlify/blobs` dependency
+- proof modal consent checkbox
+- client-side cropped source and preview compression
+- metadata-only Netlify Forms submission after successful design save
+- `scripts/verify-b2-design-save.sh`
+- admin retrieval/deletion runbook
+
+Current behavior:
+
+1. The free preview remains local and ungated.
+2. Proof/save capture happens only after the user opens the proof/save form and gives consent.
+3. The saved design uses a server-generated `project_id`.
+4. Netlify Forms receives the returned `project_id` and save metadata only.
+5. Raw image data is posted to `save-project`, not to Netlify Forms.
+
+Remaining setup before production B2 deploy:
+
+- Configure `MOSA_ADMIN_TOKEN` in Netlify.
+- Preview-test `save-project` with the real UI path.
+- Verify `get-project` using the admin token.
+- Verify `delete-project` on a test project.
+- Confirm Netlify Forms contains `project_id`, `project_saved=true`, `save_version=b2-v1`, and `design_storage=netlify_blobs`.
+
+## B2 Preview Test Status - 2026-06-28
+
+Preview deploy `https://6a41a625f430d406693410b6--mosapack.netlify.app` passed the real UI proof-save path:
+
+- `save-project` returned HTTP 200.
+- UI success appeared only after save and form submission.
+- Netlify Forms metadata included the returned `project_id`.
+- Netlify Forms payload did not include image data.
+
+Blocked before production:
+
+- `MOSA_ADMIN_TOKEN` is not configured on Netlify.
+- `get-project` currently returns disabled status.
+- Admin retrieval and deletion must be verified before production deploy.

@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-TARGETS=("$ROOT/public" "$ROOT/docs" "$ROOT/scripts" "$ROOT/netlify.toml")
+TARGETS=("$ROOT/public" "$ROOT/docs" "$ROOT/scripts" "$ROOT/netlify.toml" "$ROOT/netlify/functions" "$ROOT/package.json" "$ROOT/package-lock.json")
 HIGH_CONFIDENCE='sk_live_[A-Za-z0-9_:-]{10,}|sk_test_[A-Za-z0-9_:-]{10,}|pk_live_[A-Za-z0-9_:-]{10,}|rk_live_[A-Za-z0-9_:-]{10,}|whsec_[A-Za-z0-9_:-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|bearer[[:space:]]+[A-Za-z0-9._=-]{20,}|client_secret[[:space:]]*[:=][[:space:]]*"?[A-Za-z0-9._=-]{12,}|access_token[[:space:]]*[:=][[:space:]]*"?[A-Za-z0-9._=-]{20,}|refresh_token[[:space:]]*[:=][[:space:]]*"?[A-Za-z0-9._=-]{20,}|apiKey[[:space:]]*[:=][[:space:]]*"?[A-Za-z0-9._=-]{24,}|api[_-]?key[[:space:]]*[:=][[:space:]]*"?[A-Za-z0-9._=-]{24,}'
 LOW_CONFIDENCE='api[_-]?key|apiKey|secret|token|bearer|STRIPE|stripe|CONVERTKIT|KIT_API|convertkit|PRINTFUL|PRINTIFY|NETLIFY|FIREBASE|SUPABASE|GA_SECRET|MEASUREMENT_PROTOCOL|client_secret|private_key|access_token|refresh_token|YOUR_PIXEL_ID'
 PUBLIC_PROVIDER_REFS='ConvertKit|CONVERTKIT|convertkit|KIT_API|apiKey|api_key'

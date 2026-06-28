@@ -106,3 +106,15 @@ Derek should verify the production submission in Netlify dashboard -> Forms.
 B1.x production status: production deployed.
 
 B2 readiness: ready for `B2 exact design save` planning/implementation next. Do not start checkout or physical fulfillment until B2 and later gates are complete.
+
+## B2 Follow-On Implementation Note - 2026-06-28
+
+B2 exact design save was implemented after the B1.6 production deploy on branch `feature/b2-exact-design-save`. B1.6 production remains the current approved production baseline until B2 receives a separate preview test and production approval.
+
+B2 changes the proof request path so a saved project record is created before Netlify Forms submission. B2 must not be production-deployed until:
+
+- `save-project` succeeds on a preview deploy
+- Netlify Forms receives the returned `project_id`
+- `get-project` works with `MOSA_ADMIN_TOKEN`
+- `delete-project` works on a test project
+- live exposure checks remain clean

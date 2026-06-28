@@ -4266,6 +4266,33 @@
       background: #0056b3;
     }
 
+    .design-storage-consent {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 0.65rem;
+      align-items: start;
+      text-align: left;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-soft);
+    }
+
+    .design-storage-consent input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-top: 0.15rem;
+      cursor: pointer;
+    }
+
+    .design-storage-consent label {
+      margin: 0;
+      color: var(--text);
+      font-size: 0.85rem;
+      line-height: 1.4;
+      cursor: pointer;
+    }
+
     .email-gate-privacy {
       margin-top: 12px;
       font-size: 12px;
@@ -7394,6 +7421,219 @@
           return new URLSearchParams(window.location.search).get(name) || "";
         }
 
+        const DESIGN_SAVE_VERSION = "b2-v1";
+        const DESIGN_DATA_URL_LIMIT = 3 * 1024 * 1024;
+
+        function estimateDataUrlBytes(dataUrl) {
+          if (!dataUrl || typeof dataUrl !== "string") return 0;
+          const commaIndex = dataUrl.indexOf(",");
+          const payloadLength = commaIndex >= 0 ? dataUrl.length - commaIndex - 1 : dataUrl.length;
+          return Math.floor((payloadLength * 3) / 4);
+        }
+
+        function createScaledCanvas(width, height, maxDimension) {
+          const ratio = Math.min(1, maxDimension / Math.max(width, height));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(width * ratio));
+          canvas.height = Math.max(1, Math.round(height * ratio));
+          return canvas;
+        }
+
+        function dataUrlWithinLimit(canvas, type, quality, label) {
+          const dataUrl = canvas.toDataURL(type, quality);
+          if (estimateDataUrlBytes(dataUrl) > DESIGN_DATA_URL_LIMIT) {
+            throw new Error(`${label} exceeds the 3MB save limit after compression.`);
+          }
+          return dataUrl;
+        }
+
+        function captureApprovedSourceDataUrl() {
+          if (!currentImage) throw new Error("Upload a photo before saving a proof.");
+          const rect = getCropSourceRect();
+          const maxDimensions = [1600, 1400, 1200, 1000, 800];
+          const qualities = [0.82, 0.76, 0.7, 0.64];
+
+          for (const maxDimension of maxDimensions) {
+            const canvas = createScaledCanvas(rect.width, rect.height, maxDimension);
+            const ctx = canvas.getContext("2d");
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(currentImage, rect.x, rect.y, rect.width, rect.height, 0, 0, canvas.width, canvas.height);
+            for (const quality of qualities) {
+              const dataUrl = canvas.toDataURL("image/jpeg", quality);
+              if (estimateDataUrlBytes(dataUrl) <= DESIGN_DATA_URL_LIMIT) return dataUrl;
+            }
+          }
+
+          throw new Error("The cropped source image is too large to save. Try a smaller image or crop.");
+        }
+
+        function capturePreviewImageDataUrl() {
+          const sourceCanvas = document.getElementById("mosaicCanvas");
+          if (!sourceCanvas || !sourceCanvas.width || !sourceCanvas.height) {
+            throw new Error("Generate a preview before saving a proof.");
+          }
+
+          for (const maxDimension of [1600, 1200, 900, 640]) {
+            const canvas = createScaledCanvas(sourceCanvas.width, sourceCanvas.height, maxDimension);
+            const ctx = canvas.getContext("2d");
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(sourceCanvas, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL("image/png");
+            if (estimateDataUrlBytes(dataUrl) <= DESIGN_DATA_URL_LIMIT) return dataUrl;
+          }
+
+          return dataUrlWithinLimit(sourceCanvas, "image/png", undefined, "Preview image");
+        }
+
+        function getCropStateSnapshot() {
+          const rect = getCropSourceRect();
+          return {
+            crop_x: Number.isFinite(cropState.cropX) ? cropState.cropX : rect.x,
+            crop_y: Number.isFinite(cropState.cropY) ? cropState.cropY : rect.y,
+            crop_zoom: Number.isFinite(cropState.zoom) ? cropState.zoom : 1,
+            focal_point_x: Number.isFinite(cropState.focalPointX) ? cropState.focalPointX : 0.5,
+            focal_point_y: Number.isFinite(cropState.focalPointY) ? cropState.focalPointY : 0.5,
+            crop_version: cropState.version || "b1-crop-v1",
+            image_natural_width: cropState.imageNaturalWidth || currentImage?.naturalWidth || currentImage?.width || 0,
+            image_natural_height: cropState.imageNaturalHeight || currentImage?.naturalHeight || currentImage?.height || 0,
+            output_grid_width: currentSize,
+            output_grid_height: currentSize,
+            crop_rect: {
+              x: rect.x,
+              y: rect.y,
+              width: rect.width,
+              height: rect.height
+            },
+            warning: cropState.warning || ""
+          };
+        }
+
+        function getRenderSettingsSnapshot() {
+          return {
+            app_version: "canonical-builder-b2",
+            product_type: currentProductType,
+            material: currentMaterialType,
+            finish: currentFinish,
+            baseplate: currentBaseplate,
+            size: currentSize,
+            palette_key: currentPalette,
+            preset: currentPreset,
+            dithering: settings.dithering,
+            brightness: settings.brightness,
+            contrast: settings.contrast,
+            saturation: settings.saturation,
+            linear_light: settings.linearLight,
+            despeckle: settings.despeckle,
+            ai: {
+              face_color: aiSettings.faceColor,
+              face_enhance: aiSettings.faceEnhance,
+              background: aiSettings.background,
+              background_mode: aiSettings.backgroundMode
+            },
+            view_mode: viewMode,
+            show_grid: showGrid,
+            show_numbers: showNumbers
+          };
+        }
+
+        function getProcessedDataSnapshot() {
+          if (!processedData) return null;
+          return {
+            width: processedData.width,
+            height: processedData.height,
+            palette: (processedData.palette || []).map((color) => ({
+              name: color.name,
+              hex: color.hex
+            })),
+            counts: Array.from(processedData.counts || []),
+            mapped: Array.from(processedData.mapped || [])
+          };
+        }
+
+        function buildExactDesignPayload({ email, name, note, requestType, recommendedFormat, photoCategory }) {
+          if (!processedData) throw new Error("Generate a preview before requesting a proof.");
+          const cropSnapshot = getCropStateSnapshot();
+          const renderSnapshot = getRenderSettingsSnapshot();
+          const processedSnapshot = getProcessedDataSnapshot();
+          const colorSummary = getColorCounts();
+          const configuration = getCurrentConfiguration({ includePreview: false }) || {};
+          const timestamp = new Date().toISOString();
+
+          return {
+            save_version: DESIGN_SAVE_VERSION,
+            consent_to_store_design: true,
+            email,
+            name,
+            photo_category: photoCategory,
+            selected_vertical: photoCategory,
+            recommended_format: recommendedFormat,
+            selected_format: recommendedFormat,
+            product_interest: currentProductType || "custom_mosaic",
+            request_type: requestType,
+            crop_state: cropSnapshot,
+            render_settings: renderSnapshot,
+            grid_size: `${currentSize}x${currentSize}`,
+            preview_shape: currentMaterialType || "mosaic",
+            cropped_source_data_url: captureApprovedSourceDataUrl(),
+            preview_image_data_url: capturePreviewImageDataUrl(),
+            project_snapshot: {
+              app: "MosaPack",
+              builder: "public/builder/index.html",
+              canonical_builder_version: "b2-exact-design-save",
+              generated_at: timestamp,
+              crop_state: cropSnapshot,
+              render_settings: renderSnapshot,
+              configuration,
+              processed_data: processedSnapshot
+            },
+            tile_map: processedSnapshot?.mapped || [],
+            palette: processedSnapshot?.palette || [],
+            color_counts: colorSummary.counts,
+            bom_summary: {
+              total_tiles: colorSummary.total,
+              unique_colors: Object.keys(colorSummary.counts || {}).length,
+              grid_size: `${currentSize}x${currentSize}`
+            },
+            source_file_metadata: {
+              stored_source: "cropped_approved_source_only",
+              original_width: cropSnapshot.image_natural_width,
+              original_height: cropSnapshot.image_natural_height,
+              full_original_saved: false
+            },
+            notes: note,
+            utm: {
+              source: getGateQueryValue("utm_source"),
+              medium: getGateQueryValue("utm_medium"),
+              campaign: getGateQueryValue("utm_campaign")
+            },
+            page: window.location.pathname || "/builder/",
+            source: requestType === "custom_proof" ? "builder-proof-request" : "builder-save-design",
+            app_version: "canonical-builder-b2",
+            timestamp
+          };
+        }
+
+        async function saveExactDesign(payload) {
+          const response = await fetch("/.netlify/functions/save-project", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          let data = null;
+          try {
+            data = await response.json();
+          } catch {
+            data = null;
+          }
+
+          if (!response.ok || !data?.ok || !data.project_id) {
+            throw new Error(data?.error || "We couldn’t save the approved design yet. Please try again.");
+          }
+          return data;
+        }
+
         emailForm.addEventListener("submit", async function(e) {
           e.preventDefault();
 
@@ -7409,14 +7649,31 @@
 
           const requestType = pendingRequestType || "save_design";
           const recommendedFormat = document.getElementById('proofFormatSelect')?.value || lastRecommendedFormat || getRecommendedFormat();
+          const photoCategory = document.getElementById("photoCategoryInput")?.value || "Pet";
+          const name = document.getElementById("nameInput")?.value?.trim() || "";
+          const note = document.getElementById("noteInput")?.value?.trim() || "";
+          const consent = document.getElementById("designStorageConsent");
+
+          if (!processedData) {
+            showToast("Generate a free preview before requesting a proof.", "error");
+            return;
+          }
+          if (!consent?.checked) {
+            showToast("Confirm temporary design storage so we can review your custom proof.", "error");
+            consent?.focus();
+            return;
+          }
+
           setGateField("saveRequestType", requestType);
           setGateField("saveProofRequested", requestType === "custom_proof" ? "true" : "false");
           setGateField("saveRecommendedFormat", recommendedFormat);
-          setGateField("saveProjectId", "mosapack-" + Date.now().toString(36));
+          setGateField("saveProjectId", "");
+          setGateField("saveProjectSaved", "false");
+          setGateField("saveSaveVersion", "");
+          setGateField("saveDesignStorage", "");
           setGateField("saveProductInterest", currentProductType || "unknown");
           setGateField("saveGridSize", String(currentSize || ""));
           setGateField("savePreviewShape", currentMaterialType || "mosaic");
-          const photoCategory = document.getElementById("photoCategoryInput")?.value || "Pet";
           setGateField("savePhotoCategory", photoCategory);
           setGateField("saveSelectedVertical", photoCategory);
           setGateField("savePage", window.location.pathname || "/builder/");
@@ -7434,10 +7691,20 @@
 
           if (submitButton) {
             submitButton.disabled = true;
-            submitButton.textContent = "Saving...";
+            submitButton.textContent = "Saving design...";
           }
 
+          let didSaveProject = false;
           try {
+            const designPayload = buildExactDesignPayload({ email, name, note, requestType, recommendedFormat, photoCategory });
+            const saveResult = await saveExactDesign(designPayload);
+            didSaveProject = true;
+            setGateField("saveProjectId", saveResult.project_id);
+            setGateField("saveProjectSaved", "true");
+            setGateField("saveSaveVersion", saveResult.save_version || DESIGN_SAVE_VERSION);
+            setGateField("saveDesignStorage", "netlify_blobs");
+
+            if (submitButton) submitButton.textContent = "Sending request...";
             const formData = new FormData(emailForm);
             const response = await fetch("/", {
               method: "POST",
@@ -7459,9 +7726,9 @@
             pendingRequestType = "save_design";
             hideEmailGate();
           } catch (error) {
-            const errorMessage = requestType === "custom_proof"
-              ? "We couldn’t save the proof request. Please try again or use the contact form."
-              : "We could not save your preview. Try again or contact support.";
+            const errorMessage = didSaveProject
+              ? (requestType === "custom_proof" ? "We couldn’t submit the proof request. Please try again or use the contact form." : "We could not submit your saved preview. Try again or contact support.")
+              : "We couldn’t save the approved design yet. Please try again.";
             showStatus(errorMessage);
             showToast(errorMessage, "error");
           } finally {
@@ -11699,6 +11966,9 @@
         <input type="hidden" name="proof_requested" id="saveProofRequested" value="false">
         <input type="hidden" name="recommended_format" id="saveRecommendedFormat">
         <input type="hidden" name="project_id" id="saveProjectId">
+        <input type="hidden" name="project_saved" id="saveProjectSaved" value="false">
+        <input type="hidden" name="save_version" id="saveSaveVersion" value="">
+        <input type="hidden" name="design_storage" id="saveDesignStorage" value="">
         <input type="hidden" name="product_interest" id="saveProductInterest">
         <input type="hidden" name="grid_size" id="saveGridSize">
         <input type="hidden" name="preview_shape" id="savePreviewShape">
@@ -11751,11 +12021,15 @@
           rows="3"
           placeholder="Anything we should know about this photo or gift?"
         ></textarea>
+        <div class="design-storage-consent">
+          <input type="checkbox" id="designStorageConsent" required>
+          <label for="designStorageConsent">I agree that MosaPack may temporarily store this design and preview image to review my custom proof.</label>
+        </div>
         <button type="submit" id="emailGateSubmit">Save design</button>
       </form>
 
       <p class="email-gate-privacy">
-        We respect your privacy. Unsubscribe anytime. No spam, ever.
+        We store the approved cropped source and preview only after you request/save a proof. Raw image data is not submitted through Netlify Forms.
       </p>
     </div>
   </div>
