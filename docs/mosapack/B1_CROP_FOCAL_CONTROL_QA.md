@@ -86,3 +86,16 @@ Success metric: at least 19/20 should be positionable without obvious clipping a
 ## Definition Of Done
 
 B1 is done when automated checks pass and Derek verifies the 20-photo pet test set in a browser, with at least 19/20 photos positionable without obvious clipping.
+
+## Release Hardening Update
+
+- Scene image 404 root cause: the builder runs at `/builder/`, so relative paths like `assets/scenes/office-1920x1080.jpg` resolved to missing `/builder/assets/scenes/...` URLs.
+- Fix applied: scene and bundle preview references now use root-relative `/assets/scenes/...` URLs for office, gallery, kids-room, and cafe assets.
+- Thumbnail fallback decision: missing `*-thumb.jpg` references were removed; thumbnail/fallback fields now point to the existing full-size scene images until dedicated thumbnails exist.
+- Accessibility fixes applied: added a visible focus ring, one hidden page `h1`, accessible names for icon and symbol controls, ARIA pressed state for view/display toggles, keyboard activation for scene choices, and canvas text alternatives.
+- Brand-token fixes applied: the builder purple accent variable and obvious purple hard-coded scene accents were replaced with the MosaPack pink accent.
+- Public quality metric cleanup: visible SSIM and Delta E metric labels were replaced with plain user-facing match/detail language. Internal color matching code remains unchanged.
+- Console status: normal builder scene assets should no longer produce `/builder/assets/scenes/...` or `*-thumb.jpg` 404s.
+- First-preview flow: generation no longer opens the save-design email gate automatically; Save actions open the metadata-only form when the user asks to save.
+- Remaining manual QA: Derek still needs to run the 20-photo pet test set in a browser before production approval.
+- Known limitations: B1 still uses manual crop positioning and heuristic edge warnings; it does not add computer-vision subject detection, checkout, or a new builder version.

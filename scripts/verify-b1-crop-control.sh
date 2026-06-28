@@ -34,6 +34,15 @@ require_rg "function getCropSourceRect" "$BUILDER" "crop source rectangle sample
 require_rg "drawImage\(currentImage, sx, sy, sw, sh" "$BUILDER" "mosaic generation uses cropped source"
 require_rg "Your pet may be too close to the edge" "$BUILDER" "crop edge warning copy"
 
+require_rg "/assets/scenes/office-1920x1080\.jpg" "$BUILDER" "root office scene path"
+require_rg "/assets/scenes/gallery-1920x1080\.jpg" "$BUILDER" "root gallery scene path"
+require_rg "/assets/scenes/kids-room-1920x1080\.jpg" "$BUILDER" "root kids-room scene path"
+require_rg "/assets/scenes/cafe-1920x1080\.jpg" "$BUILDER" "root cafe scene path"
+require_rg "aria-label=" "$BUILDER" "accessible control labels"
+require_rg "focus-visible" "$BUILDER" "visible keyboard focus style"
+require_rg "role=\"img\"" "$BUILDER" "canvas text alternative"
+require_rg "aria-pressed" "$BUILDER" "toggle selected state"
+
 for field in crop_x crop_y crop_zoom focal_point_x focal_point_y crop_version; do
   require_rg "name=\"$field\"" "$BUILDER" "save-design crop metadata field $field"
 done
@@ -42,8 +51,13 @@ require_rg "mosapack-save-design" "$BUILDER" "save-design Netlify form"
 require_rg "data-netlify=\"true\"" "$BUILDER" "Netlify form marker"
 require_rg "name=\"form-name\" value=\"mosapack-save-design\"" "$BUILDER" "save-design hidden form-name"
 
-if rg -n -i "ConvertKit|Kit API|YOUR_PIXEL_ID|order placed|quality score|museum quality score|94% match|gold quality|silver quality|bronze quality" "$ROOT/public"; then
-  echo "Forbidden public provider/fake-success/quality-score language found."
+if rg -n "/builder/assets/scenes/|-[Tt]humb\.jpg" "$BUILDER"; then
+  echo "Forbidden stale scene asset reference found."
+  FAIL=1
+fi
+
+if rg -n -i "ConvertKit|Kit API|YOUR_PIXEL_ID|order placed|checkout success|quality score|museum quality score|94% match|gold quality|silver quality|bronze quality|\bSSIM\b|ΔE" "$BUILDER"; then
+  echo "Forbidden public provider/fake-success/quality-metric language found in builder."
   FAIL=1
 fi
 

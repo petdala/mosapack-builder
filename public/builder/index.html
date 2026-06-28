@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MosaPack Builder Pro v6 - Bricks & Stickers</title>
-  <meta name="description" content="Create custom brick mosaics or sticker art with professional ΔE00 color matching">
+  <meta name="description" content="Create custom brick mosaics or sticker art with professional perceptual color matching">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230bbf92'/%3E%3Crect x='12' y='12' width='8' height='8' rx='1' fill='%23e91e8c'/%3E%3C/svg%3E">
   
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-RE97PTJPWE"></script>
@@ -90,7 +91,7 @@
       --gold-dark: #d97706;
       --gold-pale: #fef3c7;
       
-      --accent-purple: #7c3aed;
+      --accent-pink: #e91e8c;
       --accent-blue: #2563eb;
       
       /* UI Colors */
@@ -119,6 +120,28 @@
       color: var(--text);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 3px;
+      box-shadow: 0 0 0 5px rgba(11, 191, 146, 0.22);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     /* Header */
@@ -926,7 +949,7 @@
     }
 
     .express-shop-pay {
-      background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+      background: linear-gradient(135deg, #ff5da2 0%, #e91e8c 100%);
     }
 
     .express-apple-pay {
@@ -3780,7 +3803,7 @@
     }
 
     .scene-action-btn.social {
-      background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
+      background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-blue) 100%);
       color: white;
     }
 
@@ -4654,7 +4677,7 @@
       </a>
 
       <div class="header-cart">
-        <button class="cart-toggle" id="cartToggle" aria-expanded="false">
+        <button class="cart-toggle" id="cartToggle" aria-expanded="false" aria-label="Open cart summary">
           <span class="cart-icon">🛒</span>
           <span class="cart-label">Cart</span>
           <span class="cart-count" id="cartCount">0</span>
@@ -4675,6 +4698,8 @@
       </div>
     </div>
   </header>
+
+  <h1 class="sr-only">MosaPack Mosaic Builder</h1>
 
   <div class="workspace-tabs">
     <button class="workspace-tab active" data-tab="designer" onclick="showTab('designer')">
@@ -4703,10 +4728,10 @@
       <div class="canvas-workspace">
         <aside class="canvas-tools-rail">
           <div class="ai-toggle-stack">
-            <button type="button" class="ai-toggle-button" id="aiToggleFaceColor" aria-pressed="true" title="AI Face Optimizer" onclick="toggleAiFilter('faceColor')">🙂</button>
-            <button type="button" class="ai-toggle-button" id="aiToggleFaceEnhance" aria-pressed="false" title="AI Face Enhance" onclick="toggleAiFilter('faceEnhance')">✨</button>
-            <button type="button" class="ai-toggle-button" id="aiToggleBackground" aria-pressed="false" title="AI Background Magic" onclick="toggleAiFilter('background')">🎯</button>
-            <button type="button" class="ai-mode-button" id="aiBgModeButton" title="Cycle background fill">SOLID</button>
+            <button type="button" class="ai-toggle-button" id="aiToggleFaceColor" aria-label="Toggle face color optimizer" aria-pressed="true" title="AI Face Optimizer" onclick="toggleAiFilter('faceColor')">🙂</button>
+            <button type="button" class="ai-toggle-button" id="aiToggleFaceEnhance" aria-label="Toggle face enhance" aria-pressed="false" title="AI Face Enhance" onclick="toggleAiFilter('faceEnhance')">✨</button>
+            <button type="button" class="ai-toggle-button" id="aiToggleBackground" aria-label="Toggle background fill" aria-pressed="false" title="AI Background Magic" onclick="toggleAiFilter('background')">🎯</button>
+            <button type="button" class="ai-mode-button" id="aiBgModeButton" aria-label="Cycle background fill" title="Cycle background fill">SOLID</button>
           </div>
           <button class="tool-button" data-panel="upload" title="Upload photo" aria-label="Upload photo" onclick="toggleWorkspacePanel('upload')">
             ⬆️
@@ -4737,41 +4762,41 @@
       <div class="canvas-header-left">
         <div class="header-control-group">
           <span class="header-control-label">View</span>
-          <div class="view-toggle-compact">
-            <button class="view-btn-compact active" onclick="setViewMode('mosaic')" id="viewMosaic">
+          <div class="view-toggle-compact" role="group" aria-label="Preview view mode">
+            <button class="view-btn-compact active" onclick="setViewMode('mosaic')" id="viewMosaic" aria-label="Show mosaic view" aria-pressed="true">
               🎨 Mosaic
             </button>
-            <button class="view-btn-compact" onclick="setViewMode('blocks')" id="viewBlocks">
+            <button class="view-btn-compact" onclick="setViewMode('blocks')" id="viewBlocks" aria-label="Show block view" aria-pressed="false">
               🧱 Blocks
             </button>
-            <button class="view-btn-compact" onclick="setViewMode('baseplate')" id="viewBaseplate">
+            <button class="view-btn-compact" onclick="setViewMode('baseplate')" id="viewBaseplate" aria-label="Show baseplate view" aria-pressed="false">
               ⊞ Baseplates
             </button>
           </div>
         </div>
         <div class="header-control-group">
           <span class="header-control-label">Display</span>
-          <div class="header-button-row">
-            <button class="toggle-btn" onclick="toggleGrid()" id="gridBtn" title="Toggle Grid">
+          <div class="header-button-row" role="group" aria-label="Preview display toggles">
+            <button class="toggle-btn" onclick="toggleGrid()" id="gridBtn" title="Toggle Grid" aria-label="Toggle grid" aria-pressed="false">
               ⊞ Grid
             </button>
-            <button class="toggle-btn" onclick="toggleNumbers()" id="numbersBtn" title="Toggle Numbers">
+            <button class="toggle-btn" onclick="toggleNumbers()" id="numbersBtn" title="Toggle Numbers" aria-label="Toggle numbers" aria-pressed="false">
               # Numbers
             </button>
           </div>
         </div>
-        <button class="scene-preview-button" onclick="openScenePreview()" title="Preview in scenes">
+        <button class="scene-preview-button" onclick="openScenePreview()" title="Preview in scenes" aria-label="Preview design in scenes">
           🏠 Scene Preview
         </button>
       </div>
       <div class="canvas-header-actions">
         <div class="zoom-controls-inline compact">
-          <button class="zoom-btn-mini" onclick="zoomOut()" title="Zoom Out">−</button>
+          <button class="zoom-btn-mini" onclick="zoomOut()" title="Zoom Out" aria-label="Zoom out">−</button>
           <span class="zoom-level-mini" id="zoomLevel">100%</span>
-          <button class="zoom-btn-mini" onclick="zoomIn()" title="Zoom In">+</button>
-          <button class="zoom-btn-mini fit" onclick="zoomFit()" title="Fit to Screen">Fit</button>
+          <button class="zoom-btn-mini" onclick="zoomIn()" title="Zoom In" aria-label="Zoom in">+</button>
+          <button class="zoom-btn-mini fit" onclick="zoomFit()" title="Fit to Screen" aria-label="Fit preview to screen">Fit</button>
         </div>
-        <button type="button" class="canvas-reset-btn" onclick="resetBuilder()" title="Reset design">
+        <button type="button" class="canvas-reset-btn" onclick="resetBuilder()" title="Reset design" aria-label="Reset design">
           ↺ Reset
         </button>
       </div>
@@ -4802,15 +4827,15 @@
             
             <div class="canvas-wrapper" id="canvasWrapper">
               <div class="mosaic-display">
-                <canvas id="mosaicCanvas"></canvas>
-                <canvas id="baseplateGrid"></canvas>
-                <canvas id="numbersOverlay"></canvas>
+                <canvas id="mosaicCanvas" role="img" aria-label="Mosaic preview canvas. Upload a photo and generate a preview."></canvas>
+                <canvas id="baseplateGrid" aria-hidden="true"></canvas>
+                <canvas id="numbersOverlay" aria-hidden="true"></canvas>
               </div>
             </div>
             
             <!-- Upload Overlay -->
             <div class="upload-overlay" id="uploadOverlay" onclick="document.getElementById('fileInput').click()">
-              <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
+              <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(this)" aria-label="Upload photo">
               <div class="upload-icon">📷</div>
               <div class="upload-text">Click to upload photo</div>
               <div class="upload-hint">or drag and drop</div>
@@ -4821,7 +4846,7 @@
                 <h3 class="crop-heading">Position your pet</h3>
                 <p class="crop-subtitle">Drag to center the face, then zoom if you want a tighter preview.</p>
                 <div class="crop-frame" id="cropFrame" aria-label="Drag to center the face">
-                  <canvas id="cropCanvas" width="420" height="420"></canvas>
+                  <canvas id="cropCanvas" width="420" height="420" role="img" aria-label="Crop preview canvas. Drag the image to center the face."></canvas>
                   <div class="crop-crosshair" aria-hidden="true"></div>
                 </div>
                 <div class="crop-controls">
@@ -5168,7 +5193,7 @@
             <span class="trust-icon">🎯</span>
             <div class="trust-copy">
               <strong>Color-match guarantee</strong>
-              <span>ΔE00-calibrated palettes engineered for LEGO® precision.</span>
+              <span>Color-calibrated palettes engineered for LEGO® precision.</span>
             </div>
           </div>
           <div class="trust-item">
@@ -5534,8 +5559,8 @@
       backgroundMode: 'solid'
     };
     const aiMetricSnapshot = {
-      faceColor: 'ΔE −',
-      faceEnhance: 'SSIM +',
+      faceColor: 'Match -',
+      faceEnhance: 'Detail +',
       background: 'Colors −'
     };
     let processDebounceHandle = null;
@@ -5636,8 +5661,8 @@
 
     const BUNDLE_PREVIEW_CONTENT = {
       '🔥 Popular Choice': {
-        image: 'assets/scenes/office-1920x1080.jpg',
-        fallback: 'assets/scenes/office-thumb.jpg',
+        image: '/assets/scenes/office-1920x1080.jpg',
+        fallback: '/assets/scenes/office-1920x1080.jpg',
         perks: [
           'Magnetic vinyl sheets pre-counted for your size',
           'Metallic finish upgrade for premium shine',
@@ -5645,8 +5670,8 @@
         ]
       },
       '💎 Premium Experience': {
-        image: 'assets/scenes/gallery-1920x1080.jpg',
-        fallback: 'assets/scenes/gallery-thumb.jpg',
+        image: '/assets/scenes/gallery-1920x1080.jpg',
+        fallback: '/assets/scenes/gallery-1920x1080.jpg',
         perks: [
           'Magnetic tiles for quick assembly and swapping',
           'Holographic finish that shifts with the light',
@@ -5654,8 +5679,8 @@
         ]
       },
       '🎁 Best Gift': {
-        image: 'assets/scenes/kids-room-1920x1080.jpg',
-        fallback: 'assets/scenes/kids-room-thumb.jpg',
+        image: '/assets/scenes/kids-room-1920x1080.jpg',
+        fallback: '/assets/scenes/kids-room-1920x1080.jpg',
         perks: [
           'Transparent LEGO®-compatible bricks (show-stopping depth)',
           'Solid finish for true-to-photo colors',
@@ -5663,8 +5688,8 @@
         ]
       },
       '💰 Budget Smart': {
-        image: 'assets/scenes/cafe-1920x1080.jpg',
-        fallback: 'assets/scenes/cafe-thumb.jpg',
+        image: '/assets/scenes/cafe-1920x1080.jpg',
+        fallback: '/assets/scenes/cafe-1920x1080.jpg',
         perks: [
           'Solid vinyl sticker sheets-peel and stick instantly',
           'No backing included (DIY with poster board or foam)',
@@ -5927,8 +5952,8 @@
 
     function applyAiFilters(imageData, width, height) {
       if (!aiSettings.faceColor && !aiSettings.faceEnhance && !aiSettings.background) {
-        aiMetricSnapshot.faceColor = 'ΔE −';
-        aiMetricSnapshot.faceEnhance = 'SSIM +';
+        aiMetricSnapshot.faceColor = 'Match -';
+        aiMetricSnapshot.faceEnhance = 'Detail +';
         aiMetricSnapshot.background = 'Colors −';
         updateAiMetricPills();
         return imageData;
@@ -5943,13 +5968,13 @@
       if (aiSettings.faceColor && faceRegion) {
         applyFaceColorOptimizer(working, faceRegion);
       } else {
-        aiMetricSnapshot.faceColor = 'ΔE −';
+        aiMetricSnapshot.faceColor = 'Match -';
       }
 
       if (aiSettings.faceEnhance && faceRegion) {
         applyFaceEnhance(working, faceRegion);
       } else {
-        aiMetricSnapshot.faceEnhance = 'SSIM +';
+        aiMetricSnapshot.faceEnhance = 'Detail +';
       }
 
       if (aiSettings.background) {
@@ -6068,7 +6093,7 @@
       const beforeStd = Math.sqrt(sumR2 / count - avgR * avgR) + Math.sqrt(sumG2 / count - avgG * avgG) + Math.sqrt(sumB2 / count - avgB * avgB);
       const afterStd = newStats.stdR + newStats.stdG + newStats.stdB;
       const delta = clamp(((beforeStd - afterStd) / (beforeStd + 1e-6)) * 10, -9, 9);
-      aiMetricSnapshot.faceColor = `ΔE ${delta > 0 ? '−' : '+'}${Math.abs(delta).toFixed(1)}`;
+      aiMetricSnapshot.faceColor = 'Match ' + (delta > 0 ? '-' : '+') + Math.abs(delta).toFixed(1);
     }
 
     function applyFaceEnhance(imageData, region) {
@@ -6148,12 +6173,12 @@
       }
 
       if (!count) {
-        aiMetricSnapshot.faceEnhance = 'SSIM +';
+        aiMetricSnapshot.faceEnhance = 'Detail +';
         return;
       }
 
       const delta = clamp(((afterVar - beforeVar) / (beforeVar + 1e-6)) * 10, -9, 9);
-      aiMetricSnapshot.faceEnhance = `SSIM ${delta >= 0 ? '+' : '−'}${Math.abs(delta).toFixed(1)}`;
+      aiMetricSnapshot.faceEnhance = 'Detail ' + (delta >= 0 ? '+' : '-') + Math.abs(delta).toFixed(1);
     }
 
     function applyBackgroundMagic(imageData, mode) {
@@ -6318,8 +6343,8 @@
 
     function getBundlePreviewContent(name) {
       return BUNDLE_PREVIEW_CONTENT[name] || {
-        image: 'assets/scenes/office-1920x1080.jpg',
-        fallback: 'assets/scenes/office-thumb.jpg',
+        image: '/assets/scenes/office-1920x1080.jpg',
+        fallback: '/assets/scenes/office-1920x1080.jpg',
         perks: [
           'Magnetic vinyl sheets pre-counted for your size',
           'Premium finish selected for vibrant colors',
@@ -6825,7 +6850,7 @@
       });
     }
 
-    // Show save-interest gate after image is processed
+    // Show save-interest gate only when the user asks to save
     function showEmailGate() {
       if (hasSeenEmailGate) return; // Only show once per session
 
@@ -6938,6 +6963,15 @@
       if (addToCartCompact) {
         addToCartCompact.addEventListener('click', () => addToLaunchAccess());
       }
+
+      document.querySelectorAll('.scene-option').forEach((option) => {
+        option.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectScene(option.dataset.scene);
+          }
+        });
+      });
 
       const insightsToggleBtn = document.getElementById('insightsToggleBtn');
       if (insightsToggleBtn) {
@@ -7547,7 +7581,7 @@
     };
 
     // =====================================================
-    // COLOR SCIENCE FUNCTIONS (ΔE00)
+    // COLOR SCIENCE FUNCTIONS (CIEDE2000)
     // =====================================================
     
     function hexToRgb(hex) {
@@ -8441,10 +8475,6 @@
         if (buyButton) buyButton.style.display = 'block';
 
         setTimeout(() => {
-          showEmailGate();
-        }, 500);
-
-        setTimeout(() => {
           renderBundleRecommendations();
         }, 1000);
 
@@ -8806,6 +8836,8 @@
 
       canvas.width = processedData.width * scale;
       canvas.height = processedData.height * scale;
+      const colorCount = processedData.counts.filter((count) => count > 0).length;
+      canvas.setAttribute('aria-label', `Mosaic preview generated with ${processedData.width} by ${processedData.height} grid and ${colorCount} colors.`);
 
       const container = document.getElementById('canvasContainer');
       if (container) {
@@ -9177,12 +9209,16 @@
       viewMode = mode;
 
       // Remove active class from all view buttons (both old and new classes)
-      document.querySelectorAll('.view-btn, .view-btn-compact').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.view-btn, .view-btn-compact').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
 
       // Add active class to the selected button
       const targetBtn = document.getElementById(`view${mode.charAt(0).toUpperCase() + mode.slice(1)}`);
       if (targetBtn) {
         targetBtn.classList.add('active');
+        targetBtn.setAttribute('aria-pressed', 'true');
       }
 
       document.getElementById('baseplateGrid').classList.remove('show');
@@ -9194,7 +9230,9 @@
 
     function toggleGrid() {
       showGrid = !showGrid;
-      document.getElementById('gridBtn').classList.toggle('active');
+      const gridBtn = document.getElementById('gridBtn');
+      gridBtn.classList.toggle('active', showGrid);
+      gridBtn.setAttribute('aria-pressed', String(showGrid));
       
       if (processedData) {
         renderMosaic();
@@ -9203,12 +9241,15 @@
 
     function toggleNumbers() {
       showNumbers = !showNumbers;
-      document.getElementById('numbersBtn').classList.toggle('active');
+      const numbersBtn = document.getElementById('numbersBtn');
+      numbersBtn.classList.toggle('active', showNumbers);
+      numbersBtn.setAttribute('aria-pressed', String(showNumbers));
       
       if (showNumbers) {
         if (!processedData) {
           showNumbers = false;
-          document.getElementById('numbersBtn').classList.remove('active');
+          numbersBtn.classList.remove('active');
+          numbersBtn.setAttribute('aria-pressed', 'false');
           showToast('Generate a mosaic first', 'error');
           return;
         }
@@ -10215,7 +10256,11 @@
     }
 
     function saveProject() {
-        downloadJSON();
+      if (!processedData) {
+        showToast('Generate a mosaic before saving', 'error');
+        return;
+      }
+      showEmailGate();
     }
 
     function resetBuilder() {
@@ -10526,8 +10571,8 @@
         },
         'office': {
         name: 'Modern Office',
-        image: 'assets/scenes/office-1920x1080.jpg', // Use photo if available
-        thumb: 'assets/scenes/office-thumb.jpg',
+        image: '/assets/scenes/office-1920x1080.jpg', // Use photo if available
+        thumb: '/assets/scenes/office-1920x1080.jpg',
         color: '#f5f5f5',
         createBackground: (ctx, w, h) => {
           // Fallback: Modern office scene
@@ -10576,8 +10621,8 @@
         },
         'gallery': {
         name: 'Gallery Wall',
-        image: 'assets/scenes/gallery-1920x1080.jpg',
-        thumb: 'assets/scenes/gallery-thumb.jpg',
+        image: '/assets/scenes/gallery-1920x1080.jpg',
+        thumb: '/assets/scenes/gallery-1920x1080.jpg',
         color: '#ffffff',
         createBackground: (ctx, w, h) => {
           // Fallback: Pure white gallery
@@ -10617,8 +10662,8 @@
         },
         'kids-room': {
         name: 'Kids Room',
-        image: 'assets/scenes/kids-room-1920x1080.jpg',
-        thumb: 'assets/scenes/kids-room-thumb.jpg',
+        image: '/assets/scenes/kids-room-1920x1080.jpg',
+        thumb: '/assets/scenes/kids-room-1920x1080.jpg',
         color: '#e1f3f8',
         createBackground: (ctx, w, h) => {
           // Fallback: Cheerful kids room
@@ -10686,8 +10731,8 @@
         },
         'cafe': {
         name: 'Café/Restaurant',
-        image: 'assets/scenes/cafe-1920x1080.jpg',
-        thumb: 'assets/scenes/cafe-thumb.jpg',
+        image: '/assets/scenes/cafe-1920x1080.jpg',
+        thumb: '/assets/scenes/cafe-1920x1080.jpg',
         color: '#8b5a3c',
         createBackground: (ctx, w, h) => {
           // Fallback: Exposed brick café
@@ -10809,11 +10854,10 @@
 
         // Update active state
         document.querySelectorAll('.scene-option').forEach(option => {
-        option.classList.remove('active');
-        if (option.dataset.scene === sceneId) {
-          option.classList.add('active');
-        }
-        });
+        const isActive = option.dataset.scene === sceneId;
+        option.classList.toggle('active', isActive);
+        option.setAttribute('aria-pressed', String(isActive));
+      });
 
         renderScenePreview();
     }
@@ -11172,38 +11216,38 @@
         <h2 class="scene-preview-title">
           🏠 Preview Your Design in Different Scenes
         </h2>
-        <button class="scene-preview-close" onclick="closeScenePreview()">×</button>
+        <button class="scene-preview-close" onclick="closeScenePreview()" type="button" aria-label="Close scene preview">×</button>
         </div>
 
         <div class="scene-preview-body">
         <!-- Scene Selector -->
-        <div class="scene-selector">
-          <div class="scene-option active" onclick="selectScene('living-room')" data-scene="living-room">
+        <div class="scene-selector" role="group" aria-label="Scene preview choices">
+          <div class="scene-option active" onclick="selectScene('living-room')" data-scene="living-room" role="button" tabindex="0" aria-pressed="true">
             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23f5f5f5' width='400' height='300'/%3E%3Crect fill='%23e5e5e5' y='200' width='400' height='100'/%3E%3Crect fill='%23d4d4d4' x='50' y='220' width='120' height='60'/%3E%3Crect fill='%23a3a3a3' x='250' y='230' width='100' height='50'/%3E%3C/svg%3E" alt="Modern Living Room">
             <div class="scene-option-label">Modern Living Room</div>
           </div>
 
-          <div class="scene-option" onclick="selectScene('bedroom')" data-scene="bedroom">
+          <div class="scene-option" onclick="selectScene('bedroom')" data-scene="bedroom" role="button" tabindex="0" aria-pressed="false">
             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e8f5f2' width='400' height='300'/%3E%3Crect fill='%23c7e6dd' y='180' width='400' height='120'/%3E%3Crect fill='%23a8d5c8' x='80' y='200' width='240' height='80'/%3E%3C/svg%3E" alt="Cozy Bedroom">
             <div class="scene-option-label">Cozy Bedroom</div>
           </div>
 
-          <div class="scene-option" onclick="selectScene('office')" data-scene="office">
+          <div class="scene-option" onclick="selectScene('office')" data-scene="office" role="button" tabindex="0" aria-pressed="false">
             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23fafafa' width='400' height='300'/%3E%3Crect fill='%23525252' x='20' y='50' width='360' height='200'/%3E%3Crect fill='%23737373' x='40' y='70' width='320' height='160'/%3E%3C/svg%3E" alt="Modern Office">
             <div class="scene-option-label">Modern Office</div>
           </div>
 
-          <div class="scene-option" onclick="selectScene('gallery')" data-scene="gallery">
+          <div class="scene-option" onclick="selectScene('gallery')" data-scene="gallery" role="button" tabindex="0" aria-pressed="false">
             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffffff' width='400' height='300'/%3E%3Crect fill='%23e5e5e5' y='250' width='400' height='50'/%3E%3C/svg%3E" alt="Gallery Wall">
             <div class="scene-option-label">Gallery Wall</div>
           </div>
 
-          <div class="scene-option" onclick="selectScene('kids-room')" data-scene="kids-room">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23fff1f7' width='400' height='300'/%3E%3Crect fill='%23fcd9ea' y='200' width='400' height='100'/%3E%3Ccircle fill='%23fbbf24' cx='100' cy='80' r='30'/%3E%3Cpolygon fill='%237c3aed' points='300,120 320,160 280,160'/%3E%3C/svg%3E" alt="Kids Room">
+          <div class="scene-option" onclick="selectScene('kids-room')" data-scene="kids-room" role="button" tabindex="0" aria-pressed="false">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23fff1f7' width='400' height='300'/%3E%3Crect fill='%23fcd9ea' y='200' width='400' height='100'/%3E%3Ccircle fill='%23fbbf24' cx='100' cy='80' r='30'/%3E%3Cpolygon fill='%23e91e8c' points='300,120 320,160 280,160'/%3E%3C/svg%3E" alt="Kids Room">
             <div class="scene-option-label">Kids Room</div>
           </div>
 
-          <div class="scene-option" onclick="selectScene('cafe')" data-scene="cafe">
+          <div class="scene-option" onclick="selectScene('cafe')" data-scene="cafe" role="button" tabindex="0" aria-pressed="false">
             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23fef3c7' width='400' height='300'/%3E%3Crect fill='%23d97706' y='240' width='400' height='60'/%3E%3Crect fill='%2392400e' x='50' y='100' width='80' height='140'/%3E%3Crect fill='%2392400e' x='270' y='100' width='80' height='140'/%3E%3C/svg%3E" alt="Café/Restaurant">
             <div class="scene-option-label">Café/Restaurant</div>
           </div>
@@ -11211,18 +11255,18 @@
 
         <!-- Preview Canvas -->
         <div class="scene-preview-canvas-container">
-          <canvas id="scenePreviewCanvas" class="scene-preview-canvas"></canvas>
+          <canvas id="scenePreviewCanvas" class="scene-preview-canvas" role="img" aria-label="Scene preview canvas"></canvas>
         </div>
         </div>
 
         <!-- Actions -->
         <div class="scene-preview-actions">
-        <button class="scene-action-btn primary" onclick="downloadScenePreview()">
+        <button class="scene-action-btn primary" onclick="downloadScenePreview()" type="button" aria-label="Download scene preview">
           💾 Download Preview
         </button>
 
         <div class="share-dropdown">
-          <button class="scene-action-btn social" onclick="toggleShareMenu()">
+          <button class="scene-action-btn social" onclick="toggleShareMenu()" type="button" aria-label="Open sharing options">
             📤 Share
           </button>
           <div class="share-menu" id="shareMenu">
@@ -11249,7 +11293,7 @@
           </div>
         </div>
 
-        <button class="scene-action-btn secondary" onclick="closeScenePreview()">
+        <button class="scene-action-btn secondary" onclick="closeScenePreview()" type="button" aria-label="Close scene preview">
           Close
         </button>
         </div>
