@@ -45,3 +45,41 @@ Then manually verify:
 ## Rollback Warning
 
 Do not roll back to any deploy that exposes old builders, dashboards, archive files, hidden proof-path regressions, or checkout-like fake success states.
+
+## Production Deploy Completed
+
+Date: 2026-06-28T19:53:12Z
+
+Command used:
+
+```bash
+/Users/dereksolas/.npm-global/bin/netlify deploy --dir=public --no-build --prod
+```
+
+Production URL:
+
+```text
+https://mosapack.netlify.app
+```
+
+Unique deploy URL:
+
+```text
+https://6a417b2cc419d8d5989a7893--mosapack.netlify.app
+```
+
+Post-deploy verification:
+
+- `bash scripts/verify-live-exposure.sh` passed.
+- Required production routes returned 200.
+- Old builders/dashboards remained 404.
+- One production proof request smoke test returned HTTP 200.
+
+Production proof request test:
+
+- Email: `derek+mosapack-b16-prod-test@example.com`
+- UI confirmation: `Proof request saved. We'll follow up with the next step to confirm your approved design.`
+
+Manual follow-up:
+
+- Derek should verify the production test appears in Netlify dashboard -> Forms.

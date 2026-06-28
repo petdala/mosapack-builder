@@ -109,3 +109,50 @@ Approved for production deploy from the B1.6 preview, pending Derek's subjective
 ## B2 Recommendation
 
 Ready to start `B2 exact design save` after production deploy decision.
+
+## Production Deploy Record
+
+Date: 2026-06-28T19:53:12Z
+
+Production deploy command used:
+
+```bash
+/Users/dereksolas/.npm-global/bin/netlify deploy --dir=public --no-build --prod
+```
+
+Production URL:
+
+```text
+https://mosapack.netlify.app
+```
+
+Unique deploy URL:
+
+```text
+https://6a417b2cc419d8d5989a7893--mosapack.netlify.app
+```
+
+Deploy logs:
+
+```text
+https://app.netlify.com/projects/mosapack/deploys/6a417b2cc419d8d5989a7893
+```
+
+Production verification:
+
+- `bash scripts/verify-live-exposure.sh` passed after deploy.
+- Required production routes returned 200.
+- Forbidden old builders/dashboards remained 404.
+- Production builder scan found no public Wobrick CTA, fake order success copy, public quality-score labels, old builder route references, dashboard, or affiliate strings.
+
+Production proof request smoke test:
+
+- Submitted exactly one request through the production UI path.
+- Email: `derek+mosapack-b16-prod-test@example.com`
+- HTTP response: 200
+- UI confirmation: `Proof request saved. We'll follow up with the next step to confirm your approved design.`
+- Derek should verify in Netlify dashboard -> Forms.
+
+B1.x production status: deployed.
+
+B2 readiness: ready for `B2 exact design save` next.
