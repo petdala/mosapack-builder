@@ -186,3 +186,85 @@ Smallest next fix:
 2. Fix mobile horizontal overflow and make crop/generate/proof reachable at `390x844`.
 3. Recheck recommendation logic so it does not force every image/category into `Magnetic Reveal Kit`.
 4. Rerun B1.5 mixed-photo QA.
+
+## B1.6 Rerun After Proof Path Fix
+
+Date: 2026-06-28T19:40:52Z
+Branch: `fix/b1-6-proof-path-mobile`
+Preview URL: `https://6a417891ca97689b8ff5819c--mosapack.netlify.app`
+
+### Root Cause
+
+`#postPreviewFlow` was unhidden after generation, but its parent `#insightsPanel` remained `display:none`. The proof CTA existed in the DOM but was not visible, clickable, or keyboard reachable.
+
+### Fix Applied
+
+- Moved the single `#postPreviewFlow` into the active preview/canvas journey.
+- Kept one proof CTA and one proof form state.
+- Kept generated preview visible after generation.
+- Added modal close button, Escape close behavior, and focus return.
+- Fixed plus-address email validation for QA/live test addresses.
+- Added `scripts/verify-b1-5-proof-path.sh` so hidden-parent CTA regressions fail.
+
+### 20-Photo Rerun Result
+
+| Metric | Result |
+| --- | ---: |
+| Images tested | 20 |
+| Upload/crop/preview | 20 |
+| Nonblank preview | 20 |
+| Proof CTA reachable | 20 |
+| Proof modal opened | 20 |
+| Metadata-only proof payload | 20 |
+| Recognizable preview automated proxy | 20 |
+| Full pass | 20 |
+
+Failed categories: none.
+
+### Mobile Rerun Result
+
+Viewport: `390x844`
+
+| Metric | Result |
+| --- | ---: |
+| Images tested | 6 |
+| Pass | 6 |
+| Horizontal overflow failures | 0 |
+
+### Keyboard/Focus Rerun Result
+
+Result: pass.
+
+- Tab/keyboard can reach the proof CTA.
+- Enter opens the proof modal.
+- Focus moves into the email field.
+- Form fields and submit are keyboard reachable.
+- Escape closes the modal.
+- Focus returns to the proof CTA.
+
+### Live Proof Request Preview Result
+
+Submitted exactly one proof request through the B1.6 preview UI.
+
+- Email: `derek+mosapack-b16-preview-test@example.com`
+- HTTP response: 200
+- UI response: `Proof request saved. We'll follow up with the next step to confirm your approved design.`
+- No raw image/file input was submitted through Netlify Forms.
+
+Derek should verify the submission in Netlify dashboard -> Forms.
+
+### Remaining Issues
+
+| Priority | Issue | Status |
+| --- | --- | --- |
+| P0 | Proof CTA unreachable | Fixed |
+| P0 | Mobile proof path unreachable / horizontal overflow | Fixed |
+| P1 | Keyboard proof modal path incomplete | Fixed |
+| P2 | Format recommendation returns `Magnetic Reveal Kit` for all automated images | Deferred; proof is intent-only and checkout remains disabled |
+| P2 | Human subjective likeness review | Still recommended before broad launch |
+
+### Updated Recommendation
+
+Production deploy: **Approved after Derek preview/forms review**
+
+B2 exact design save: **Ready after production deploy decision**

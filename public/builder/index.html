@@ -119,6 +119,7 @@
       color: var(--text);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      max-width: 100%;
     }
 
     [hidden] {
@@ -761,16 +762,19 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
-        -ms-overflow-style: none;
+        max-width: 100%;
+        padding: 0 0.75rem;
       }
       .workspace-tabs::-webkit-scrollbar {
         display: none;
       }
       .workspace-tab {
-        padding: 0.75rem 1.25rem;
+        padding: 0.75rem 0.95rem;
         font-size: 0.875rem;
         white-space: nowrap;
-        flex-shrink: 0;
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
       }
       .workspace-tab-badge {
         display: none;
@@ -1289,6 +1293,12 @@
       border: 1px solid rgba(11, 191, 146, 0.28);
       border-radius: var(--radius-lg);
       background: linear-gradient(135deg, rgba(11, 191, 146, 0.08), rgba(255, 255, 255, 0.95));
+    }
+
+    .panel > .post-preview-flow,
+    .canvas-container > .post-preview-flow {
+      max-width: 860px;
+      margin: 1rem auto 0;
     }
 
     .post-preview-flow[hidden] {
@@ -3992,8 +4002,41 @@
       .btn-group {
         grid-template-columns: 1fr;
       }
+
       .canvas-viewport {
         height: 400px;
+      }
+
+      .container,
+      .designer-tab-content,
+      .builder-tab-content {
+        max-width: 100%;
+        overflow-x: clip;
+      }
+
+      .canvas-column,
+      .workspace-main,
+      .canvas-container,
+      .canvas-wrapper,
+      .mosaic-display,
+      .post-preview-flow,
+      .recommended-format-card,
+      .proof-request-card {
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      .post-preview-flow {
+        padding: 0.85rem;
+      }
+
+      .proof-actions {
+        flex-direction: column;
+      }
+
+      .proof-actions .btn {
+        width: 100%;
+        min-height: 46px;
       }
       .product-type-selector {
         grid-template-columns: 1fr;
@@ -4119,6 +4162,36 @@
       text-align: center;
       position: relative;
     }
+
+    .email-gate-close {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: white;
+      color: var(--text-muted);
+      font-size: 1.35rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .email-gate-close:hover {
+      color: var(--text);
+      border-color: var(--primary);
+    }
+
+    @media (max-width: 480px) {
+      .email-gate-card {
+        width: calc(100vw - 1.5rem);
+        max-height: calc(100vh - 1.5rem);
+        overflow-y: auto;
+        padding: 1.5rem 1rem 1rem;
+      }
+    }
+
 
     .email-gate-card h2 {
       font-size: 28px;
@@ -4982,6 +5055,34 @@
             </div>
           </div>
         </div>
+            <section class="post-preview-flow" id="postPreviewFlow" aria-labelledby="proofRequestTitle" hidden>
+              <div class="recommended-format-card" id="recommendedFormatCard">
+                <span class="recommended-format-eyebrow">Recommended format</span>
+                <h3 class="recommended-format-title" id="recommendedFormatTitle">Digital Mystery Reveal Pack</h3>
+                <p class="recommended-format-body" id="recommendedFormatReason">Best for instant keepsake files and sharing.</p>
+                <label class="sr-only" for="proofFormatSelect">Choose another format</label>
+                <select class="premium-select" id="proofFormatSelect" aria-label="Choose another format">
+                  <option value="Digital Mystery Reveal Pack">Digital Mystery Reveal Pack</option>
+                  <option value="Sticker Reveal Kit">Sticker Reveal Kit</option>
+                  <option value="Magnetic Reveal Kit">Magnetic Reveal Kit</option>
+                  <option value="Premium Brick Kit Quote">Premium Brick Kit Quote</option>
+                </select>
+              </div>
+              <div class="proof-request-card">
+                <h3 id="proofRequestTitle">Request Your Custom Proof</h3>
+                <p class="proof-request-body">We'll review your mosaic details and follow up with the next step to confirm your approved design. Production starts only after proof approval when your selected format is ready.</p>
+                <ul class="proof-points">
+                  <li>Free preview first</li>
+                  <li>Design confirmation before production</li>
+                  <li>Recommended format based on your photo</li>
+                  <li>No checkout today</li>
+                </ul>
+                <div class="proof-actions">
+                  <button class="btn btn-primary" type="button" onclick="requestCustomProof()">Request My Custom Proof</button>
+                  <button class="btn btn-secondary" type="button" onclick="saveProject('save_design')">Save Design for Later</button>
+                </div>
+              </div>
+            </section>
         
       </div>
     </div>
@@ -5526,34 +5627,6 @@
             <div class="cost-breakdown" id="costBreakdown">
               <!-- Dynamically populated based on product type -->
             </div>
-            <section class="post-preview-flow" id="postPreviewFlow" aria-labelledby="proofRequestTitle" hidden>
-              <div class="recommended-format-card" id="recommendedFormatCard">
-                <span class="recommended-format-eyebrow">Recommended format</span>
-                <h3 class="recommended-format-title" id="recommendedFormatTitle">Digital Mystery Reveal Pack</h3>
-                <p class="recommended-format-body" id="recommendedFormatReason">Best for instant keepsake files and sharing.</p>
-                <label class="sr-only" for="proofFormatSelect">Choose another format</label>
-                <select class="premium-select" id="proofFormatSelect" aria-label="Choose another format">
-                  <option value="Digital Mystery Reveal Pack">Digital Mystery Reveal Pack</option>
-                  <option value="Sticker Reveal Kit">Sticker Reveal Kit</option>
-                  <option value="Magnetic Reveal Kit">Magnetic Reveal Kit</option>
-                  <option value="Premium Brick Kit Quote">Premium Brick Kit Quote</option>
-                </select>
-              </div>
-              <div class="proof-request-card">
-                <h3 id="proofRequestTitle">Request Your Custom Proof</h3>
-                <p class="proof-request-body">We'll review your mosaic details and follow up with the next step to confirm your approved design. Production starts only after proof approval when your selected format is ready.</p>
-                <ul class="proof-points">
-                  <li>Free preview first</li>
-                  <li>Design confirmation before production</li>
-                  <li>Recommended format based on your photo</li>
-                  <li>No checkout today</li>
-                </ul>
-                <div class="proof-actions">
-                  <button class="btn btn-primary" type="button" onclick="requestCustomProof()">Request My Custom Proof</button>
-                  <button class="btn btn-secondary" type="button" onclick="saveProject('save_design')">Save Design for Later</button>
-                </div>
-              </div>
-            </section>
             <div style="margin-top: 1rem;">
           <!-- Generate button removed: image regenerates automatically on changes -->
             </div>
@@ -6940,6 +7013,7 @@
     let currentBrickCount = 0;
     let pendingRequestType = 'save_design';
     let lastRecommendedFormat = 'Digital Mystery Reveal Pack';
+    let lastProofTrigger = null;
 
     // PATCH 5: Finish Benefits Data
     const finishBenefits = {
@@ -7050,12 +7124,15 @@
     function showEmailGate(requestType = 'save_design') {
       pendingRequestType = requestType;
       updateEmailGateCopy(requestType);
+      lastProofTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : lastProofTrigger;
       const overlay = document.getElementById("emailGateOverlay");
       if (!overlay) return;
       overlay.hidden = false;
       overlay.classList.add("active");
       overlay.setAttribute("aria-hidden", "false");
       updateFunnelProgress(requestType === 'custom_proof' ? 4 : 3);
+      const firstField = document.getElementById("emailInput");
+      if (firstField) firstField.focus();
 
       if (typeof gtag !== "undefined") {
         gtag("event", requestType === 'custom_proof' ? "proof_request_opened" : "save_design_opened", {
@@ -7073,11 +7150,14 @@
         overlay.hidden = true;
       }
       hasSeenEmailGate = true;
+      if (lastProofTrigger && typeof lastProofTrigger.focus === "function") {
+        lastProofTrigger.focus();
+      }
     }
 
     // Email format check
     function isValidEmail(email) {
-      const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       return regex.test(email);
     }
 
@@ -7261,6 +7341,11 @@
 
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
+          const emailGate = document.getElementById("emailGateOverlay");
+          if (emailGate && !emailGate.hidden) {
+            hideEmailGate();
+            return;
+          }
           closeInsightsPanel();
         }
       });
@@ -8739,16 +8824,16 @@
 
         updateRecommendedFormatCard();
         document.body.classList.add('builder-has-preview');
-        updateFunnelProgress(3);
-        showStatus('Preview ready. Request proof follow-up when you are ready to confirm the design before production.');
+        updateFunnelProgress(4);
         showToast('Preview generated successfully!');
+        showStatus('Preview ready. You can request a custom proof.');
         updateGroupStatus();
 
         const buyButton = document.getElementById('launchAccessButton');
         if (buyButton) buyButton.style.display = 'block';
 
         setTimeout(() => {
-          showTab('builder');
+          showTab('designer');
           const proofFlow = document.getElementById('postPreviewFlow');
           if (proofFlow) {
             const proofTop = proofFlow.getBoundingClientRect().top + window.scrollY - 150;
@@ -11596,6 +11681,7 @@
   <!-- PATCH 2: Email Gate Overlay -->
   <div class="email-gate-overlay" id="emailGateOverlay" role="dialog" aria-modal="true" aria-labelledby="emailGateTitle" aria-hidden="true" hidden>
     <div class="email-gate-card">
+      <button class="email-gate-close" type="button" onclick="hideEmailGate()" aria-label="Close proof request form">×</button>
       <h2 id="emailGateTitle">Save Your Design</h2>
       <p class="subtitle" id="emailGateSubtitle">Send metadata only so we can follow up with digital launch access or proof options.</p>
 
