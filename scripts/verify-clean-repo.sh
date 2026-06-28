@@ -81,6 +81,13 @@ if rg -n -i "order placed|checkout successful|payment received|Shopify checkout 
 fi
 rm -f /tmp/mosapack-clean-fake-success.txt
 
+if rg -n -i "100% satisfaction guarantee|no questions asked|unlimited revisions|free remakes|free remake|fixed proof turnaround|approved preview" "$ROOT/public" >/tmp/mosapack-public-overpromise.txt; then
+  echo "FORBIDDEN public overpromise copy found:"
+  cat /tmp/mosapack-public-overpromise.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-public-overpromise.txt
+
 
 BUILDER="$ROOT/public/builder/index.html"
 if [ ! -f "$BUILDER" ]; then

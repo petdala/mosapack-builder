@@ -7,8 +7,8 @@ Add a post-preview proof request path to the canonical builder without enabling 
 ## Public Proof Language
 
 - Headline: “Request Your Custom Proof”
-- Body: “We’ll review your pet mosaic and send a custom proof before production. You approve the design before anything is made.”
-- Supporting points: free preview first, proof approval before production, recommended format based on the photo, no checkout today.
+- Body: “We'll follow up with the next step to confirm your approved design before production.”
+- Supporting points: free preview first, design confirmation before production, recommended format based on the photo, no checkout today.
 - Landing page proof copy: preview is free, proof can be requested when ready, and production starts only after design approval.
 
 ## Form Fields Captured
@@ -84,3 +84,34 @@ Preview deploy only. Production is not recommended until Derek verifies the prev
 - The builder remains a large single HTML file, so regressions need verifier coverage.
 - Rule-based format recommendation is intentionally simple and should be reviewed against real pet photos.
 - Live Netlify Forms receipt still requires a preview-deploy submission.
+
+## Post-Implementation Audit
+
+Current proof flow status: B - lead/proof-intent capture only.
+
+B1.2 captures metadata through Netlify Forms, including request type, proof-request flag, recommended format, crop/focal metadata, timestamp, page/source, UTM fields, email, optional name, and optional note.
+
+Exact design save gap:
+
+- `project_id` is generated client-side from a timestamp.
+- `project_id` does not map to a retrievable saved design record.
+- generated preview image is not saved server-side.
+- project JSON is not persisted server-side.
+- cropped source image is not persisted server-side.
+- original uploaded image is not persisted server-side.
+- approved mosaic cannot be reliably reproduced later from the proof-request form alone.
+
+Public copy was adjusted to avoid implying Derek can immediately review the exact saved design. The success message now says: “Proof request saved. We'll follow up with the next step to confirm your approved design.”
+
+Netlify Forms captures metadata only. No raw photo/file input is included in the proof form.
+
+Next required build: B2 exact design save.
+
+Preview URL status: `https://6a412cd172ca55a4d6fa7aa2--mosapack.netlify.app` returned HTTP 200 for `/`, `/builder/`, and `/assets/scenes/office-1920x1080.jpg` during this audit.
+
+Manual QA still needed:
+
+- 20-photo pet test set
+- mobile test
+- keyboard/focus test
+- one real live Netlify Forms proof-request submission

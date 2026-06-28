@@ -5517,10 +5517,10 @@
               </div>
               <div class="proof-request-card">
                 <h3 id="proofRequestTitle">Request Your Custom Proof</h3>
-                <p class="proof-request-body">We’ll review your pet mosaic and send a custom proof before production. You approve the design before anything is made.</p>
+                <p class="proof-request-body">We'll follow up with the next step to confirm your approved design before production.</p>
                 <ul class="proof-points">
                   <li>Free preview first</li>
-                  <li>Proof approval before production</li>
+                  <li>Design confirmation before production</li>
                   <li>Recommended format based on your photo</li>
                   <li>No checkout today</li>
                 </ul>
@@ -7014,12 +7014,12 @@
       if (title) title.textContent = isProof ? 'Request Your Custom Proof' : 'Save Your Design';
       if (subtitle) {
         subtitle.textContent = isProof
-          ? 'Send metadata only so we can follow up on the approved preview and proof request.'
+          ? 'Send metadata only so we can follow up with the next step to confirm your approved design.'
           : 'Send metadata only so we can follow up with digital launch access or proof options.';
       }
       if (benefits) {
         benefits.innerHTML = isProof
-          ? '<li>Free preview first</li><li>Proof approval before production</li><li>Recommended format based on your photo</li><li>No checkout today</li>'
+          ? '<li>Free preview first</li><li>Design confirmation before production</li><li>Recommended format based on your photo</li><li>No checkout today</li>'
           : '<li>Free preview first</li><li>Save your current crop and format details</li><li>Choose digital access or a custom proof later</li><li>No checkout today</li>';
       }
       if (submit) submit.textContent = isProof ? 'Request My Custom Proof' : 'Save design';
@@ -7342,7 +7342,7 @@
             }
 
             const successMessage = requestType === "custom_proof"
-              ? "Proof request saved. We’ll use the approved preview and details you submitted to follow up."
+              ? "Proof request saved. We'll follow up with the next step to confirm your approved design."
               : "Saved. We will email launch access when it is ready.";
             showStatus(successMessage);
             showToast(successMessage, "success");
@@ -8715,7 +8715,7 @@
 
         updateRecommendedFormatCard();
         updateFunnelProgress(3);
-        showStatus('Preview ready. Request a custom proof when you want us to review it before production.');
+        showStatus('Preview ready. Request proof follow-up when you are ready to confirm the design before production.');
         showToast('Preview generated successfully!');
         updateGroupStatus();
 

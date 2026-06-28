@@ -82,6 +82,11 @@ if rg -n -i "wobrick|wobrick.com|downloadWobrick|supplier comparison|shopify|str
   FAIL=1
 fi
 
+if rg -n -i "approved preview|unlimited revisions|free remakes|free remake|fixed proof turnaround" "$BUILDER"; then
+  echo "Forbidden overpromise proof copy found in builder."
+  FAIL=1
+fi
+
 if rg -n -i "showEmailGate\(\)" "$BUILDER"; then
   echo "Possible hard email gate before first preview found in builder."
   FAIL=1

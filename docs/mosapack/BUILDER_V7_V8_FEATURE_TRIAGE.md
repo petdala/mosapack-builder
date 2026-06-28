@@ -48,3 +48,12 @@ Do not merge old builders. Extract patterns only.
 - v7 useful product-control ideas but too complex.
 - v8 useful conversion flow but hard email gate conflicts.
 - canonical file remains `public/builder/index.html`.
+
+## B1.2 Audit Update
+
+- B2 exact design save is required before proof requests become fulfillable.
+- Magnetic kit proof should remain made-to-order/quote until supplier gates pass.
+- SVG export/template work should be considered as part of the Digital Mystery Pet Reveal Pack, not a separate SVG shop.
+- Before/after compare remains a good later B1.x candidate.
+- Clean background and center-pet coach controls remain later candidates.
+- Hard email gate remains rejected.

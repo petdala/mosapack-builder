@@ -37,3 +37,26 @@ Note:
 - Approved lineage: v6-derived canonical builder.
 - v5 is superseded; do not back-port or expose raw builder versions.
 - Forbidden public raw files include `builder-pro-v5.html`, `builder-pro-v6.html`, `builder-pro-v7.html`, and `builder-optimized-v8.html`.
+
+## B2 - Exact Design Save Gate
+
+B2 exact design save is the next build gate after B1/B1.2 QA.
+
+Proof request capture is not enough unless the exact approved design is retrievable. Current B1.2 proof requests capture metadata only; they do not persist the source image, cropped source, generated mosaic output, preview PNG, or project JSON.
+
+B2 must persist the exact approved design before real proof fulfillment, physical checkout, paid custom proof, or any workflow that implies Derek can immediately review the approved mosaic.
+
+## Physical Supplier R&D Workstream
+
+Physical products remain proof/quote paths until supplier R&D gates pass.
+
+Required workstream:
+
+- contact StickerYou
+- contact Printful
+- request Maghard/JASDI quotes
+- prototype 8mm vs 3/4 inch pieces
+- test assembly with 3 people
+- test shipping/packaging
+- model landed cost
+- no instant physical checkout until gates pass
