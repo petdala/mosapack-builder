@@ -59,6 +59,13 @@ done
 require_rg "mosapack-save-design" "$BUILDER" "save-design Netlify form"
 require_rg "data-netlify=\"true\"" "$BUILDER" "Netlify form marker"
 require_rg "name=\"form-name\" value=\"mosapack-save-design\"" "$BUILDER" "save-design hidden form-name"
+require_rg "Request Your Custom Proof" "$BUILDER" "post-preview proof request section"
+require_rg "Request My Custom Proof" "$BUILDER" "proof request CTA"
+require_rg "name=\"request_type\"" "$BUILDER" "proof request type field"
+require_rg "name=\"proof_requested\"" "$BUILDER" "proof requested field"
+require_rg "name=\"recommended_format\"" "$BUILDER" "recommended format field"
+require_rg "Digital Mystery Pet Reveal Pack" "$BUILDER" "default recommended format"
+require_rg "Proof request saved" "$BUILDER" "proof request success copy"
 
 if rg -n "/builder/assets/scenes/|-[Tt]humb\.jpg" "$BUILDER"; then
   echo "Forbidden stale scene asset reference found."
@@ -67,6 +74,16 @@ fi
 
 if rg -n -i "ConvertKit|Kit API|YOUR_PIXEL_ID|order placed|checkout success|quality score|museum quality score|94% match|gold quality|silver quality|bronze quality|\bSSIM\b|ΔE" "$BUILDER"; then
   echo "Forbidden public provider/fake-success/quality-metric language found in builder."
+  FAIL=1
+fi
+
+if rg -n -i "wobrick|wobrick.com|downloadWobrick|supplier comparison|shopify|stripe|order placed|checkout successful|payment received|fake checkout|buy now" "$BUILDER"; then
+  echo "Forbidden Wobrick/payment/fake-checkout language found in builder."
+  FAIL=1
+fi
+
+if rg -n -i "showEmailGate\(\)" "$BUILDER"; then
+  echo "Possible hard email gate before first preview found in builder."
   FAIL=1
 fi
 

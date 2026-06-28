@@ -31,3 +31,13 @@ Forbidden public files and routes include:
 - No checkout success, order success, or payment success state until D1 checkout exists.
 - Checkout must remain honestly disabled until D1.
 - Public copy should describe digital launch access, made-to-order custom proofs, proof approval, and premium custom quotes.
+
+## B1.2 Wobrick Decision
+
+Classification: C/D - unused public dependency with supplier/export functions exposed to the browser.
+
+Decision: remove `public/builder/wobrick-integration.js` from the public launch surface and remove its script reference from `public/builder/index.html`.
+
+Reason: the canonical builder does not call the Wobrick export functions for the customer proof flow, and the module exposed supplier-specific download/order guidance on `window`. Public launch should not send users to Wobrick, suppliers, or competitor ordering paths.
+
+Future rule: supplier export logic may return later only as internal order/export metadata after D1/C gates, not as a public CTA or ordering path.

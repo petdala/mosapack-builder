@@ -122,6 +122,47 @@ if rg -n -i "quality score|museum quality score|94% match|gold quality|silver qu
 fi
 rm -f /tmp/mosapack-builder-public-quality.txt
 
+if ! rg -q "Request Your Custom Proof" "$BUILDER"; then
+  echo "MISSING proof request CTA/copy in builder."
+  FAIL=1
+fi
+
+if ! rg -q 'name="request_type"|name="proof_requested"' "$BUILDER"; then
+  echo "MISSING proof request type metadata in builder form."
+  FAIL=1
+fi
+
+if ! rg -q 'name="recommended_format"' "$BUILDER"; then
+  echo "MISSING recommended_format metadata in builder form."
+  FAIL=1
+fi
+
+if rg -n -i "wobrick|wobrick.com|downloadWobrick|supplier comparison" "$ROOT/public" >/tmp/mosapack-public-wobrick.txt; then
+  echo "FORBIDDEN Wobrick public CTA/path found:"
+  cat /tmp/mosapack-public-wobrick.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-public-wobrick.txt
+
+if rg -n -i "shopify|stripe|order placed|checkout successful|payment received|fake checkout|buy now" "$ROOT/public/index.html" "$BUILDER" "$ROOT/public/contact/index.html" >/tmp/mosapack-public-checkout.txt; then
+  echo "FORBIDDEN checkout/payment language found in public launch files:"
+  cat /tmp/mosapack-public-checkout.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-public-checkout.txt
+
+if ! rg -q "Create a free pet mosaic preview|Free preview first" "$BUILDER"; then
+  echo "MISSING first-preview-free builder copy."
+  FAIL=1
+fi
+
+if rg -n -i "showEmailGate\(\)" "$BUILDER" >/tmp/mosapack-hard-email-gate.txt; then
+  echo "POSSIBLE hard email gate before first preview found:"
+  cat /tmp/mosapack-hard-email-gate.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-hard-email-gate.txt
+
 if rg -n "#4c6fff|#b3277e|#ff6b35|--accent-purple|--accent-orange|purple|indigo" "$BUILDER" >/tmp/mosapack-builder-brand-drift.txt; then
   echo "POSSIBLE builder brand-token drift found:"
   cat /tmp/mosapack-builder-brand-drift.txt

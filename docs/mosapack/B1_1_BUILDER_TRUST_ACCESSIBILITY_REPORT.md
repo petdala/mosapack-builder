@@ -57,3 +57,11 @@ Fill final command results in the release report after checks run.
 ## Production Deploy Recommendation
 
 Do not production deploy from this task. Production approval should wait until Derek tests the preview deploy.
+
+## B1.2 Follow-Up
+
+- Added a post-preview proof request section to the canonical builder.
+- Extended the existing metadata-only `mosapack-save-design` Netlify Form with proof request fields.
+- Added rule-based recommended-format copy after preview generation.
+- Removed the unused public Wobrick supplier export file and script reference.
+- Public proof flow keeps first preview free and checkout disabled.

@@ -118,3 +118,12 @@ Remaining manual QA:
 - Keyboard/focus check.
 - Preview deploy check.
 
+## B1.2 Proof Request QA Addendum
+
+- Confirm the post-preview proof section stays hidden before generation.
+- Confirm it appears after successful preview generation.
+- Confirm “Request My Custom Proof” opens the metadata-only Netlify form.
+- Confirm the form captures `request_type`, `proof_requested`, and `recommended_format`.
+- Confirm no raw image/file input appears inside the Netlify form.
+- Confirm first preview remains free and is not email-gated.
+- Confirm Wobrick/supplier ordering paths are absent from public builder UI and source.

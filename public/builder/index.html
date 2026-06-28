@@ -65,7 +65,6 @@
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="wobrick-integration.js"></script>
   
 
   <style>
@@ -1279,6 +1278,95 @@
 
     .bundle-preview-panel.hidden {
       display: none;
+    }
+
+    .post-preview-flow {
+      display: grid;
+      gap: 0.85rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid rgba(11, 191, 146, 0.28);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(11, 191, 146, 0.08), rgba(255, 255, 255, 0.95));
+    }
+
+    .post-preview-flow[hidden] {
+      display: none;
+    }
+
+    .recommended-format-card {
+      display: grid;
+      gap: 0.6rem;
+      padding: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: white;
+    }
+
+    .recommended-format-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary-dark);
+    }
+
+    .recommended-format-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .recommended-format-body,
+    .proof-request-body {
+      margin: 0;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .proof-request-card {
+      display: grid;
+      gap: 0.75rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: white;
+    }
+
+    .proof-request-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .proof-points {
+      display: grid;
+      gap: 0.45rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .proof-points li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+
+    .proof-points li::before {
+      content: '•';
+      color: var(--primary-dark);
+      font-weight: 800;
+    }
+
+    .proof-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
     }
 
     .bundle-config-bar {
@@ -4060,7 +4148,8 @@
       margin-top: 24px;
     }
 
-    .email-gate-form input {
+    .email-gate-form input,
+    .email-gate-form textarea {
       padding: 14px;
       border: 2px solid #e5e5e5;
       border-radius: 6px;
@@ -4068,7 +4157,8 @@
       transition: border-color 0.3s;
     }
 
-    .email-gate-form input:focus {
+    .email-gate-form input:focus,
+    .email-gate-form textarea:focus {
       outline: none;
       border-color: #007bff;
     }
@@ -4640,21 +4730,21 @@
 <body>
   <!-- PATCH 1: Funnel Progress Indicator -->
   <div class="funnel-progress" id="funnelProgress">
-    <div class="funnel-step completed" data-step="1">
+    <div class="funnel-step completed" data-step="1" aria-current="step">
       <div class="step-icon">✓</div>
       <span>Upload</span>
     </div>
     <div class="funnel-step" data-step="2">
       <div class="step-icon">2</div>
-      <span>Unlock</span>
+      <span>Position</span>
     </div>
     <div class="funnel-step" data-step="3">
       <div class="step-icon">3</div>
-      <span>Customize</span>
+      <span>Preview</span>
     </div>
     <div class="funnel-step" data-step="4">
       <div class="step-icon">4</div>
-      <span>Checkout</span>
+      <span>Request Proof</span>
     </div>
   </div>
 
@@ -5332,7 +5422,7 @@
             <div class="summary-header">
               <span class="summary-index">3</span>
               <div class="summary-text-block">
-                <span class="summary-title">Fine-Tune &amp; AI</span>
+                <span class="summary-title">Fine-Tune</span>
                 <span class="summary-value" id="summary-tuning">Preset: Original · Palette: Professional</span>
               </div>
             </div>
@@ -5395,7 +5485,7 @@
           </div>
           <div class="panel-content">
             <div style="margin-bottom: 0.5rem; padding: 0.5rem; background: var(--primary-pale); border-radius: var(--radius); font-size: 0.8125rem; color: var(--text-light);">
-              💡 <strong>Tip:</strong> Click colors below to hide/show them. Regenerate to see changes.
+              <strong>Tip:</strong> Click colors below to hide/show them. Regenerate to see changes.
             </div>
             <div class="color-grid" id="colorDistribution"></div>
           </div>
@@ -5412,6 +5502,34 @@
             <div class="cost-breakdown" id="costBreakdown">
               <!-- Dynamically populated based on product type -->
             </div>
+            <section class="post-preview-flow" id="postPreviewFlow" aria-labelledby="proofRequestTitle" hidden>
+              <div class="recommended-format-card" id="recommendedFormatCard">
+                <span class="recommended-format-eyebrow">Recommended format</span>
+                <h3 class="recommended-format-title" id="recommendedFormatTitle">Digital Mystery Pet Reveal Pack</h3>
+                <p class="recommended-format-body" id="recommendedFormatReason">Best for instant keepsake files and sharing.</p>
+                <label class="sr-only" for="proofFormatSelect">Choose another format</label>
+                <select class="premium-select" id="proofFormatSelect" aria-label="Choose another format">
+                  <option value="Digital Mystery Pet Reveal Pack">Digital Mystery Pet Reveal Pack</option>
+                  <option value="Sticker Reveal Kit">Sticker Reveal Kit</option>
+                  <option value="Magnetic Reveal Kit">Magnetic Reveal Kit</option>
+                  <option value="Premium Brick Kit Quote">Premium Brick Kit Quote</option>
+                </select>
+              </div>
+              <div class="proof-request-card">
+                <h3 id="proofRequestTitle">Request Your Custom Proof</h3>
+                <p class="proof-request-body">We’ll review your pet mosaic and send a custom proof before production. You approve the design before anything is made.</p>
+                <ul class="proof-points">
+                  <li>Free preview first</li>
+                  <li>Proof approval before production</li>
+                  <li>Recommended format based on your photo</li>
+                  <li>No checkout today</li>
+                </ul>
+                <div class="proof-actions">
+                  <button class="btn btn-primary" type="button" onclick="requestCustomProof()">Request My Custom Proof</button>
+                  <button class="btn btn-secondary" type="button" onclick="saveProject('save_design')">Save Design for Later</button>
+                </div>
+              </div>
+            </section>
             <div style="margin-top: 1rem;">
           <!-- Generate button removed: image regenerates automatically on changes -->
             </div>
@@ -5467,7 +5585,7 @@
           </div>
           <div class="panel-content">
           <div style="margin-bottom: 0.5rem; padding: 0.5rem; background: var(--primary-pale); border-radius: var(--radius); font-size: 0.8125rem; color: var(--text-light);">
-            💡 <strong>Tip:</strong> Click colors below to hide/show them. Regenerate to see changes.
+            <strong>Tip:</strong> Click colors below to hide/show them. Regenerate to see changes.
           </div>
           <div class="color-grid" id="colorDistribution"></div>
           </div>
@@ -5907,18 +6025,18 @@
     function updateAiMetricPills() {
       const faceBtn = document.getElementById('aiToggleFaceColor');
       if (faceBtn) {
-        faceBtn.title = "AI Face Optimizer";
+        faceBtn.title = "Face color optimizer";
       }
 
       const enhanceBtn = document.getElementById('aiToggleFaceEnhance');
       if (enhanceBtn) {
-        enhanceBtn.title = "AI Face Enhance";
+        enhanceBtn.title = "Face detail";
       }
 
       const bgBtn = document.getElementById('aiToggleBackground');
       const modeBtn = document.getElementById('aiBgModeButton');
       if (bgBtn) {
-        bgBtn.title = "AI Background Magic";
+        bgBtn.title = "Background fill";
       }
       if (modeBtn) {
         modeBtn.textContent = aiSettings.backgroundMode.toUpperCase();
@@ -5932,7 +6050,7 @@
         clearTimeout(processDebounceHandle);
       }
       processDebounceHandle = setTimeout(() => {
-        Promise.resolve(processImage()).catch((error) => console.error('AI reprocess error', error));
+        Promise.resolve(processImage()).catch((error) => console.error('Filter reprocess error', error));
       }, delay);
     }
 
@@ -6702,6 +6820,31 @@
       savePanelState();
     }
 
+    function toggleWorkspacePanel(panelId) {
+      const mega = document.getElementById('workspaceMega');
+      const inner = document.getElementById('workspaceMegaInner');
+      const template = document.querySelector(`#workspacePanelTemplates .workspace-mega-content[data-panel="${panelId}"]`);
+      if (!mega || !inner || !template) return;
+
+      const isOpen = mega.classList.contains('is-active') && mega.dataset.activePanel === panelId;
+      document.querySelectorAll('.tool-button[data-panel]').forEach((button) => {
+        const active = !isOpen && button.dataset.panel === panelId;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      if (isOpen) {
+        mega.classList.remove('is-active');
+        mega.removeAttribute('data-active-panel');
+        inner.innerHTML = '';
+        return;
+      }
+
+      inner.innerHTML = template.innerHTML;
+      mega.dataset.activePanel = panelId;
+      mega.classList.add('is-active');
+    }
+
     function applyGroupState() {
       const groups = document.querySelectorAll('.controls-column .module-group[data-group-id]');
       groups.forEach((group) => {
@@ -6771,6 +6914,8 @@
     // =====================================================
     let hasSeenEmailGate = false;
     let currentBrickCount = 0;
+    let pendingRequestType = 'save_design';
+    let lastRecommendedFormat = 'Digital Mystery Pet Reveal Pack';
 
     // PATCH 5: Finish Benefits Data
     const finishBenefits = {
@@ -6844,12 +6989,14 @@
       steps.forEach((step, index) => {
         const stepNum = index + 1;
         step.classList.remove('active', 'completed');
+        step.removeAttribute('aria-current');
 
         if (stepNum < currentStep) {
           step.classList.add('completed');
           step.querySelector('.step-icon').textContent = '✓';
         } else if (stepNum === currentStep) {
           step.classList.add('active');
+          step.setAttribute('aria-current', 'step');
           step.querySelector('.step-icon').textContent = stepNum;
         } else {
           step.querySelector('.step-icon').textContent = stepNum;
@@ -6857,19 +7004,40 @@
       });
     }
 
-    // Show save-interest gate only when the user asks to save
-    function showEmailGate() {
-      if (hasSeenEmailGate) return; // Only show once per session
+    function updateEmailGateCopy(requestType) {
+      const isProof = requestType === 'custom_proof';
+      const title = document.getElementById('emailGateTitle');
+      const subtitle = document.getElementById('emailGateSubtitle');
+      const benefits = document.getElementById('emailGateBenefits');
+      const submit = document.getElementById('emailGateSubmit');
 
+      if (title) title.textContent = isProof ? 'Request Your Custom Proof' : 'Save Your Design';
+      if (subtitle) {
+        subtitle.textContent = isProof
+          ? 'Send metadata only so we can follow up on the approved preview and proof request.'
+          : 'Send metadata only so we can follow up with digital launch access or proof options.';
+      }
+      if (benefits) {
+        benefits.innerHTML = isProof
+          ? '<li>Free preview first</li><li>Proof approval before production</li><li>Recommended format based on your photo</li><li>No checkout today</li>'
+          : '<li>Free preview first</li><li>Save your current crop and format details</li><li>Choose digital access or a custom proof later</li><li>No checkout today</li>';
+      }
+      if (submit) submit.textContent = isProof ? 'Request My Custom Proof' : 'Save design';
+    }
+
+    // Show save/proof form only when the user asks for it.
+    function showEmailGate(requestType = 'save_design') {
+      pendingRequestType = requestType;
+      updateEmailGateCopy(requestType);
       const overlay = document.getElementById("emailGateOverlay");
       if (!overlay) return;
       overlay.hidden = false;
       overlay.classList.add("active");
       overlay.setAttribute("aria-hidden", "false");
-      updateFunnelProgress(2);
+      updateFunnelProgress(requestType === 'custom_proof' ? 4 : 3);
 
       if (typeof gtag !== "undefined") {
-        gtag("event", "email_gate_shown", {
+        gtag("event", requestType === 'custom_proof' ? "proof_request_opened" : "save_design_opened", {
           "event_category": "conversion",
           "event_label": "builder_canonical"
         });
@@ -6901,6 +7069,52 @@
       ];
       const domain = email.split('@')[1];
       return domain && disposableDomains.includes(domain.toLowerCase());
+    }
+
+    const FORMAT_REASONS = {
+      'Digital Mystery Pet Reveal Pack': 'Best for instant keepsake files and sharing.',
+      'Sticker Reveal Kit': 'Best for a hands-on reveal kit with lower cost.',
+      'Magnetic Reveal Kit': 'Best for a reusable display experience.',
+      'Premium Brick Kit Quote': 'Best for a larger display piece.'
+    };
+
+    function getRecommendedFormat() {
+      const centered = Math.abs((cropState.focalPointX || 0.5) - 0.5) <= 0.18 &&
+        Math.abs((cropState.focalPointY || 0.5) - 0.5) <= 0.18 && !cropState.warning;
+
+      if (currentProductType === 'bricks' && currentSize >= 64) {
+        return 'Premium Brick Kit Quote';
+      }
+      if (currentSize >= 64) {
+        return 'Premium Brick Kit Quote';
+      }
+      if (centered && currentSize >= 48) {
+        return currentMaterialType === 'magnetic' ? 'Magnetic Reveal Kit' : 'Sticker Reveal Kit';
+      }
+      return 'Digital Mystery Pet Reveal Pack';
+    }
+
+    function updateRecommendedFormatCard(format) {
+      const selected = format || getRecommendedFormat();
+      lastRecommendedFormat = selected;
+      const flow = document.getElementById('postPreviewFlow');
+      const title = document.getElementById('recommendedFormatTitle');
+      const reason = document.getElementById('recommendedFormatReason');
+      const select = document.getElementById('proofFormatSelect');
+
+      if (flow && processedData) flow.hidden = false;
+      if (title) title.textContent = selected;
+      if (reason) reason.textContent = FORMAT_REASONS[selected] || FORMAT_REASONS['Digital Mystery Pet Reveal Pack'];
+      if (select && select.value !== selected) select.value = selected;
+    }
+
+    function requestCustomProof() {
+      if (!processedData) {
+        showToast('Generate a free preview before requesting a proof', 'error');
+        return;
+      }
+      updateRecommendedFormatCard(document.getElementById('proofFormatSelect')?.value || lastRecommendedFormat);
+      showEmailGate('custom_proof');
     }
 
     // Handle email submission
@@ -7054,6 +7268,11 @@
         });
       }
 
+      const proofFormatSelect = document.getElementById('proofFormatSelect');
+      if (proofFormatSelect) {
+        proofFormatSelect.addEventListener('change', () => updateRecommendedFormatCard(proofFormatSelect.value));
+      }
+
       const emailForm = document.getElementById("emailGateForm");
       if (emailForm) {
         const submitButton = emailForm.querySelector("button[type=submit]");
@@ -7082,11 +7301,18 @@
             return;
           }
 
+          const requestType = pendingRequestType || "save_design";
+          const recommendedFormat = document.getElementById('proofFormatSelect')?.value || lastRecommendedFormat || getRecommendedFormat();
+          setGateField("saveRequestType", requestType);
+          setGateField("saveProofRequested", requestType === "custom_proof" ? "true" : "false");
+          setGateField("saveRecommendedFormat", recommendedFormat);
           setGateField("saveProjectId", "mosapack-" + Date.now().toString(36));
           setGateField("saveProductInterest", currentProductType || "unknown");
           setGateField("saveGridSize", String(currentSize || ""));
           setGateField("savePreviewShape", currentMaterialType || "mosaic");
           setGateField("savePhotoCategory", currentPreset || "unknown");
+          setGateField("savePage", window.location.pathname || "/builder/");
+          setGateField("saveSource", requestType === "custom_proof" ? "builder-proof-request" : "builder-save-design");
           setGateField("saveCropX", Number.isFinite(cropState.cropX) ? cropState.cropX.toFixed(2) : "");
           setGateField("saveCropY", Number.isFinite(cropState.cropY) ? cropState.cropY.toFixed(2) : "");
           setGateField("saveCropZoom", Number.isFinite(cropState.zoom) ? cropState.zoom.toFixed(2) : "");
@@ -7115,13 +7341,21 @@
               throw new Error("Netlify Forms submission failed");
             }
 
-            showStatus("Saved. We will email launch access when it is ready.");
-            showToast("Saved. We will email launch access when it is ready.", "success");
+            const successMessage = requestType === "custom_proof"
+              ? "Proof request saved. We’ll use the approved preview and details you submitted to follow up."
+              : "Saved. We will email launch access when it is ready.";
+            showStatus(successMessage);
+            showToast(successMessage, "success");
             emailForm.reset();
+            if (proofFormatSelect) proofFormatSelect.value = recommendedFormat;
+            pendingRequestType = "save_design";
             hideEmailGate();
           } catch (error) {
-            showStatus("We could not save your preview. Try again or contact support.");
-            showToast("We could not save your preview. Try again or contact support.", "error");
+            const errorMessage = requestType === "custom_proof"
+              ? "We couldn’t save the proof request. Please try again or use the contact form."
+              : "We could not save your preview. Try again or contact support.";
+            showStatus(errorMessage);
+            showToast(errorMessage, "error");
           } finally {
             if (submitButton) {
               submitButton.disabled = false;
@@ -7876,7 +8110,7 @@
 
     function setFinish(finish) {
       if (currentMaterialType !== 'magnetic') {
-        showToast('⚠️', 'Finishes only available for magnetic sheets');
+        showToast('Finishes only available for magnetic sheets', 'info');
         return;
       }
 
@@ -8016,7 +8250,7 @@
         if (config.ai.faceEnhance) filters.push('Face Enhance');
         if (config.ai.backgroundMode) filters.push(`Background: ${titleize(config.ai.backgroundMode)}`);
         if (filters.length) {
-          props.push({ name: 'AI Filters', value: filters.join(', ') });
+          props.push({ name: 'Image Filters', value: filters.join(', ') });
         }
       }
       props.push({ name: 'Generated At', value: config.timestamp });
@@ -8479,11 +8713,9 @@
         updateCostBreakdown();
         showUpsell();
 
-        if (typeof updateWobrickStatus === 'function') {
-          updateWobrickStatus();
-        }
-
-        showStatus('Preview ready. Save your design when you want digital launch access or a custom proof follow-up.');
+        updateRecommendedFormatCard();
+        updateFunnelProgress(3);
+        showStatus('Preview ready. Request a custom proof when you want us to review it before production.');
         showToast('Preview generated successfully!');
         updateGroupStatus();
 
@@ -10271,12 +10503,12 @@
         showToast('Project saved');
     }
 
-    function saveProject() {
+    function saveProject(requestType = 'save_design') {
       if (!processedData) {
         showToast('Generate a mosaic before saving', 'error');
         return;
       }
-      showEmailGate();
+      showEmailGate(requestType);
     }
 
     function resetBuilder() {
@@ -10310,6 +10542,9 @@
         document.getElementById('numbersOverlay').classList.remove('show');
         document.getElementById('baseplateGrid').classList.remove('show');
         document.getElementById('upsellBanner').style.display = 'none';
+        const postPreviewFlow = document.getElementById('postPreviewFlow');
+        if (postPreviewFlow) postPreviewFlow.hidden = true;
+        updateFunnelProgress(1);
         document.getElementById('presetDropdown').value = 'original';
         const quickStartDropdown = document.getElementById('corePresetDropdown');
         if (quickStartDropdown) {
@@ -11326,18 +11561,21 @@
   <div class="email-gate-overlay" id="emailGateOverlay" role="dialog" aria-modal="true" aria-labelledby="emailGateTitle" aria-hidden="true" hidden>
     <div class="email-gate-card">
       <h2 id="emailGateTitle">Save Your Design</h2>
-      <p class="subtitle">Send metadata only so we can follow up with digital launch access, a custom proof, or a premium quote.</p>
+      <p class="subtitle" id="emailGateSubtitle">Send metadata only so we can follow up with digital launch access or proof options.</p>
 
-      <ul class="benefits">
-        <li>View exact material costs (Magnetic, Solid, Transparent)</li>
-        <li>Explore 5 premium finishes (Metallic, Glitter, Holographic, Glow)</li>
-        <li>Get personalized bundle recommendations</li>
-        <li>Receive exclusive 15% launch discount code</li>
+      <ul class="benefits" id="emailGateBenefits">
+        <li>Free preview first</li>
+        <li>Save your current crop and format details</li>
+        <li>Choose digital access or a custom proof later</li>
+        <li>No checkout today</li>
       </ul>
 
       <form class="email-gate-form" id="emailGateForm" name="mosapack-save-design" method="POST" data-netlify="true" netlify-honeypot="bot-field">
         <input type="hidden" name="form-name" value="mosapack-save-design">
         <input type="hidden" name="bot-field">
+        <input type="hidden" name="request_type" id="saveRequestType" value="save_design">
+        <input type="hidden" name="proof_requested" id="saveProofRequested" value="false">
+        <input type="hidden" name="recommended_format" id="saveRecommendedFormat">
         <input type="hidden" name="project_id" id="saveProjectId">
         <input type="hidden" name="product_interest" id="saveProductInterest">
         <input type="hidden" name="grid_size" id="saveGridSize">
@@ -11353,6 +11591,8 @@
         <input type="hidden" name="utm_source" id="saveUtmSource">
         <input type="hidden" name="utm_medium" id="saveUtmMedium">
         <input type="hidden" name="utm_campaign" id="saveUtmCampaign">
+        <input type="hidden" name="page" id="savePage">
+        <input type="hidden" name="source" id="saveSource">
         <input
           type="email"
           id="emailInput"
@@ -11360,7 +11600,19 @@
           placeholder="Enter your email"
           required
         />
-        <button type="submit">Save design</button>
+        <input
+          type="text"
+          id="nameInput"
+          name="name"
+          placeholder="Name (optional)"
+        />
+        <textarea
+          id="noteInput"
+          name="note"
+          rows="3"
+          placeholder="Anything we should know about your pet or the gift?"
+        ></textarea>
+        <button type="submit" id="emailGateSubmit">Save design</button>
       </form>
 
       <p class="email-gate-privacy">
