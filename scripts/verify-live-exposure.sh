@@ -73,21 +73,18 @@ check_live_form() {
   local out="$3"
   local fail=0
 
-  if ! grep -Eiq "<form[^>]*name=\"$form_name\"" "$out"; then
+  if ! grep -Eiq "<form[^>]*name=['\"]$form_name['\"]" "$out"; then
     echo "MISSING live form $form_name on $path"
     fail=1
   fi
 
-  if ! grep -Eiq "name=\"form-name\"[[:space:]]+value=\"$form_name\"" "$out"; then
+  if ! grep -Eiq "name=['\"]form-name['\"][[:space:]]+value=['\"]$form_name['\"]" "$out"; then
     echo "MISSING hidden form-name for $form_name on $path"
     fail=1
   fi
 
-  if ! grep -Eiq "<form[^>]*(data-netlify=\"true\"|netlify)([[:space:]>])" "$out"; then
-    echo "MISSING Netlify form attribute for $form_name on $path"
-    fail=1
-  fi
-
+  # Netlify may strip data-netlify/netlify-honeypot attributes from served HTML after registering forms.
+  # Source markup is checked by verify-netlify-forms.sh; live HTML only needs the registered form name and form-name field.
   return "$fail"
 }
 
