@@ -2771,6 +2771,127 @@
       color: var(--text-muted);
     }
 
+
+    /* B1 Crop / Focal Control */
+    .crop-editor {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: rgba(250, 250, 250, 0.98);
+    }
+
+    .crop-editor.active {
+      display: flex;
+    }
+
+    .crop-card {
+      width: min(560px, 100%);
+      display: grid;
+      gap: 0.875rem;
+      color: var(--text);
+    }
+
+    .crop-heading {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .crop-subtitle {
+      margin: -0.35rem 0 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .crop-frame {
+      position: relative;
+      width: min(420px, 82vw);
+      aspect-ratio: 1;
+      margin: 0 auto;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #111827;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .crop-frame.dragging {
+      cursor: grabbing;
+    }
+
+    #cropCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .crop-crosshair {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.38)) 50% 0 / 1px 100% no-repeat,
+        linear-gradient(90deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.38)) 0 50% / 100% 1px no-repeat;
+    }
+
+    .crop-controls {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.75rem;
+      width: min(420px, 82vw);
+      margin: 0 auto;
+    }
+
+    .crop-label {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .crop-controls input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+    }
+
+    .crop-reset-btn {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .crop-warning {
+      min-height: 1.25rem;
+      width: min(420px, 82vw);
+      margin: 0 auto;
+      color: #92400e;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .crop-actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .crop-actions .btn {
+      min-width: 180px;
+    }
+
     /* Compact Style Presets */
     .preset-selector {
       display: flex;
@@ -4694,6 +4815,27 @@
               <div class="upload-text">Click to upload photo</div>
               <div class="upload-hint">or drag and drop</div>
             </div>
+            <!-- B1 Crop / Focal Control -->
+            <div class="crop-editor" id="cropEditor" aria-live="polite">
+              <div class="crop-card">
+                <h3 class="crop-heading">Position your pet</h3>
+                <p class="crop-subtitle">Drag to center the face, then zoom if you want a tighter preview.</p>
+                <div class="crop-frame" id="cropFrame" aria-label="Drag to center the face">
+                  <canvas id="cropCanvas" width="420" height="420"></canvas>
+                  <div class="crop-crosshair" aria-hidden="true"></div>
+                </div>
+                <div class="crop-controls">
+                  <label class="crop-label" for="cropZoomSlider">Zoom</label>
+                  <input type="range" id="cropZoomSlider" min="1" max="3" step="0.01" value="1" aria-label="Zoom">
+                  <button type="button" class="crop-reset-btn" id="cropResetButton">Reset crop</button>
+                </div>
+                <div class="crop-warning" id="cropWarning"></div>
+                <div class="crop-actions">
+                  <button type="button" class="btn btn-secondary" id="cropFitButton">Fit photo</button>
+                  <button type="button" class="btn btn-primary" id="cropGenerateButton">Looks good - generate preview</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -4818,7 +4960,7 @@
             <option value="lego_showcase">LEGO Showcase • Transparent 48×48</option>
             <option value="gallery_luxe">Gallery Luxe • 64×64 Glow + Premium Backing</option>
           </select>
-          <p class="mega-description">Saved projects coming soon — Pro members already get cloud history.</p>
+          <p class="mega-description">Saved projects coming soon - Pro members already get cloud history.</p>
           <h4 class="mega-subtitle">Choose Product Type</h4>
           <div class="product-type-selector">
             <div class="product-type popular active" onclick="setProductType('bricks')" id="product-bricks">
@@ -5236,7 +5378,7 @@
             <button type="button" class="panel-toggle-btn" aria-label="Toggle Costs & Checkout">⌃</button>
           </div>
           <div class="panel-content">
-            <p class="pro-note" style="margin-bottom: 0.75rem;">Advanced exports (PDF, BOM, Image) unlock for Pro members—highlight this benefit in campaigns.</p>
+            <p class="pro-note" style="margin-bottom: 0.75rem;">Advanced exports (PDF, BOM, Image) unlock for Pro members-highlight this benefit in campaigns.</p>
             <div class="cost-breakdown" id="costBreakdown">
               <!-- Dynamically populated based on product type -->
             </div>
@@ -5398,6 +5540,22 @@
     };
     let processDebounceHandle = null;
 
+    let cropState = {
+      imageNaturalWidth: 0,
+      imageNaturalHeight: 0,
+      cropX: 0,
+      cropY: 0,
+      zoom: 1,
+      frameAspect: 1,
+      outputGridWidth: 48,
+      outputGridHeight: 48,
+      focalPointX: 0.5,
+      focalPointY: 0.5,
+      warning: '',
+      version: 'b1-crop-v1'
+    };
+    let cropDragState = null;
+
     const PANEL_STATE_KEY = 'builder_v6_panel_state';
     const GROUP_STATE_KEY = 'builder_v6_group_state';
     let panelState = {};
@@ -5508,7 +5666,7 @@
         image: 'assets/scenes/cafe-1920x1080.jpg',
         fallback: 'assets/scenes/cafe-thumb.jpg',
         perks: [
-          'Solid vinyl sticker sheets—peel and stick instantly',
+          'Solid vinyl sticker sheets-peel and stick instantly',
           'No backing included (DIY with poster board or foam)',
           'Perfect for quick gifts & classroom projects'
         ]
@@ -6882,6 +7040,12 @@
           setGateField("saveGridSize", String(currentSize || ""));
           setGateField("savePreviewShape", currentMaterialType || "mosaic");
           setGateField("savePhotoCategory", currentPreset || "unknown");
+          setGateField("saveCropX", Number.isFinite(cropState.cropX) ? cropState.cropX.toFixed(2) : "");
+          setGateField("saveCropY", Number.isFinite(cropState.cropY) ? cropState.cropY.toFixed(2) : "");
+          setGateField("saveCropZoom", Number.isFinite(cropState.zoom) ? cropState.zoom.toFixed(2) : "");
+          setGateField("saveFocalPointX", Number.isFinite(cropState.focalPointX) ? cropState.focalPointX.toFixed(4) : "");
+          setGateField("saveFocalPointY", Number.isFinite(cropState.focalPointY) ? cropState.focalPointY.toFixed(4) : "");
+          setGateField("saveCropVersion", cropState.version || "b1-crop-v1");
           setGateField("saveTimestamp", new Date().toISOString());
           setGateField("saveUtmSource", getGateQueryValue("utm_source"));
           setGateField("saveUtmMedium", getGateQueryValue("utm_medium"));
@@ -7968,7 +8132,9 @@
         // PATCH: Update funnel progress to step 1 (Upload complete)
         updateFunnelProgress(1);
 
-        Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
+        initializeCropEditor(img);
+        showLoading(false);
+        showRegen(false);
       };
       img.src = dataUrl;
     }
@@ -7986,6 +8152,236 @@
 
     // Call on page load
     checkPreloadedImage();
+
+
+    function initializeCropEditor(img) {
+      cropState.imageNaturalWidth = img.naturalWidth || img.width;
+      cropState.imageNaturalHeight = img.naturalHeight || img.height;
+      cropState.outputGridWidth = currentSize;
+      cropState.outputGridHeight = currentSize;
+      cropState.frameAspect = currentSize / currentSize;
+      cropState.version = 'b1-crop-v1';
+      fitCropToFrame();
+      bindCropControls();
+      showCropEditor(true);
+      renderCropPreview();
+    }
+
+    function showCropEditor(show) {
+      const editor = document.getElementById('cropEditor');
+      if (editor) editor.classList.toggle('active', Boolean(show));
+      if (show) {
+        showLoading(false);
+        showRegen(false);
+      }
+    }
+
+    function getBaseCropRect() {
+      const imageW = cropState.imageNaturalWidth || currentImage?.width || 1;
+      const imageH = cropState.imageNaturalHeight || currentImage?.height || 1;
+      const frameAspect = cropState.frameAspect || 1;
+      let width = imageW;
+      let height = width / frameAspect;
+      if (height > imageH) {
+        height = imageH;
+        width = height * frameAspect;
+      }
+      return { width, height };
+    }
+
+    function getCropSourceRect() {
+      if (!currentImage || !cropState.imageNaturalWidth || !cropState.imageNaturalHeight) {
+        const size = Math.min(currentImage?.width || 1, currentImage?.height || 1);
+        return {
+          x: ((currentImage?.width || size) - size) / 2,
+          y: ((currentImage?.height || size) - size) / 2,
+          width: size,
+          height: size
+        };
+      }
+
+      const base = getBaseCropRect();
+      const zoom = Math.max(1, Number(cropState.zoom) || 1);
+      const width = base.width / zoom;
+      const height = base.height / zoom;
+      return constrainCropRect({
+        x: cropState.cropX,
+        y: cropState.cropY,
+        width,
+        height
+      });
+    }
+
+    function constrainCropRect(rect) {
+      const imageW = cropState.imageNaturalWidth || currentImage?.width || rect.width;
+      const imageH = cropState.imageNaturalHeight || currentImage?.height || rect.height;
+      const width = Math.min(rect.width, imageW);
+      const height = Math.min(rect.height, imageH);
+      const maxX = Math.max(0, imageW - width);
+      const maxY = Math.max(0, imageH - height);
+      const x = Math.max(0, Math.min(rect.x, maxX));
+      const y = Math.max(0, Math.min(rect.y, maxY));
+      return { x, y, width, height };
+    }
+
+    function syncCropStateFromRect(rect) {
+      cropState.cropX = rect.x;
+      cropState.cropY = rect.y;
+      cropState.focalPointX = (rect.x + rect.width / 2) / cropState.imageNaturalWidth;
+      cropState.focalPointY = (rect.y + rect.height / 2) / cropState.imageNaturalHeight;
+      updateCropWarning(rect);
+    }
+
+    function fitCropToFrame() {
+      const base = getBaseCropRect();
+      cropState.zoom = 1;
+      const rect = constrainCropRect({
+        x: (cropState.imageNaturalWidth - base.width) / 2,
+        y: (cropState.imageNaturalHeight - base.height) / 2,
+        width: base.width,
+        height: base.height
+      });
+      syncCropStateFromRect(rect);
+      const slider = document.getElementById('cropZoomSlider');
+      if (slider) slider.value = String(cropState.zoom);
+      renderCropPreview();
+    }
+
+    function updateCropZoom(nextZoom) {
+      const currentRect = getCropSourceRect();
+      const centerX = currentRect.x + currentRect.width / 2;
+      const centerY = currentRect.y + currentRect.height / 2;
+      cropState.zoom = Math.max(1, Math.min(3, Number(nextZoom) || 1));
+      const base = getBaseCropRect();
+      const width = base.width / cropState.zoom;
+      const height = base.height / cropState.zoom;
+      const rect = constrainCropRect({
+        x: centerX - width / 2,
+        y: centerY - height / 2,
+        width,
+        height
+      });
+      syncCropStateFromRect(rect);
+      renderCropPreview();
+    }
+
+    function renderCropPreview() {
+      if (!currentImage) return;
+      const canvas = document.getElementById('cropCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = getCropSourceRect();
+      syncCropStateFromRect(rect);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(currentImage, rect.x, rect.y, rect.width, rect.height, 0, 0, canvas.width, canvas.height);
+    }
+
+    function updateCropWarning(rect = getCropSourceRect()) {
+      const edgeX = cropState.imageNaturalWidth * 0.05;
+      const edgeY = cropState.imageNaturalHeight * 0.05;
+      const nearLeft = rect.x <= edgeX;
+      const nearRight = rect.x + rect.width >= cropState.imageNaturalWidth - edgeX;
+      const nearTop = rect.y <= edgeY;
+      const nearBottom = rect.y + rect.height >= cropState.imageNaturalHeight - edgeY;
+      const asymmetricEdge = (nearLeft !== nearRight) || (nearTop !== nearBottom);
+      const zoomedEdge = cropState.zoom > 1.02 && (nearLeft || nearRight || nearTop || nearBottom);
+      cropState.warning = asymmetricEdge || zoomedEdge
+        ? 'Your pet may be too close to the edge. Try zooming out or dragging the face toward the center.'
+        : '';
+      const warningEl = document.getElementById('cropWarning');
+      if (warningEl) warningEl.textContent = cropState.warning;
+    }
+
+    function bindCropControls() {
+      const frame = document.getElementById('cropFrame');
+      const slider = document.getElementById('cropZoomSlider');
+      const resetButton = document.getElementById('cropResetButton');
+      const fitButton = document.getElementById('cropFitButton');
+      const generateButton = document.getElementById('cropGenerateButton');
+
+      if (slider && !slider.dataset.bound) {
+        slider.dataset.bound = 'true';
+        slider.addEventListener('input', (event) => updateCropZoom(event.target.value));
+      }
+
+      if (resetButton && !resetButton.dataset.bound) {
+        resetButton.dataset.bound = 'true';
+        resetButton.addEventListener('click', fitCropToFrame);
+      }
+
+      if (fitButton && !fitButton.dataset.bound) {
+        fitButton.dataset.bound = 'true';
+        fitButton.addEventListener('click', fitCropToFrame);
+      }
+
+      if (generateButton && !generateButton.dataset.bound) {
+        generateButton.dataset.bound = 'true';
+        generateButton.addEventListener('click', generateFromCrop);
+      }
+
+      if (frame && !frame.dataset.bound) {
+        frame.dataset.bound = 'true';
+        frame.addEventListener('pointerdown', startCropDrag);
+        frame.addEventListener('pointermove', moveCropDrag);
+        frame.addEventListener('pointerup', endCropDrag);
+        frame.addEventListener('pointercancel', endCropDrag);
+        frame.addEventListener('lostpointercapture', endCropDrag);
+      }
+    }
+
+    function startCropDrag(event) {
+      if (!currentImage) return;
+      const frame = document.getElementById('cropFrame');
+      if (frame) {
+        frame.classList.add('dragging');
+        frame.setPointerCapture?.(event.pointerId);
+      }
+      cropDragState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        startCropX: cropState.cropX,
+        startCropY: cropState.cropY
+      };
+      event.preventDefault();
+    }
+
+    function moveCropDrag(event) {
+      if (!cropDragState || cropDragState.pointerId !== event.pointerId) return;
+      const canvas = document.getElementById('cropCanvas');
+      const rect = getCropSourceRect();
+      const dx = event.clientX - cropDragState.startX;
+      const dy = event.clientY - cropDragState.startY;
+      const naturalDx = dx * rect.width / (canvas?.clientWidth || canvas?.width || 1);
+      const naturalDy = dy * rect.height / (canvas?.clientHeight || canvas?.height || 1);
+      const nextRect = constrainCropRect({
+        x: cropDragState.startCropX - naturalDx,
+        y: cropDragState.startCropY - naturalDy,
+        width: rect.width,
+        height: rect.height
+      });
+      syncCropStateFromRect(nextRect);
+      renderCropPreview();
+      event.preventDefault();
+    }
+
+    function endCropDrag(event) {
+      if (cropDragState && event && cropDragState.pointerId !== event.pointerId) return;
+      cropDragState = null;
+      const frame = document.getElementById('cropFrame');
+      if (frame) frame.classList.remove('dragging');
+    }
+
+    function generateFromCrop() {
+      if (!currentImage) {
+        showToast('Please upload an image first', 'error');
+        return;
+      }
+      showCropEditor(false);
+      Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
+    }
 
     async function processImage() {
       if (!currentImage) {
@@ -8008,13 +8404,15 @@
         procCanvas.height = currentSize;
         const procCtx = procCanvas.getContext('2d', {willReadFrequently: true});
 
-        const size = Math.min(currentImage.width, currentImage.height);
-        const sx = (currentImage.width - size) / 2;
-        const sy = (currentImage.height - size) / 2;
+        const cropRect = getCropSourceRect();
+        const sx = cropRect.x;
+        const sy = cropRect.y;
+        const sw = cropRect.width;
+        const sh = cropRect.height;
 
         procCtx.imageSmoothingEnabled = true;
         procCtx.imageSmoothingQuality = 'high';
-        procCtx.drawImage(currentImage, sx, sy, size, size, 0, 0, currentSize, currentSize);
+        procCtx.drawImage(currentImage, sx, sy, sw, sh, 0, 0, currentSize, currentSize);
 
         let imageData = procCtx.getImageData(0, 0, currentSize, currentSize);
 
@@ -9829,6 +10227,21 @@
         originalImageData = null;
         processedData = null;
         currentPreset = 'original';
+        cropState = {
+          imageNaturalWidth: 0,
+          imageNaturalHeight: 0,
+          cropX: 0,
+          cropY: 0,
+          zoom: 1,
+          frameAspect: 1,
+          outputGridWidth: currentSize,
+          outputGridHeight: currentSize,
+          focalPointX: 0.5,
+          focalPointY: 0.5,
+          warning: '',
+          version: 'b1-crop-v1'
+        };
+        showCropEditor(false);
         resetAdjustments();
         
         document.getElementById('uploadOverlay').classList.remove('hidden');
@@ -10864,6 +11277,12 @@
         <input type="hidden" name="grid_size" id="saveGridSize">
         <input type="hidden" name="preview_shape" id="savePreviewShape">
         <input type="hidden" name="photo_category" id="savePhotoCategory">
+        <input type="hidden" name="crop_x" id="saveCropX">
+        <input type="hidden" name="crop_y" id="saveCropY">
+        <input type="hidden" name="crop_zoom" id="saveCropZoom">
+        <input type="hidden" name="focal_point_x" id="saveFocalPointX">
+        <input type="hidden" name="focal_point_y" id="saveFocalPointY">
+        <input type="hidden" name="crop_version" id="saveCropVersion">
         <input type="hidden" name="timestamp" id="saveTimestamp">
         <input type="hidden" name="utm_source" id="saveUtmSource">
         <input type="hidden" name="utm_medium" id="saveUtmMedium">
