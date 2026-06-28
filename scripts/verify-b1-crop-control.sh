@@ -43,6 +43,15 @@ require_rg "focus-visible" "$BUILDER" "visible keyboard focus style"
 require_rg "role=\"img\"" "$BUILDER" "canvas text alternative"
 require_rg "aria-pressed" "$BUILDER" "toggle selected state"
 
+require_rg "MosaPack Custom Pet Mosaic Builder" "$BUILDER" "single accessible builder h1"
+require_rg "Create a free pet mosaic preview" "$BUILDER" "free preview public copy"
+require_rg "Made-to-order custom proof" "$BUILDER" "made-to-order proof public copy"
+require_rg "Custom quote" "$BUILDER" "custom quote public copy"
+require_rg "Checkout is temporarily disabled while we finalize launch access" "$BUILDER" "honest disabled checkout copy"
+require_rg "id=\"builderStatus\"" "$BUILDER" "polite builder status region"
+require_rg "function showStatus" "$BUILDER" "live status updater"
+require_rg "aria-label=\"Open saved design summary\"" "$BUILDER" "saved design summary accessible label"
+
 for field in crop_x crop_y crop_zoom focal_point_x focal_point_y crop_version; do
   require_rg "name=\"$field\"" "$BUILDER" "save-design crop metadata field $field"
 done
@@ -58,6 +67,27 @@ fi
 
 if rg -n -i "ConvertKit|Kit API|YOUR_PIXEL_ID|order placed|checkout success|quality score|museum quality score|94% match|gold quality|silver quality|bronze quality|\bSSIM\b|ΔE" "$BUILDER"; then
   echo "Forbidden public provider/fake-success/quality-metric language found in builder."
+  FAIL=1
+fi
+
+
+if rg -n "builder-pro-v5|builder-pro-v6|builder-pro-v7|builder-optimized-v8|Builder Pro v6|PRO v6" "$BUILDER"; then
+  echo "Forbidden public raw/versioned builder language found in canonical builder."
+  FAIL=1
+fi
+
+if rg -n -i "founder|prototype|beta|pilot|validation|test batch|interest-only|help us validate" "$BUILDER"; then
+  echo "Forbidden startup-validation language found in builder public UI."
+  FAIL=1
+fi
+
+if rg -n "💩|😊|🙂|✨|🎯|⬆️|✏️|🗂️|🗂|🎨|⚙️|📄|📊|💾|🖼" "$BUILDER"; then
+  echo "Forbidden emoji/symbol functional control copy found in builder."
+  FAIL=1
+fi
+
+if rg -n "#4c6fff|#b3277e|#ff6b35|--accent-purple|--accent-orange|purple|indigo" "$BUILDER"; then
+  echo "Forbidden obvious off-brand token drift found in builder."
   FAIL=1
 fi
 

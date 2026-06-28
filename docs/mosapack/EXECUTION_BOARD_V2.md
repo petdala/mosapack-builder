@@ -30,3 +30,10 @@ Stop Rule:
 
 Note:
 - Paid ESP/automation is deferred until after 3–5 paid customers or meaningful list growth. Do not add Kit/ConvertKit.
+
+### Canonical Builder Protocol
+
+- Production builder: `public/builder/index.html`.
+- Approved lineage: v6-derived canonical builder.
+- v5 is superseded; do not back-port or expose raw builder versions.
+- Forbidden public raw files include `builder-pro-v5.html`, `builder-pro-v6.html`, `builder-pro-v7.html`, and `builder-optimized-v8.html`.

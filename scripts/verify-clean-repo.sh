@@ -17,6 +17,7 @@ required_files=(
   "docs/mosapack/A4_ANALYTICS_EVENT_SPEC.md"
   "docs/mosapack/A2_DEPLOY_CLEANUP_CHECKLIST.md"
   "docs/mosapack/A2_DEPLOY_COMMANDS.md"
+  "docs/mosapack/CANONICAL_BUILDER_PROTOCOL.md"
 )
 
 for file in "${required_files[@]}"; do
@@ -79,6 +80,54 @@ if rg -n -i "order placed|checkout successful|payment received|Shopify checkout 
   FAIL=1
 fi
 rm -f /tmp/mosapack-clean-fake-success.txt
+
+
+BUILDER="$ROOT/public/builder/index.html"
+if [ ! -f "$BUILDER" ]; then
+  echo "MISSING canonical production builder: public/builder/index.html"
+  FAIL=1
+fi
+
+raw_builder_files=(
+  "builder-pro-v5.html"
+  "builder-pro-v6.html"
+  "builder-pro-v7.html"
+  "builder-optimized-v8.html"
+)
+for file in "${raw_builder_files[@]}"; do
+  if find "$ROOT/public" -name "$file" -print -quit | grep -q .; then
+    echo "FORBIDDEN raw public builder file found: $file"
+    FAIL=1
+  fi
+done
+
+if rg -n -i "founder|prototype|beta|pilot|validation|test batch|interest-only|help us validate" "$ROOT/public/index.html" "$ROOT/public/builder/index.html" "$ROOT/public/contact/index.html" "$ROOT/public/legal" >/tmp/mosapack-public-startup-copy.txt; then
+  echo "FORBIDDEN startup-validation wording found in public files:"
+  cat /tmp/mosapack-public-startup-copy.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-public-startup-copy.txt
+
+if rg -n "💩|😊|🙂|✨|🎯|⬆️|✏️|🗂️|🗂|🎨|⚙️|📄|📊|💾|🖼" "$BUILDER" >/tmp/mosapack-builder-emoji-controls.txt; then
+  echo "FORBIDDEN emoji/symbol control copy found in builder:"
+  cat /tmp/mosapack-builder-emoji-controls.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-builder-emoji-controls.txt
+
+if rg -n -i "quality score|museum quality score|94% match|gold quality|silver quality|bronze quality|\bSSIM\b|ΔE" "$BUILDER" >/tmp/mosapack-builder-public-quality.txt; then
+  echo "FORBIDDEN public quality score/badge language found in builder:"
+  cat /tmp/mosapack-builder-public-quality.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-builder-public-quality.txt
+
+if rg -n "#4c6fff|#b3277e|#ff6b35|--accent-purple|--accent-orange|purple|indigo" "$BUILDER" >/tmp/mosapack-builder-brand-drift.txt; then
+  echo "POSSIBLE builder brand-token drift found:"
+  cat /tmp/mosapack-builder-brand-drift.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-builder-brand-drift.txt
 
 if [ "$FAIL" -ne 0 ]; then
   echo "Clean repo verification failed."

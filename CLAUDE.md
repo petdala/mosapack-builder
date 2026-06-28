@@ -38,8 +38,14 @@ After any task that changes code/docs meaningfully, report:
 - repo path
 - branch
 - commit
-- preview URL
+- preview URL if applicable
 - verification results
-- package path from `scripts/create-chatgpt-review-package.sh`
+- package/report path from `scripts/create-chatgpt-review-package.sh`
 
-Do not claim ChatGPT can see local files. ChatGPT needs GitHub/Drive/uploaded ZIP.
+Do not claim ChatGPT can see local files. ChatGPT needs a pushed GitHub branch/commit/PR or uploaded/generated ZIP.
+
+Preferred command after future Codex work:
+`bash scripts/create-chatgpt-review-package.sh --commit-report --timestamped --run-verification`
+
+For generated visual reviews:
+`bash scripts/create-chatgpt-review-package.sh --commit-report --timestamped --include-tmp-review /tmp/<review-folder>`

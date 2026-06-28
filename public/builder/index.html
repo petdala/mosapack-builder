@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MosaPack Builder Pro v6 - Bricks & Stickers</title>
-  <meta name="description" content="Create custom brick mosaics or sticker art with professional perceptual color matching">
+  <title>MosaPack Builder - Custom Pet Mosaic Preview</title>
+  <meta name="description" content="Create a free custom pet mosaic preview, then save your design for digital launch access or made-to-order proof requests.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230bbf92'/%3E%3Crect x='12' y='12' width='8' height='8' rx='1' fill='%23e91e8c'/%3E%3C/svg%3E">
   
   <!-- Google Analytics 4 -->
@@ -69,7 +69,7 @@
   
 
   <style>
-    /* MosaPack Design System v6.0 - Updated Branding */
+    /* MosaPack Design System - Updated Branding */
     * {
       margin: 0;
       padding: 0;
@@ -87,12 +87,12 @@
       --pop-light: #ff5da2;
       --pop-pale: #fff1f7;
       
-      --gold: #fbbf24;
+      --gold: #f59e0b;
       --gold-dark: #d97706;
       --gold-pale: #fef3c7;
       
       --accent-pink: #e91e8c;
-      --accent-blue: #2563eb;
+      --accent-blue: #e91e8c;
       
       /* UI Colors */
       --bg: #fafafa;
@@ -120,6 +120,10 @@
       color: var(--text);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+    }
+
+    [hidden] {
+      display: none !important;
     }
 
     button:focus-visible,
@@ -4279,7 +4283,7 @@
       display: none !important;
     }
 
-    /* QUICK FIX 4: Hide duplicate "Add to Cart" buttons (keep primary only) */
+    /* QUICK FIX 4: Hide duplicate "Add to Saved design" buttons (keep primary only) */
     #addToCartCompact {
       display: none !important;
     }
@@ -4673,43 +4677,44 @@
           <span class="logo-text">MosaPack</span>
           <span class="logo-subtitle">Mosaic Design Canvas</span>
         </div>
-        <span class="version-badge">PRO v6</span>
+        <span class="version-badge">Preview</span>
       </a>
 
       <div class="header-cart">
-        <button class="cart-toggle" id="cartToggle" aria-expanded="false" aria-label="Open cart summary">
-          <span class="cart-icon">🛒</span>
-          <span class="cart-label">Cart</span>
+        <button class="cart-toggle" id="cartToggle" aria-expanded="false" aria-label="Open saved design summary">
+          <span class="cart-icon" aria-hidden="true">Save</span>
+          <span class="cart-label">Saved design</span>
           <span class="cart-count" id="cartCount">0</span>
         </button>
         <div class="cart-dropdown" id="cartDropdown">
-          <div class="cart-header">Order Summary</div>
+          <div class="cart-header">Saved Design Summary</div>
           <div class="cart-items" id="cartItemsPreview">
-            <p class="cart-empty">No items yet. Generate a mosaic to populate your cart.</p>
+            <p class="cart-empty">No saved design yet. Generate a free preview first.</p>
           </div>
           <div class="cart-footer">
             <div class="cart-total">
-              <span>Total</span>
+              <span>Estimated total</span>
               <strong id="cartTotalPreview">$0.00</strong>
             </div>
-            <button class="btn btn-primary" onclick="addToLaunchAccess()">Checkout</button>
+            <button class="btn btn-primary" onclick="addToLaunchAccess()">Launch access disabled</button>
           </div>
         </div>
       </div>
     </div>
   </header>
 
-  <h1 class="sr-only">MosaPack Mosaic Builder</h1>
+  <h1 class="sr-only">MosaPack Custom Pet Mosaic Builder</h1>
+  <div id="builderStatus" class="sr-only" role="status" aria-live="polite">Create a free pet mosaic preview.</div>
 
   <div class="workspace-tabs">
     <button class="workspace-tab active" data-tab="designer" onclick="showTab('designer')">
-      <span class="workspace-tab-icon">🎨</span>
-      <span>Designer</span>
+      <span class="workspace-tab-icon" aria-hidden="true">Design</span>
+      <span>Create preview</span>
       <span class="workspace-tab-badge">STEP 1</span>
     </button>
     <button class="workspace-tab" data-tab="builder" onclick="showTab('builder')">
-      <span class="workspace-tab-icon">💎</span>
-      <span>Packages & Checkout</span>
+      <span class="workspace-tab-icon" aria-hidden="true">Proof</span>
+      <span>Formats & Proofs</span>
       <span class="workspace-tab-badge">STEP 2</span>
     </button>
   </div>
@@ -4728,28 +4733,28 @@
       <div class="canvas-workspace">
         <aside class="canvas-tools-rail">
           <div class="ai-toggle-stack">
-            <button type="button" class="ai-toggle-button" id="aiToggleFaceColor" aria-label="Toggle face color optimizer" aria-pressed="true" title="AI Face Optimizer" onclick="toggleAiFilter('faceColor')">🙂</button>
-            <button type="button" class="ai-toggle-button" id="aiToggleFaceEnhance" aria-label="Toggle face enhance" aria-pressed="false" title="AI Face Enhance" onclick="toggleAiFilter('faceEnhance')">✨</button>
-            <button type="button" class="ai-toggle-button" id="aiToggleBackground" aria-label="Toggle background fill" aria-pressed="false" title="AI Background Magic" onclick="toggleAiFilter('background')">🎯</button>
+            <button type="button" class="ai-toggle-button" id="aiToggleFaceColor" aria-label="Toggle face color optimizer" aria-pressed="true" title="Face color optimizer" onclick="toggleAiFilter('faceColor')">Face</button>
+            <button type="button" class="ai-toggle-button" id="aiToggleFaceEnhance" aria-label="Toggle face detail" aria-pressed="false" title="Face detail" onclick="toggleAiFilter('faceEnhance')">Detail</button>
+            <button type="button" class="ai-toggle-button" id="aiToggleBackground" aria-label="Toggle background fill" aria-pressed="false" title="Background fill" onclick="toggleAiFilter('background')">BG</button>
             <button type="button" class="ai-mode-button" id="aiBgModeButton" aria-label="Cycle background fill" title="Cycle background fill">SOLID</button>
           </div>
           <button class="tool-button" data-panel="upload" title="Upload photo" aria-label="Upload photo" onclick="toggleWorkspacePanel('upload')">
-            ⬆️
+            Upload
           </button>
           <button class="tool-button" data-panel="enhance" title="Magic enhance" aria-label="Magic enhance" onclick="toggleWorkspacePanel('enhance')">
-            ✨
+            Enhance
           </button>
           <button class="tool-button" data-panel="adjust" title="Fine adjustments" aria-label="Fine adjustments" onclick="toggleWorkspacePanel('adjust')">
-            ✏️
+            Adjust
           </button>
           <button class="tool-button" data-panel="library" title="Quick presets" aria-label="Quick presets" onclick="toggleWorkspacePanel('library')">
-            🗂
+            Presets
           </button>
           <button class="tool-button" data-panel="palette" title="Palette manager" aria-label="Palette manager" onclick="toggleWorkspacePanel('palette')">
-            🎨
+            Palette
           </button>
           <button class="tool-button" data-panel="settings" title="Workspace settings" aria-label="Workspace settings" onclick="toggleWorkspacePanel('settings')">
-            ⚙️
+            Settings
           </button>
         </aside>
       <div class="workspace-main">
@@ -4764,13 +4769,13 @@
           <span class="header-control-label">View</span>
           <div class="view-toggle-compact" role="group" aria-label="Preview view mode">
             <button class="view-btn-compact active" onclick="setViewMode('mosaic')" id="viewMosaic" aria-label="Show mosaic view" aria-pressed="true">
-              🎨 Mosaic
+              Mosaic view
             </button>
             <button class="view-btn-compact" onclick="setViewMode('blocks')" id="viewBlocks" aria-label="Show block view" aria-pressed="false">
-              🧱 Blocks
+              Kit layout
             </button>
             <button class="view-btn-compact" onclick="setViewMode('baseplate')" id="viewBaseplate" aria-label="Show baseplate view" aria-pressed="false">
-              ⊞ Baseplates
+              Baseplates
             </button>
           </div>
         </div>
@@ -4778,15 +4783,15 @@
           <span class="header-control-label">Display</span>
           <div class="header-button-row" role="group" aria-label="Preview display toggles">
             <button class="toggle-btn" onclick="toggleGrid()" id="gridBtn" title="Toggle Grid" aria-label="Toggle grid" aria-pressed="false">
-              ⊞ Grid
+              Grid
             </button>
             <button class="toggle-btn" onclick="toggleNumbers()" id="numbersBtn" title="Toggle Numbers" aria-label="Toggle numbers" aria-pressed="false">
-              # Numbers
+              Numbers
             </button>
           </div>
         </div>
         <button class="scene-preview-button" onclick="openScenePreview()" title="Preview in scenes" aria-label="Preview design in scenes">
-          🏠 Scene Preview
+          Scene Preview
         </button>
       </div>
       <div class="canvas-header-actions">
@@ -4797,7 +4802,7 @@
           <button class="zoom-btn-mini fit" onclick="zoomFit()" title="Fit to Screen" aria-label="Fit preview to screen">Fit</button>
         </div>
         <button type="button" class="canvas-reset-btn" onclick="resetBuilder()" title="Reset design" aria-label="Reset design">
-          ↺ Reset
+          Reset
         </button>
       </div>
     </div>
@@ -4805,8 +4810,8 @@
         <div class="canvas-container" id="canvasContainer">
           <!-- POD-style: Product label above hero visual -->
           <div class="pod-product-label" id="podProductLabel">
-            <span class="product-icon">🧲</span>
-            <span class="product-name">Your Magnetic Mosaic</span>
+            <span class="product-icon" aria-hidden="true">Format</span>
+            <span class="product-name">Free pet mosaic preview</span>
             <span class="product-size" id="podProductSize">48×48</span>
           </div>
           <div class="canvas-viewport" id="canvasViewport">
@@ -4836,9 +4841,9 @@
             <!-- Upload Overlay -->
             <div class="upload-overlay" id="uploadOverlay" onclick="document.getElementById('fileInput').click()">
               <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(this)" aria-label="Upload photo">
-              <div class="upload-icon">📷</div>
-              <div class="upload-text">Click to upload photo</div>
-              <div class="upload-hint">or drag and drop</div>
+              <div class="upload-icon" aria-hidden="true">Upload</div>
+              <div class="upload-text">Create a free pet mosaic preview</div>
+              <div class="upload-hint">Upload your pet photo and adjust the crop before generating.</div>
             </div>
             <!-- B1 Crop / Focal Control -->
             <div class="crop-editor" id="cropEditor" aria-live="polite">
@@ -4869,8 +4874,8 @@
   </div>
       <div id="workspacePanelTemplates" class="workspace-panel-templates">
         <section class="workspace-mega-content" data-panel="upload">
-          <h3 class="mega-title">Upload Your Photo</h3>
-          <p class="mega-description">Select a high-resolution image to start building your mosaic. We auto-save every tweak so you can explore without fear.</p>
+          <h3 class="mega-title">Create a Free Pet Preview</h3>
+          <p class="mega-description">Upload your pet photo and adjust the crop before generating your free preview.</p>
           <div class="mega-button-row">
             <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Select Photo</button>
             <button class="btn btn-secondary" onclick="resetBuilder()">Clear Canvas</button>
@@ -4878,13 +4883,13 @@
           <ul class="mega-tips">
             <li>Use bright, well-lit photos for best color matching.</li>
           <li>Need inspiration? <a href="#" onclick="scrollToElement('bundleGalleryWrapper'); return false;">Browse featured bundles</a>.</li>
-            <li class="pro-note">Pro members unlock bulk uploads &amp; project history snapshots.</li>
+            <li class="pro-note">Save your design when you want digital launch access or a custom proof follow-up.</li>
           </ul>
         </section>
 
         <section class="workspace-mega-content" data-panel="enhance">
           <h3 class="mega-title">Style Presets</h3>
-          <p class="mega-description">Dial in the look of your mosaic before generating final instructions.</p>
+          <p class="mega-description">Dial in the look of your free preview before saving your design.</p>
           <div class="preset-selector">
             <label class="preset-label" for="presetDropdown">Effect:</label>
             <select class="preset-dropdown" id="presetDropdown" onchange="setPresetFromDropdown()">
@@ -4898,7 +4903,7 @@
               <option value="duotone">Duotone (Teal)</option>
             </select>
           </div>
-          <p class="pro-note">Pro members unlock custom LUT uploads &amp; AI refinement.</p>
+          <p class="pro-note">Digital reveal files launch first; custom physical proofs are reviewed separately.</p>
         </section>
 
         <section class="workspace-mega-content" data-panel="palette">
@@ -4985,20 +4990,20 @@
             <option value="lego_showcase">LEGO Showcase • Transparent 48×48</option>
             <option value="gallery_luxe">Gallery Luxe • 64×64 Glow + Premium Backing</option>
           </select>
-          <p class="mega-description">Saved projects coming soon - Pro members already get cloud history.</p>
-          <h4 class="mega-subtitle">Choose Product Type</h4>
+          <p class="mega-description">Save your design to get digital launch access or request a made-to-order proof.</p>
+          <h4 class="mega-subtitle">Choose Custom Product Path</h4>
           <div class="product-type-selector">
             <div class="product-type popular active" onclick="setProductType('bricks')" id="product-bricks">
-              <span class="product-icon">🧱</span>
-              <div class="product-name">Brick Packs</div>
-              <div class="product-desc">LEGO-compatible with baseplates & instructions</div>
-              <div class="product-price">From <strong>$79</strong></div>
+              <span class="product-icon" aria-hidden="true">Brick</span>
+              <div class="product-name">Premium Brick Kit</div>
+              <div class="product-desc">Premium custom quote with proof approval before production</div>
+              <div class="product-price"><strong>Custom quote</strong></div>
             </div>
             <div class="product-type" onclick="setProductType('stickers')" id="product-stickers">
-              <span class="product-icon">✨</span>
-              <div class="product-name">Sticker Packs</div>
-              <div class="product-desc">Pre-cut adhesive pieces with numbered grid</div>
-              <div class="product-price">From <strong>$12</strong></div>
+              <span class="product-icon" aria-hidden="true">Sticker</span>
+              <div class="product-name">Sticker Reveal Kit</div>
+              <div class="product-desc">Made-to-order custom proof, not instant checkout</div>
+              <div class="product-price"><strong>Request a proof</strong></div>
             </div>
           </div>
 
@@ -5007,7 +5012,7 @@
 
           <!-- POD-STYLE: Visual preview shows their upload in selected material -->
           <div class="material-visual-preview" id="materialVisualPreview" data-material="magnetic" data-finish="solid">
-            <div class="material-preview-label" id="materialPreviewLabel">🧲 Magnetic Vinyl</div>
+            <div class="material-preview-label" id="materialPreviewLabel">Magnetic Reveal Kit</div>
             <img id="materialPreviewImage" src="" alt="Your design preview" style="display: none;">
             <div id="materialPreviewPlaceholder" style="padding: 150px 0; text-align: center; color: #999;">
               Upload an image to see it in different materials
@@ -5018,15 +5023,15 @@
           <div class="preview-comparison" id="materialComparison">
             <div class="preview-comparison-item active" onclick="selectMaterialPreview('magnetic')" data-material="magnetic">
               <img id="previewThumbMagnetic" src="" alt="Magnetic preview">
-              <div class="preview-comparison-label">🧲 Magnetic</div>
+              <div class="preview-comparison-label">Magnetic</div>
             </div>
             <div class="preview-comparison-item" onclick="selectMaterialPreview('transparent-bricks')" data-material="transparent-bricks">
               <img id="previewThumbTransparent" src="" alt="Transparent preview">
-              <div class="preview-comparison-label">🟦 Transparent</div>
+              <div class="preview-comparison-label">Brick quote</div>
             </div>
             <div class="preview-comparison-item" onclick="selectMaterialPreview('solid-bricks')" data-material="solid-bricks">
               <img id="previewThumbSolid" src="" alt="Solid vinyl preview">
-              <div class="preview-comparison-label">📋 Vinyl Stickers</div>
+              <div class="preview-comparison-label">Sticker proof</div>
             </div>
           </div>
 
@@ -5034,34 +5039,34 @@
           <div class="material-selector-compact">
             <label for="materialDropdown" class="material-label">Or choose from dropdown:</label>
             <select id="materialDropdown" class="material-dropdown" onchange="setMaterialType(this.value); updateMaterialVisualPreview();">
-              <option value="magnetic" selected>🧲 Magnetic Sheets ($12/sheet) ⭐ POPULAR</option>
-              <option value="transparent-bricks">🟦 Transparent Bricks ($0.02/brick)</option>
-              <option value="solid-bricks">📋 Solid Vinyl Stickers ($3/sheet) 💰 BUDGET</option>
+              <option value="magnetic" selected>Magnetic Reveal Kit - made-to-order premium option</option>
+              <option value="transparent-bricks">Premium Brick Kit - custom quote</option>
+              <option value="solid-bricks">Sticker Reveal Kit - custom proof</option>
             </select>
             <div class="material-preview" id="materialPreview">
-              <div class="preview-badge">MOST POPULAR</div>
-              <p class="preview-desc">Reusable tiles that stick to any magnetic surface. Removable, rearrangeable.</p>
-              <p class="preview-best-for">✓ Best for: Gift Givers & Home Decor</p>
+              <div class="preview-badge">MADE TO ORDER</div>
+              <p class="preview-desc">Made-to-order premium magnetic option. Production begins after proof approval.</p>
+              <p class="preview-best-for">Best for: gift givers and home decor</p>
             </div>
           </div>
 
           <div class="material-value-props" id="materialValueProps">
             <div class="value-prop-card active" data-material="magnetic">
-              <h4><span class="icon">🧲</span> Magnetic Vinyl</h4>
-              <p>Premium repositionable material. Sticks to any metal surface without adhesive. Perfect for fridges, whiteboards, filing cabinets.</p>
-              <div class="best-for">✓ Best for: Gift Givers & Home Decor</div>
+              <h4><span class="icon" aria-hidden="true">Magnetic</span> Magnetic Reveal Kit</h4>
+              <p>Made-to-order premium magnetic option with a custom proof before production.</p>
+              <div class="best-for">Best for: gift givers and home decor</div>
             </div>
 
             <div class="value-prop-card" data-material="transparent-bricks">
-              <h4><span class="icon">🧱</span> Transparent LEGO Bricks</h4>
-              <p>100% LEGO-compatible 1x1 transparent bricks. Build 3D depth with stacking. Compatible with your existing collection.</p>
-              <div class="best-for">✓ Best for: LEGO Collectors & Kids</div>
+              <h4><span class="icon" aria-hidden="true">Brick</span> Premium Brick Kit</h4>
+              <p>Premium custom quote path for brick mosaics. Proof approval happens before production.</p>
+              <div class="best-for">Best for: collectors and premium gifts</div>
             </div>
 
             <div class="value-prop-card" data-material="solid-bricks">
-              <h4><span class="icon">✨</span> Solid Vinyl</h4>
-              <p>Budget-friendly kiss-cut stickers with strong adhesive backing. Works on any smooth surface (laptops, walls, windows).</p>
-              <div class="best-for">✓ Best for: Budget Shoppers & DIY</div>
+              <h4><span class="icon" aria-hidden="true">Sticker</span> Sticker Reveal Kit</h4>
+              <p>Made-to-order custom sticker proof for your approved mosaic design.</p>
+              <div class="best-for">Best for: accessible custom gifts and DIY assembly</div>
             </div>
           </div>
 
@@ -5073,37 +5078,37 @@
 
         <section class="workspace-mega-content" data-panel="settings">
           <h3 class="mega-title">Workspace Settings</h3>
-          <p class="mega-description">Exports (PDF, BOM, Image) are reserved for Pro members. Highlight this upgrade in marketing copy.</p>
+          <p class="mega-description">Save your preview for digital reveal launch access or made-to-order proof follow-up.</p>
           <ul class="mega-tips">
             <li>Need a fresh start? Use the Reset button beside the zoom controls.</li>
             <li>Toggle grid &amp; numbers via the Display controls above the canvas.</li>
-            <li class="pro-note">Pro member export options are deferred until launch access is verified.</li>
+            <li class="pro-note">Checkout is temporarily disabled while we finalize launch access.</li>
           </ul>
           <div id="finish-selector" class="finish-selector">
-            <h4 class="mega-subtitle">Premium Finishes</h4>
-            <p class="mega-description">See how different finishes enhance your design. Click to preview the effect.</p>
+            <h4 class="mega-subtitle">Made-to-Order Finishes</h4>
+            <p class="mega-description">Preview finish options. Physical production starts only after custom proof approval.</p>
 
             <!-- Finish comparison - visual preview -->
             <div class="preview-comparison" id="finishComparison" style="grid-template-columns: repeat(5, 1fr);">
               <div class="preview-comparison-item active" onclick="selectFinishPreview('solid')" data-finish="solid">
                 <img id="finishThumbSolid" src="" alt="Solid finish preview">
-                <div class="preview-comparison-label">⚪ Classic</div>
+                <div class="preview-comparison-label">Classic</div>
               </div>
               <div class="preview-comparison-item" onclick="selectFinishPreview('metallic')" data-finish="metallic">
                 <img id="finishThumbMetallic" src="" alt="Metallic preview">
-                <div class="preview-comparison-label">✨ Metallic</div>
+                <div class="preview-comparison-label">Metallic</div>
               </div>
               <div class="preview-comparison-item" onclick="selectFinishPreview('glitter')" data-finish="glitter">
                 <img id="finishThumbGlitter" src="" alt="Glitter preview">
-                <div class="preview-comparison-label">💎 Glitter</div>
+                <div class="preview-comparison-label">Glitter</div>
               </div>
               <div class="preview-comparison-item" onclick="selectFinishPreview('holographic')" data-finish="holographic">
                 <img id="finishThumbHolo" src="" alt="Holographic preview">
-                <div class="preview-comparison-label">🌈 Holo</div>
+                <div class="preview-comparison-label">Holo</div>
               </div>
               <div class="preview-comparison-item" onclick="selectFinishPreview('glow')" data-finish="glow">
                 <img id="finishThumbGlow" src="" alt="Glow preview">
-                <div class="preview-comparison-label">🌙 Glow</div>
+                <div class="preview-comparison-label">Glow</div>
               </div>
             </div>
 
@@ -5111,15 +5116,15 @@
             <div class="finish-selector-compact">
               <label for="finishDropdown" class="finish-label">Or choose from dropdown:</label>
               <select id="finishDropdown" class="finish-dropdown" onchange="setFinish(this.value); updateFinishVisualPreview();">
-                <option value="solid" selected>⚪ Classic & Clean (+$0)</option>
-                <option value="metallic">✨ Luxury Shimmer (+$3) ⭐ POPULAR</option>
-                <option value="glitter">💎 Sparkle & Shine (+$4)</option>
-                <option value="holographic">🌈 Rainbow Prism (+$5)</option>
-                <option value="glow">🌙 Glow in Dark (+$6)</option>
+                <option value="solid" selected>Classic proof option</option>
+                <option value="metallic">Metallic proof option</option>
+                <option value="glitter">Glitter proof option</option>
+                <option value="holographic">Holographic proof option</option>
+                <option value="glow">Glow proof option</option>
               </select>
               <div class="finish-preview" id="finishPreview">
                 <p class="preview-desc">Matte finish, no glare. Best for detailed photos.</p>
-                <p class="preview-best-for">👍 Best for: Portraits, family photos, pet photos</p>
+                <p class="preview-best-for">Best for: portraits, family photos, pet photos</p>
               </div>
             </div>
           </div>
@@ -5183,45 +5188,45 @@
       <div id="builder-tab" class="tab-content-area">
         <div class="checkout-trust-row" id="checkoutTrustRow">
           <div class="trust-item">
-            <span class="trust-icon">🚚</span>
+            <span class="trust-icon" aria-hidden="true">Proof</span>
             <div class="trust-copy">
-              <strong>Ships in 3 business days</strong>
-              <span>Tracked, insured delivery from our Georgia studio.</span>
+              <strong>Custom proof before production</strong>
+              <span>Made-to-order products start only after proof approval.</span>
             </div>
           </div>
           <div class="trust-item">
-            <span class="trust-icon">🎯</span>
+            <span class="trust-icon" aria-hidden="true">Preview</span>
             <div class="trust-copy">
-              <strong>Color-match guarantee</strong>
-              <span>Color-calibrated palettes engineered for LEGO® precision.</span>
+              <strong>Color-calibrated preview</strong>
+              <span>Preview your pet mosaic before choosing a digital or custom proof path.</span>
             </div>
           </div>
           <div class="trust-item">
-            <span class="trust-icon">🔄</span>
+            <span class="trust-icon" aria-hidden="true">D1</span>
             <div class="trust-copy">
-              <strong>30-day risk-free</strong>
-              <span>Free replacements for warped tiles or missing pieces.</span>
+              <strong>Checkout disabled until D1</strong>
+              <span>Save your design now; payment is not collected here.</span>
             </div>
           </div>
         </div>
         <div class="express-pay-row" id="expressPayRow">
-          <button class="express-pay-btn express-shop-pay" type="button" data-pay="shop_pay">
-            <span>Shop Pay</span>
+          <button class="express-pay-btn express-shop-pay" type="button" data-pay="digital_access">
+            <span>Digital launch access</span>
           </button>
-          <button class="express-pay-btn express-apple-pay" type="button" data-pay="apple_pay">
-            <span>Apple Pay</span>
+          <button class="express-pay-btn express-apple-pay" type="button" data-pay="sticker_proof">
+            <span>Sticker proof request</span>
           </button>
-          <button class="express-pay-btn express-google-pay" type="button" data-pay="google_pay">
-            <span>Google Pay</span>
+          <button class="express-pay-btn express-google-pay" type="button" data-pay="brick_quote">
+            <span>Brick custom quote</span>
           </button>
         </div>
-        <div class="express-divider"><span>Or review packages below</span></div>
+        <div class="express-divider"><span>Save your design before proof or launch access follow-up</span></div>
         <div class="checkout-mode-toggle" id="checkoutModeToggle">
-          <button class="mode-chip active" type="button" data-material="magnetic" data-finish="solid" data-baseplate="none">
-            <span>🛠️</span> DIY Build
+          <button class="mode-chip active" type="button" data-material="magnetic" data-finish="solid" data-baseplate="none" aria-pressed="true">
+            <span aria-hidden="true">DIY</span> Digital Reveal
           </button>
-          <button class="mode-chip" type="button" data-material="magnetic" data-finish="metallic" data-baseplate="framed">
-            <span>🎁</span> Gift Ready
+          <button class="mode-chip" type="button" data-material="magnetic" data-finish="metallic" data-baseplate="framed" aria-pressed="false">
+            <span aria-hidden="true">Proof</span> Custom Proof
           </button>
         </div>
         <div class="builder-tab-content">
@@ -5229,8 +5234,8 @@
       <div class="bundle-gallery">
         <div class="bundle-gallery-header">
           <div class="bundle-gallery-text">
-            <h3 class="bundle-gallery-title">Choose Your Package</h3>
-            <p class="bundle-gallery-subtitle" id="bundleHeroSubtitle">Recommended kits based on your design specs. Switch bundles to compare materials &amp; savings.</p>
+            <h3 class="bundle-gallery-title">Choose Your Product Path</h3>
+            <p class="bundle-gallery-subtitle" id="bundleHeroSubtitle">Start with a free preview, then save your design for digital launch access or a custom proof request.</p>
           </div>
           <div class="bundle-chips-inline" id="bundleChips"></div>
         </div>
@@ -5256,23 +5261,23 @@
         <div class="bundle-config-bar">
           <div class="bundle-config-grid">
             <select class="premium-select" id="materialSelectCompact" aria-label="Material">
-              <option value="magnetic">🧲 Magnetic ($12/sheet)</option>
-              <option value="transparent-bricks">🧱 Transparent Bricks ($0.02/brick)</option>
-              <option value="solid-bricks">✨ Solid Vinyl ($3/sheet)</option>
+              <option value="magnetic">Magnetic Reveal Kit - custom proof</option>
+              <option value="transparent-bricks">Premium Brick Kit - custom quote</option>
+              <option value="solid-bricks">Sticker Reveal Kit - custom proof</option>
             </select>
             <select class="premium-select" id="finishSelectCompact" aria-label="Finish">
-              <option value="solid">⚪ Solid (+$0)</option>
-              <option value="metallic">✨ Metallic (+$3)</option>
-              <option value="glitter">💎 Glitter (+$4)</option>
-              <option value="holographic">🌈 Holographic (+$5)</option>
-              <option value="glow">🌙 Glow-in-Dark (+$6)</option>
+              <option value="solid">Classic proof option</option>
+              <option value="metallic">Metallic proof option</option>
+              <option value="glitter">Glitter proof option</option>
+              <option value="holographic">Holographic proof option</option>
+              <option value="glow">Glow proof option</option>
             </select>
             <select class="premium-select" id="baseplateSelectCompact" aria-label="Backing">
               <option value="none">No Backing ($0)</option>
-              <option value="framed">🖼️ Framed (+$39)</option>
-              <option value="led">💡 LED Backlit (+$59)</option>
-              <option value="multi">🔲 Multi-Panel (+$79)</option>
-              <option value="premium-magnetic">🧲 Premium Magnetic (+$49)</option>
+              <option value="framed">Framed proof option</option>
+              <option value="led">LED proof option</option>
+              <option value="multi">Multi-panel proof option</option>
+              <option value="premium-magnetic">Premium magnetic proof option</option>
             </select>
           </div>
         </div>
@@ -5283,10 +5288,10 @@
           </div>
           <div>
             <button class="bundle-preview-apply" type="button" id="bundlePreviewApply">
-              Apply Bundle →
+              Apply selection
             </button>
             <button class="bundle-preview-apply bundle-cart-btn" type="button" id="addToCartCompact">
-              🛒 <span>Add to Cart</span>
+              <span>Request proof or access</span>
             </button>
           </div>
         </div>
@@ -5344,13 +5349,13 @@
             <div class="summary-header">
               <span class="summary-index">4</span>
               <div class="summary-text-block">
-                <span class="summary-title">Insights &amp; Checkout</span>
+                <span class="summary-title">Preview &amp; Save</span>
                 <span class="summary-value" id="summary-insights">Awaiting preview</span>
               </div>
             </div>
             <span class="module-group-status" id="status-insights"></span>
-            <p id="summary-insights-details" class="summary-detail">Review palette usage, materials cost, and final export options.</p>
-            <button class="summary-edit" type="button" onclick="scrollToElement('costBreakdown')">View Cost Breakdown</button>
+            <p id="summary-insights-details" class="summary-detail">Review preview details, save your design, or request proof follow-up.</p>
+            <button class="summary-edit" type="button" onclick="scrollToElement('costBreakdown')">View proof options</button>
           </div>
         </div>
 
@@ -5399,8 +5404,8 @@
         <!-- Cost & Export (paid members) -->
         <div class="panel" data-panel-id="cost">
           <div class="panel-header" onclick="togglePanel('cost')">
-            <h3 class="panel-title">Pricing &amp; Checkout</h3>
-            <button type="button" class="panel-toggle-btn" aria-label="Toggle Costs & Checkout">⌃</button>
+            <h3 class="panel-title">Proof Options &amp; Launch Access</h3>
+            <button type="button" class="panel-toggle-btn" aria-label="Toggle proof options and launch access">⌃</button>
           </div>
           <div class="panel-content">
             <p class="pro-note" style="margin-bottom: 0.75rem;">Advanced exports (PDF, BOM, Image) unlock for Pro members-highlight this benefit in campaigns.</p>
@@ -5412,14 +5417,14 @@
             </div>
             <div id="launchAccessButton" style="display: none; margin-top: 1rem;">
               <button class="btn btn-primary" onclick="addToLaunchAccess()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
-                Launch Access Not Open
+                Save for Launch Access
               </button>
               <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
-                Checkout is temporarily disabled while we finalize launch access
+                Checkout is temporarily disabled while we finalize launch access.
               </div>
             </div>
             <div class="btn-group" style="margin-top: 0.75rem;">
-              <button class="btn btn-secondary" onclick="saveProject()">Save</button>
+              <button class="btn btn-secondary" onclick="saveProject()">Save design</button>
               <button class="btn btn-secondary" onclick="resetBuilder()">Reset</button>
             </div>
           </div>
@@ -5472,7 +5477,7 @@
         <div class="panel" data-panel-id="cost">
           <div class="panel-header" onclick="togglePanel('cost')">
             <h3 class="panel-title">Costs & Checkout</h3>
-            <button type="button" class="panel-toggle-btn" aria-label="Toggle Costs & Checkout">⌃</button>
+            <button type="button" class="panel-toggle-btn" aria-label="Toggle proof options and launch access">⌃</button>
           </div>
           <div class="panel-content">
           <div class="cost-breakdown" id="costBreakdown">
@@ -5486,10 +5491,10 @@
           <!-- Checkout access button (shown after generation) -->
           <div id="launchAccessButton" style="display: none; margin-top: 1rem;">
             <button class="btn btn-primary" onclick="addToLaunchAccess()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
-              Launch Access Not Open
+              Save for Launch Access
             </button>
             <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
-              Checkout is temporarily disabled while we finalize launch access
+              Checkout is temporarily disabled while we finalize launch access.
             </div>
           </div>
 
@@ -5499,7 +5504,7 @@
           </div>
           
           <div class="btn-group" style="margin-top: 0.75rem;">
-            <button class="btn btn-secondary" onclick="saveProject()">Save</button>
+            <button class="btn btn-secondary" onclick="saveProject()">Save design</button>
             <button class="btn btn-secondary" onclick="resetBuilder()">Reset</button>
           </div>
           </div>
@@ -5514,7 +5519,7 @@
 
   <!-- Toast -->
   <div class="toast" id="toast">
-    <span id="toastIcon">✓</span>
+    <span id="toastIcon" aria-hidden="true">Status</span>
     <span id="toastMessage"></span>
   </div>
 
@@ -5581,8 +5586,8 @@
     };
     let cropDragState = null;
 
-    const PANEL_STATE_KEY = 'builder_v6_panel_state';
-    const GROUP_STATE_KEY = 'builder_v6_group_state';
+    const PANEL_STATE_KEY = 'builder_canonical_panel_state';
+    const GROUP_STATE_KEY = 'builder_canonical_group_state';
     let panelState = {};
     let groupState = {};
     const CORE_PRESETS = {
@@ -5842,6 +5847,7 @@
           && chip.dataset.finish === currentFinish
           && chip.dataset.baseplate === currentBaseplate;
         chip.classList.toggle('active', Boolean(match));
+        chip.setAttribute('aria-pressed', String(Boolean(match)));
       });
     }
 
@@ -5866,6 +5872,7 @@
           && chip.dataset.finish === currentFinish
           && chip.dataset.baseplate === currentBaseplate;
         chip.classList.toggle('active', Boolean(match));
+        chip.setAttribute('aria-pressed', String(Boolean(match)));
       });
     }
 
@@ -6525,7 +6532,7 @@
       if (!listEl) return;
 
       if (!currentCartSummary.items.length) {
-        listEl.innerHTML = '<p class="cart-empty">No items yet. Generate a mosaic to populate your cart.</p>';
+        listEl.innerHTML = '<p class="cart-empty">No saved design yet. Generate a free preview first.</p>';
         return;
       }
 
@@ -6775,7 +6782,7 @@
         upcharge: '+$0'
       },
       'metallic': {
-        icon: '✨',
+        icon: 'Finish',
         tagline: 'Luxury Shimmer',
         description: 'Reflective metallic sheen adds depth and elegance.',
         bestFor: 'Skylines, cityscapes, wedding photos',
@@ -6856,24 +6863,30 @@
 
       const overlay = document.getElementById("emailGateOverlay");
       if (!overlay) return;
+      overlay.hidden = false;
       overlay.classList.add("active");
+      overlay.setAttribute("aria-hidden", "false");
       updateFunnelProgress(2);
 
       if (typeof gtag !== "undefined") {
         gtag("event", "email_gate_shown", {
           "event_category": "conversion",
-          "event_label": "builder_v6"
+          "event_label": "builder_canonical"
         });
       }
     }
 
     function hideEmailGate() {
       const overlay = document.getElementById("emailGateOverlay");
-      if (overlay) overlay.classList.remove("active");
+      if (overlay) {
+        overlay.classList.remove("active");
+        overlay.setAttribute("aria-hidden", "true");
+        overlay.hidden = true;
+      }
       hasSeenEmailGate = true;
     }
 
-    // Email validation function
+    // Email format check
     function isValidEmail(email) {
       const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       return regex.test(email);
@@ -7102,10 +7115,12 @@
               throw new Error("Netlify Forms submission failed");
             }
 
+            showStatus("Saved. We will email launch access when it is ready.");
             showToast("Saved. We will email launch access when it is ready.", "success");
             emailForm.reset();
             hideEmailGate();
           } catch (error) {
+            showStatus("We could not save your preview. Try again or contact support.");
             showToast("We could not save your preview. Try again or contact support.", "error");
           } finally {
             if (submitButton) {
@@ -7752,9 +7767,9 @@
 
       // Material-based icons and names
       const materialInfo = {
-        'magnetic': { icon: '🧲', name: 'Magnetic Mosaic' },
-        'transparent-bricks': { icon: '🧱', name: 'Transparent Brick Mosaic' },
-        'solid-bricks': { icon: '✨', name: 'Vinyl Sticker Mosaic' }
+        'magnetic': { icon: 'Magnetic', name: 'Magnetic Reveal Kit' },
+        'transparent-bricks': { icon: 'Brick', name: 'Premium Brick Kit' },
+        'solid-bricks': { icon: 'Finish', name: 'Vinyl Sticker Mosaic' }
       };
 
       const info = materialInfo[currentMaterialType] || materialInfo['magnetic'];
@@ -8091,11 +8106,11 @@
 
     function startExpressCheckout(method) {
       const labels = {
-        shop_pay: 'Shop Pay',
-        apple_pay: 'Apple Pay',
-        google_pay: 'Google Pay'
+        digital_access: 'Digital launch access',
+        sticker_proof: 'Sticker proof request',
+        brick_quote: 'Brick custom quote'
       };
-      const label = labels[method] || 'Express checkout';
+      const label = labels[method] || 'Launch access request';
       addToLaunchAccess({ express: true, method, expressLabel: label });
     }
 
@@ -8468,7 +8483,8 @@
           updateWobrickStatus();
         }
 
-        showToast('Mosaic generated successfully!');
+        showStatus('Preview ready. Save your design when you want digital launch access or a custom proof follow-up.');
+        showToast('Preview generated successfully!');
         updateGroupStatus();
 
         const buyButton = document.getElementById('launchAccessButton');
@@ -9603,7 +9619,7 @@
         // Upsell stickers
         banner.innerHTML = `
           <div class="upsell-header">
-            <span class="upsell-icon">✨</span>
+            <span class="upsell-icon" aria-hidden="true">Sticker</span>
             <div class="upsell-title">Want it faster? Try Sticker Version!</div>
           </div>
           <div class="upsell-desc">
@@ -9615,13 +9631,13 @@
             <li>Pre-cut adhesive pieces</li>
             <li>Ships in 2 days</li>
           </ul>
-          <button class="btn btn-gold" onclick="setProductType('stickers')">Switch to Stickers →</button>
+          <button class="btn btn-gold" onclick="setProductType('stickers')">Request sticker proof</button>
         `;
       } else {
         // Upsell bricks
         banner.innerHTML = `
           <div class="upsell-header">
-            <span class="upsell-icon">🧱</span>
+            <span class="upsell-icon" aria-hidden="true">Brick</span>
             <div class="upsell-title">Upgrade to Premium Brick Pack</div>
           </div>
           <div class="upsell-desc">
@@ -9633,7 +9649,7 @@
             <li>Professional look & feel</li>
             <li>Includes baseplates & instructions</li>
           </ul>
-          <button class="btn btn-gold" onclick="setProductType('bricks')">Upgrade to Bricks →</button>
+          <button class="btn btn-gold" onclick="setProductType('bricks')">Request brick quote</button>
         `;
       }
       
@@ -9746,7 +9762,7 @@
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(8);
           doc.setTextColor(163, 163, 163);
-          doc.text('Created with MosaPack Builder Pro v6 | www.mosapack.com', pageWidth / 2, pageHeight - 20, { align: 'center' });
+          doc.text('Created with MosaPack Builder | www.mosapack.com', pageWidth / 2, pageHeight - 20, { align: 'center' });
         }
 
         // ===== PAGE 1: COVER PAGE =====
@@ -10330,10 +10346,16 @@
         else el.classList.remove('show');
     }
 
+    function showStatus(message) {
+      const status = document.getElementById('builderStatus');
+      if (status && message) status.textContent = String(message);
+    }
+
     function showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
         const icon = document.getElementById('toastIcon');
         const msg = document.getElementById('toastMessage');
+        if (message) showStatus(message);
         
         toast.className = `toast ${type}`;
         icon.textContent = type === 'success' ? '✓' : '⚠';
@@ -11001,7 +11023,7 @@
         return;
         }
 
-        const tweetText = encodeURIComponent('Just designed a custom mosaic with @MosaPack! 🎨🧱 Check it out:');
+        const tweetText = encodeURIComponent('Just designed a custom mosaic with MosaPack. Check it out:');
         const shareUrl = encodeURIComponent(window.location.href);
         const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${shareUrl}`;
 
@@ -11088,7 +11110,7 @@
 
       // Update label
       const labels = {
-        'magnetic': '🧲 Magnetic Vinyl',
+        'magnetic': 'Magnetic Reveal Kit',
         'transparent-bricks': '🟦 Transparent Bricks',
         'solid-bricks': '📋 Vinyl Stickers'
       };
@@ -11214,7 +11236,7 @@
     <div class="scene-preview-container">
         <div class="scene-preview-header">
         <h2 class="scene-preview-title">
-          🏠 Preview Your Design in Different Scenes
+          Preview Your Design in Different Scenes
         </h2>
         <button class="scene-preview-close" onclick="closeScenePreview()" type="button" aria-label="Close scene preview">×</button>
         </div>
@@ -11262,24 +11284,24 @@
         <!-- Actions -->
         <div class="scene-preview-actions">
         <button class="scene-action-btn primary" onclick="downloadScenePreview()" type="button" aria-label="Download scene preview">
-          💾 Download Preview
+          Download Preview
         </button>
 
         <div class="share-dropdown">
           <button class="scene-action-btn social" onclick="toggleShareMenu()" type="button" aria-label="Open sharing options">
-            📤 Share
+            Share
           </button>
           <div class="share-menu" id="shareMenu">
             <div class="share-menu-item" onclick="shareToFacebook()">
-              <span class="share-menu-icon">📘</span>
+              <span class="share-menu-icon" aria-hidden="true">FB</span>
               <span>Share on Facebook</span>
             </div>
             <div class="share-menu-item" onclick="shareToTwitter()">
-              <span class="share-menu-icon">🐦</span>
+              <span class="share-menu-icon" aria-hidden="true">X</span>
               <span>Share on Twitter</span>
             </div>
             <div class="share-menu-item" onclick="shareToInstagram()">
-              <span class="share-menu-icon">📸</span>
+              <span class="share-menu-icon" aria-hidden="true">IG</span>
               <span>Share to Instagram</span>
             </div>
             <div class="share-menu-item" onclick="shareToEmail()">
@@ -11301,10 +11323,10 @@
   </div>
 
   <!-- PATCH 2: Email Gate Overlay -->
-  <div class="email-gate-overlay" id="emailGateOverlay">
+  <div class="email-gate-overlay" id="emailGateOverlay" role="dialog" aria-modal="true" aria-labelledby="emailGateTitle" aria-hidden="true" hidden>
     <div class="email-gate-card">
-      <h2>Save Your Preview</h2>
-      <p class="subtitle">Send metadata only so we can follow up when launch access opens.</p>
+      <h2 id="emailGateTitle">Save Your Design</h2>
+      <p class="subtitle">Send metadata only so we can follow up with digital launch access, a custom proof, or a premium quote.</p>
 
       <ul class="benefits">
         <li>View exact material costs (Magnetic, Solid, Transparent)</li>
@@ -11338,7 +11360,7 @@
           placeholder="Enter your email"
           required
         />
-        <button type="submit">Save My Preview</button>
+        <button type="submit">Save design</button>
       </form>
 
       <p class="email-gate-privacy">

@@ -99,3 +99,22 @@ B1 is done when automated checks pass and Derek verifies the 20-photo pet test s
 - First-preview flow: generation no longer opens the save-design email gate automatically; Save actions open the metadata-only form when the user asks to save.
 - Remaining manual QA: Derek still needs to run the 20-photo pet test set in a browser before production approval.
 - Known limitations: B1 still uses manual crop positioning and heuristic edge warnings; it does not add computer-vision subject detection, checkout, or a new builder version.
+## B1.1 Trust + Accessibility Hardening
+
+- Canonical builder decision: `public/builder/index.html` is the only production builder.
+- Historical lineage: the canonical builder is v6-derived; v5 is superseded and must not receive back-ports.
+- Public route rule: do not expose raw versioned builder files or routes.
+- Format-gating copy: free pet preview is active; digital launch access is first paid path; sticker/magnetic/brick products use made-to-order proof or quote language.
+- Public language rule: no founder/prototype/beta/pilot/validation/test-batch wording in public builder UI.
+- Emoji removal summary: functional emoji controls were replaced with visible text labels or non-emoji control copy.
+- Accessibility fixes: retained one meaningful hidden `h1`, accessible control names, focus-visible ring, ARIA pressed toggles, canvas accessible label, and polite status updates.
+- Badge/toggle cleanup: view/display/mode controls use clearer text and active-state semantics.
+- Brand-token verification: builder uses teal, hot pink, gold, light background, and Inter; obvious old blue secondary token was removed.
+
+Remaining manual QA:
+
+- 20-photo pet test set.
+- Mobile check.
+- Keyboard/focus check.
+- Preview deploy check.
+

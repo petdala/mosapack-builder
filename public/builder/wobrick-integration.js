@@ -354,7 +354,7 @@ function downloadValidationReport() {
     '2. Visit wobrick.com/toolkit',
     '3. Upload the CSV file',
     '4. Review pricing and stock availability',
-    '5. Complete checkout',
+    '5. Do not complete checkout until D1 launch access is approved',
     ''
   ].join('\n');
   
