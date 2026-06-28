@@ -1282,6 +1282,7 @@
 
     .post-preview-flow {
       display: grid;
+      scroll-margin-top: 150px;
       gap: 0.85rem;
       margin-top: 1rem;
       padding: 1rem;
@@ -4016,18 +4017,19 @@
        PATCH 1: Funnel Progress Indicator
        ============================================ */
     .funnel-progress {
-      position: fixed;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%);
+      position: sticky;
+      top: 64px;
+      max-width: 960px;
+      margin: 0.75rem auto 0;
       background: white;
       padding: 12px 24px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      z-index: 999;
-      display: none;
+      z-index: 95;
+      display: flex;
       gap: 16px;
       align-items: center;
+      justify-content: center;
     }
 
     .funnel-progress.active {
@@ -4063,13 +4065,23 @@
     }
 
     .funnel-step.active .step-icon {
-      background: #007bff;
+      background: var(--primary);
       color: white;
     }
 
     .funnel-step.completed .step-icon {
-      background: #28a745;
+      background: var(--primary-dark);
       color: white;
+    }
+
+    body:not(.builder-has-preview) .canvas-tools-rail .ai-toggle-stack,
+    body:not(.builder-has-preview) .canvas-tools-rail .tool-button:not([data-panel="upload"]),
+    body:not(.builder-has-preview) .canvas-header {
+      display: none;
+    }
+
+    body:not(.builder-has-preview) .canvas-workspace {
+      grid-template-columns: minmax(0, 1fr);
     }
 
     /* ============================================
@@ -4338,12 +4350,21 @@
     @media (max-width: 768px) {
       .funnel-progress {
         top: 60px;
-        padding: 8px 12px;
-        gap: 8px;
+        margin: 0.5rem 0.75rem 0;
+        padding: 8px 10px;
+        gap: 6px;
+        overflow-x: auto;
+        justify-content: flex-start;
+      }
+
+      .funnel-step {
+        gap: 6px;
+        flex: 0 0 auto;
       }
 
       .funnel-step span {
-        display: none;
+        display: inline;
+        font-size: 0.74rem;
       }
 
       .trust-panel {
@@ -4728,27 +4749,8 @@
   </style>
 </head>
 <body>
-  <!-- PATCH 1: Funnel Progress Indicator -->
-  <div class="funnel-progress" id="funnelProgress">
-    <div class="funnel-step completed" data-step="1" aria-current="step">
-      <div class="step-icon">✓</div>
-      <span>Upload</span>
-    </div>
-    <div class="funnel-step" data-step="2">
-      <div class="step-icon">2</div>
-      <span>Position</span>
-    </div>
-    <div class="funnel-step" data-step="3">
-      <div class="step-icon">3</div>
-      <span>Preview</span>
-    </div>
-    <div class="funnel-step" data-step="4">
-      <div class="step-icon">4</div>
-      <span>Request Proof</span>
-    </div>
-  </div>
-
   <!-- Header -->
+
   <header class="header">
     <div class="header-content">
       <a href="/" class="logo">
@@ -4792,6 +4794,26 @@
       </div>
     </div>
   </header>
+
+  <!-- PATCH 1: Funnel Progress Indicator -->
+  <div class="funnel-progress active" id="funnelProgress">
+    <div class="funnel-step active" data-step="1" aria-current="step">
+      <div class="step-icon">1</div>
+      <span>Upload</span>
+    </div>
+    <div class="funnel-step" data-step="2">
+      <div class="step-icon">2</div>
+      <span>Position</span>
+    </div>
+    <div class="funnel-step" data-step="3">
+      <div class="step-icon">3</div>
+      <span>Preview</span>
+    </div>
+    <div class="funnel-step" data-step="4">
+      <div class="step-icon">4</div>
+      <span>Request Proof</span>
+    </div>
+  </div>
 
   <h1 class="sr-only">MosaPack Custom Pet Mosaic Builder</h1>
   <div id="builderStatus" class="sr-only" role="status" aria-live="polite">Create a free pet mosaic preview.</div>
@@ -6981,10 +7003,7 @@
       const progressBar = document.getElementById('funnelProgress');
       const steps = document.querySelectorAll('.funnel-step');
 
-      // Show progress bar when step 2 or higher
-      if (currentStep >= 2) {
-        progressBar.classList.add('active');
-      }
+      progressBar.classList.add('active');
 
       steps.forEach((step, index) => {
         const stepNum = index + 1;
@@ -8411,9 +8430,10 @@
         originalImageData = tempCtx.getImageData(0, 0, img.width, img.height);
 
         document.getElementById('uploadOverlay').classList.add('hidden');
+        document.body.classList.add('builder-has-photo');
+        document.body.classList.remove('builder-has-preview');
 
-        // PATCH: Update funnel progress to step 1 (Upload complete)
-        updateFunnelProgress(1);
+        updateFunnelProgress(2);
 
         initializeCropEditor(img);
         showLoading(false);
@@ -8714,6 +8734,7 @@
         showUpsell();
 
         updateRecommendedFormatCard();
+        document.body.classList.add('builder-has-preview');
         updateFunnelProgress(3);
         showStatus('Preview ready. Request proof follow-up when you are ready to confirm the design before production.');
         showToast('Preview generated successfully!');
@@ -8721,6 +8742,15 @@
 
         const buyButton = document.getElementById('launchAccessButton');
         if (buyButton) buyButton.style.display = 'block';
+
+        setTimeout(() => {
+          showTab('builder');
+          const proofFlow = document.getElementById('postPreviewFlow');
+          if (proofFlow) {
+            const proofTop = proofFlow.getBoundingClientRect().top + window.scrollY - 150;
+            window.scrollTo({ top: Math.max(0, proofTop), behavior: 'smooth' });
+          }
+        }, 350);
 
         setTimeout(() => {
           renderBundleRecommendations();
@@ -10517,6 +10547,7 @@
         }
         
         currentImage = null;
+        document.body.classList.remove('builder-has-photo', 'builder-has-preview');
         originalImageData = null;
         processedData = null;
         currentPreset = 'original';
@@ -10535,6 +10566,7 @@
           version: 'b1-crop-v1'
         };
         showCropEditor(false);
+        showTab('designer');
         resetAdjustments();
         
         document.getElementById('uploadOverlay').classList.remove('hidden');

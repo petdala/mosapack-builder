@@ -88,3 +88,9 @@ Use Netlify Function + Netlify Blobs or equivalent server-side storage. The repo
 ## Launch Gate
 
 B2 exact design save is required before real proof fulfillment, physical checkout, paid custom proof, or any workflow that implies Derek can immediately review the exact approved mosaic.
+
+## B1.3 Visual CX Audit Update
+
+B1.3 visual QA confirmed the upload/crop/preview/proof path works locally, but manual QA is still required before production approval. The visual fix moved the post-preview journey to the Formats & Proofs stage, hid advanced controls until preview generation, and kept the proof request metadata-only.
+
+B2 exact design save remains the next true build gate before real proof fulfillment, paid custom proof, or physical checkout.

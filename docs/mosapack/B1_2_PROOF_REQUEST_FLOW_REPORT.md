@@ -115,3 +115,9 @@ Manual QA still needed:
 - mobile test
 - keyboard/focus test
 - one real live Netlify Forms proof-request submission
+
+## B1.3 Visual CX Audit Update
+
+B1.3 visual QA confirmed the upload/crop/preview/proof path works locally, but manual QA is still required before production approval. The visual fix moved the post-preview journey to the Formats & Proofs stage, hid advanced controls until preview generation, and kept the proof request metadata-only.
+
+B2 exact design save remains the next true build gate before real proof fulfillment, paid custom proof, or physical checkout.
