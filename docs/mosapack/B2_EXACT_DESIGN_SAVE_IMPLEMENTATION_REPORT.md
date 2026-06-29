@@ -198,3 +198,37 @@ Admin deletion:
 - Follow-up `get-project` returned 404 `Project not found.`
 
 Production deploy was approved only after preview save/get/delete passed and the full local verification gate passed.
+
+## Production Verification - 2026-06-29
+
+B2 was production-deployed with functions after preview admin retrieval/delete and local verification passed.
+
+Production URL:
+
+```text
+https://mosapack.netlify.app
+```
+
+Unique deploy URL:
+
+```text
+https://6a41e979bcfb3fab104b656e--mosapack.netlify.app
+```
+
+Production proof-save project id:
+
+```text
+b5dea1c9-e20b-42c5-94ea-b75ca50e45df
+```
+
+Verified:
+
+- Production `save-project` returned 200.
+- UI showed proof request success after save and form submission.
+- Netlify Forms metadata included matching `project_id`.
+- Netlify Forms metadata contained no image data.
+- Production `get-project` returned project JSON plus preview/cropped source assets.
+- Production `delete-project` returned `ok: true` and `deleted: true`.
+- The admin token was not printed, stored in docs/config, or committed.
+
+B2 production status: complete for exact design save, admin retrieval, and manual deletion path.
