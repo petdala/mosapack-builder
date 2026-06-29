@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MosaPack Builder - Custom Photo Mosaic Preview</title>
   <meta name="description" content="Create a free custom photo mosaic preview, then save your design for digital launch access or made-to-order proof requests.">
+  <meta name="mosapack-proof-credit-link" content="">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230bbf92'/%3E%3Crect x='12' y='12' width='8' height='8' rx='1' fill='%23e91e8c'/%3E%3C/svg%3E">
   
   <!-- Google Analytics 4 -->
@@ -1378,6 +1379,59 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.6rem;
+    }
+
+    .proof-credit-card {
+      display: grid;
+      gap: 0.7rem;
+      padding: 1rem;
+      border: 1px solid rgba(233, 30, 140, 0.25);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(255, 241, 247, 0.95), #fff);
+    }
+
+    .proof-credit-card[hidden] {
+      display: none;
+    }
+
+    .proof-credit-eyebrow {
+      color: var(--pop);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .proof-credit-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .proof-credit-body,
+    .proof-credit-status,
+    .proof-credit-note,
+    .proof-credit-reference {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    .proof-credit-status {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .proof-credit-reference {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      word-break: break-word;
+    }
+
+    .proof-credit-card .btn[aria-disabled="true"],
+    .proof-credit-card .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.62;
     }
 
     .bundle-config-bar {
@@ -4038,6 +4092,10 @@
         width: 100%;
         min-height: 46px;
       }
+
+      .proof-credit-card {
+        padding: 0.85rem;
+      }
       .product-type-selector {
         grid-template-columns: 1fr;
       }
@@ -5108,6 +5166,18 @@
                   <button class="btn btn-primary" type="button" onclick="requestCustomProof()">Request My Custom Proof</button>
                   <button class="btn btn-secondary" type="button" onclick="saveProject('save_design')">Save Design for Later</button>
                 </div>
+              </div>
+              <div class="proof-credit-card" id="proofCreditCard" hidden aria-live="polite">
+                <span class="proof-credit-eyebrow">Optional next step</span>
+                <h3>Place Your $10 Proof Credit</h3>
+                <p class="proof-credit-body">Your proof credit is applied toward your final digital or physical MosaPack order. If your photo is not suitable, we'll refund it.</p>
+                <p class="proof-credit-reference" id="proofCreditProjectRef"></p>
+                <p class="proof-credit-status" id="proofCreditStatus">Proof credit payment is being finalized. Your proof request was saved.</p>
+                <div class="proof-actions">
+                  <a class="btn btn-primary" id="proofCreditPaymentLink" href="#" target="_blank" rel="noopener" hidden>Pay $10 Proof Credit</a>
+                  <button class="btn btn-primary" id="proofCreditDisabledButton" type="button" disabled aria-disabled="true">Pay $10 Proof Credit</button>
+                </div>
+                <p class="proof-credit-note" id="proofCreditNote">Use the same email you used for your proof request so we can match your payment to your saved design.</p>
               </div>
             </section>
         
@@ -7041,6 +7111,8 @@
     let pendingRequestType = 'save_design';
     let lastRecommendedFormat = 'Digital Mystery Reveal Pack';
     let lastProofTrigger = null;
+    let lastSavedProofProjectId = '';
+    let lastSavedProofEmail = '';
 
     // PATCH 5: Finish Benefits Data
     const finishBenefits = {
@@ -7243,6 +7315,56 @@
       }
       updateRecommendedFormatCard(document.getElementById('proofFormatSelect')?.value || lastRecommendedFormat);
       showEmailGate('custom_proof');
+    }
+
+    function getProofCreditPaymentLink() {
+      const config = window.MOSAPACK_CONFIG || {};
+      const configured = config.PUBLIC_STRIPE_PROOF_CREDIT_LINK || config.proofCreditPaymentLink || '';
+      const meta = document.querySelector('meta[name="mosapack-proof-credit-link"]')?.getAttribute('content') || '';
+      const link = String(configured || meta || '').trim();
+      return /^https:\/\/buy\.stripe\.com\//.test(link) ? link : '';
+    }
+
+    function showProofCreditCard({ projectId = '', email = '' } = {}) {
+      const card = document.getElementById('proofCreditCard');
+      if (!card) return;
+      const paymentLink = getProofCreditPaymentLink();
+      const payLink = document.getElementById('proofCreditPaymentLink');
+      const disabledButton = document.getElementById('proofCreditDisabledButton');
+      const status = document.getElementById('proofCreditStatus');
+      const note = document.getElementById('proofCreditNote');
+      const reference = document.getElementById('proofCreditProjectRef');
+
+      lastSavedProofProjectId = projectId || lastSavedProofProjectId;
+      lastSavedProofEmail = email || lastSavedProofEmail;
+      card.hidden = false;
+      if (reference) reference.textContent = lastSavedProofProjectId ? `Saved design: ${lastSavedProofProjectId}` : '';
+      if (note) note.textContent = 'Use the same email you used for your proof request so we can match your payment to your saved design.';
+
+      if (paymentLink) {
+        if (payLink) {
+          payLink.href = paymentLink;
+          payLink.hidden = false;
+          payLink.removeAttribute('aria-disabled');
+        }
+        if (disabledButton) disabledButton.hidden = true;
+        if (status) status.textContent = 'Your proof request was saved. Payment opens securely through Stripe.';
+      } else {
+        if (payLink) {
+          payLink.hidden = true;
+          payLink.href = '#';
+          payLink.setAttribute('aria-disabled', 'true');
+        }
+        if (disabledButton) disabledButton.hidden = false;
+        if (status) status.textContent = 'Proof credit payment is being finalized. Your proof request was saved.';
+      }
+    }
+
+    function hideProofCreditCard() {
+      const card = document.getElementById('proofCreditCard');
+      if (card) card.hidden = true;
+      lastSavedProofProjectId = '';
+      lastSavedProofEmail = '';
     }
 
     // Handle email submission
@@ -7721,6 +7843,11 @@
               : "Saved. We will email launch access when it is ready.";
             showStatus(successMessage);
             showToast(successMessage, "success");
+            if (requestType === "custom_proof") {
+              showProofCreditCard({ projectId: saveResult.project_id, email });
+            } else {
+              hideProofCreditCard();
+            }
             emailForm.reset();
             if (proofFormatSelect) proofFormatSelect.value = recommendedFormat;
             pendingRequestType = "save_design";
@@ -10932,6 +11059,7 @@
         document.getElementById('upsellBanner').style.display = 'none';
         const postPreviewFlow = document.getElementById('postPreviewFlow');
         if (postPreviewFlow) postPreviewFlow.hidden = true;
+        hideProofCreditCard();
         updateFunnelProgress(1);
         document.getElementById('presetDropdown').value = 'original';
         const quickStartDropdown = document.getElementById('corePresetDropdown');

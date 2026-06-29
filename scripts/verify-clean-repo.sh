@@ -155,12 +155,19 @@ if rg -n -i "wobrick|wobrick.com|downloadWobrick|supplier comparison" "$ROOT/pub
 fi
 rm -f /tmp/mosapack-public-wobrick.txt
 
-if rg -n -i "shopify|stripe|order placed|checkout successful|payment received|fake checkout|buy now" "$ROOT/public/index.html" "$BUILDER" "$ROOT/public/contact/index.html" >/tmp/mosapack-public-checkout.txt; then
-  echo "FORBIDDEN checkout/payment language found in public launch files:"
+if rg -n -i "shopify|order placed|checkout successful|payment received|fake checkout|buy now|buy physical kit now|order your kit now" "$ROOT/public/index.html" "$BUILDER" "$ROOT/public/contact/index.html" >/tmp/mosapack-public-checkout.txt; then
+  echo "FORBIDDEN full checkout/order language found in public launch files:"
   cat /tmp/mosapack-public-checkout.txt
   FAIL=1
 fi
 rm -f /tmp/mosapack-public-checkout.txt
+
+if rg -n -i "sk_live|sk_test|rk_live|whsec_|STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET|client_secret|private_key|access_token|bearer[[:space:]]+[A-Za-z0-9._=-]{10,}" "$ROOT/public" >/tmp/mosapack-public-payment-secrets.txt; then
+  echo "FORBIDDEN payment secret pattern found in public files:"
+  cat /tmp/mosapack-public-payment-secrets.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-public-payment-secrets.txt
 
 if ! rg -q "Create a free photo mosaic preview|Free preview first" "$BUILDER"; then
   echo "MISSING first-preview-free builder copy."
