@@ -155,7 +155,7 @@ if rg -n -i "wobrick|wobrick.com|downloadWobrick|supplier comparison" "$ROOT/pub
 fi
 rm -f /tmp/mosapack-public-wobrick.txt
 
-if rg -n -i "shopify|order placed|checkout successful|payment received|fake checkout|buy now|buy physical kit now|order your kit now" "$ROOT/public/index.html" "$BUILDER" "$ROOT/public/contact/index.html" >/tmp/mosapack-public-checkout.txt; then
+if rg -n -i "shopify|stripe|order placed|checkout successful|payment received|fake checkout|buy now|buy physical kit now|order your kit now" "$ROOT/public/index.html" "$BUILDER" "$ROOT/public/contact/index.html" >/tmp/mosapack-public-checkout.txt; then
   echo "FORBIDDEN full checkout/order language found in public launch files:"
   cat /tmp/mosapack-public-checkout.txt
   FAIL=1

@@ -4,6 +4,10 @@ Date: 2026-06-29
 Repo: `/Users/dereksolas/Developer/mosapack-clean`
 Branch: `feature/d1-proof-credit-payment-link`
 
+## Status
+
+Deferred / not public. Stripe/proof credit payment is paused; the active conversion event is the free proof request. Keep this document as future reference only.
+
 ## Summary
 
 D1 adds a post-proof-request proof-credit handoff for the selected offer:

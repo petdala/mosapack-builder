@@ -4,6 +4,10 @@ Date: 2026-06-29T04:47:25Z
 Repo: `/Users/dereksolas/Developer/mosapack-clean`
 Status: decision brief only; checkout is not implemented.
 
+## Status
+
+Deferred / not public. Stripe/proof credit payment is paused; the active conversion event is the free proof request. Keep this document as future reference only.
+
 ## Current Gate Status
 
 B2 exact design save is production complete. MosaPack can save an exact proof design, retrieve it through the token-protected admin endpoint, and delete it for privacy cleanup. This clears the technical gate for deciding the first paid path.

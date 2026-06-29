@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MosaPack Builder - Custom Photo Mosaic Preview</title>
   <meta name="description" content="Create a free custom photo mosaic preview, then save your design for digital launch access or made-to-order proof requests.">
-  <meta name="mosapack-proof-credit-link" content="">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230bbf92'/%3E%3Crect x='12' y='12' width='8' height='8' rx='1' fill='%23e91e8c'/%3E%3C/svg%3E">
   
   <!-- Google Analytics 4 -->
@@ -1381,7 +1380,7 @@
       gap: 0.6rem;
     }
 
-    .proof-credit-card {
+    .proof-next-step-card {
       display: grid;
       gap: 0.7rem;
       padding: 1rem;
@@ -1390,11 +1389,11 @@
       background: linear-gradient(135deg, rgba(255, 241, 247, 0.95), #fff);
     }
 
-    .proof-credit-card[hidden] {
+    .proof-next-step-card[hidden] {
       display: none;
     }
 
-    .proof-credit-eyebrow {
+    .proof-next-step-eyebrow {
       color: var(--pop);
       font-size: 0.72rem;
       font-weight: 800;
@@ -1402,34 +1401,34 @@
       text-transform: uppercase;
     }
 
-    .proof-credit-card h3 {
+    .proof-next-step-card h3 {
       margin: 0;
       font-size: 1.1rem;
       color: var(--text);
     }
 
-    .proof-credit-body,
-    .proof-credit-status,
-    .proof-credit-note,
-    .proof-credit-reference {
+    .proof-next-step-body,
+    .proof-next-step-status,
+    .proof-next-step-note,
+    .proof-next-step-reference {
       margin: 0;
       color: var(--text-muted);
       font-size: 0.875rem;
       line-height: 1.5;
     }
 
-    .proof-credit-status {
+    .proof-next-step-status {
       color: var(--text);
       font-weight: 700;
     }
 
-    .proof-credit-reference {
+    .proof-next-step-reference {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       word-break: break-word;
     }
 
-    .proof-credit-card .btn[aria-disabled="true"],
-    .proof-credit-card .btn:disabled {
+    .proof-next-step-card .btn[aria-disabled="true"],
+    .proof-next-step-card .btn:disabled {
       cursor: not-allowed;
       opacity: 0.62;
     }
@@ -4093,7 +4092,7 @@
         min-height: 46px;
       }
 
-      .proof-credit-card {
+      .proof-next-step-card {
         padding: 0.85rem;
       }
       .product-type-selector {
@@ -5167,17 +5166,17 @@
                   <button class="btn btn-secondary" type="button" onclick="saveProject('save_design')">Save Design for Later</button>
                 </div>
               </div>
-              <div class="proof-credit-card" id="proofCreditCard" hidden aria-live="polite">
-                <span class="proof-credit-eyebrow">Optional next step</span>
-                <h3>Place Your $10 Proof Credit</h3>
-                <p class="proof-credit-body">Your proof credit is applied toward your final digital or physical MosaPack order. If your photo is not suitable, we'll refund it.</p>
-                <p class="proof-credit-reference" id="proofCreditProjectRef"></p>
-                <p class="proof-credit-status" id="proofCreditStatus">Proof credit payment is being finalized. Your proof request was saved.</p>
+              <div class="proof-next-step-card" id="proofNextStepCard" hidden aria-live="polite">
+                <span class="proof-next-step-eyebrow">Proof request saved</span>
+                <h3>Proof Request Saved</h3>
+                <p class="proof-next-step-body">We saved your custom mosaic details and will follow up with the next step. If your photo is not suitable for a production proof, we'll let you know before anything is made.</p>
+                <p class="proof-next-step-reference" id="proofNextStepProjectRef"></p>
+                <p class="proof-next-step-status" id="proofNextStepStatus">Your proof request is ready for manual review.</p>
                 <div class="proof-actions">
-                  <a class="btn btn-primary" id="proofCreditPaymentLink" href="#" target="_blank" rel="noopener" hidden>Pay $10 Proof Credit</a>
-                  <button class="btn btn-primary" id="proofCreditDisabledButton" type="button" disabled aria-disabled="true">Pay $10 Proof Credit</button>
+                  <button class="btn btn-primary" id="proofReturnToBuilderButton" type="button">Return to Builder</button>
+                  <a class="btn btn-secondary" id="proofContactLink" href="/contact/">Contact MosaPack</a>
                 </div>
-                <p class="proof-credit-note" id="proofCreditNote">Use the same email you used for your proof request so we can match your payment to your saved design.</p>
+                <p class="proof-next-step-note" id="proofNextStepNote">Keep the same email thread for follow-up so we can match your request to the saved design.</p>
               </div>
             </section>
         
@@ -7112,7 +7111,6 @@
     let lastRecommendedFormat = 'Digital Mystery Reveal Pack';
     let lastProofTrigger = null;
     let lastSavedProofProjectId = '';
-    let lastSavedProofEmail = '';
 
     // PATCH 5: Finish Benefits Data
     const finishBenefits = {
@@ -7317,59 +7315,34 @@
       showEmailGate('custom_proof');
     }
 
-    function getProofCreditPaymentLink() {
-      const config = window.MOSAPACK_CONFIG || {};
-      const configured = config.PUBLIC_STRIPE_PROOF_CREDIT_LINK || config.proofCreditPaymentLink || '';
-      const meta = document.querySelector('meta[name="mosapack-proof-credit-link"]')?.getAttribute('content') || '';
-      const link = String(configured || meta || '').trim();
-      return /^https:\/\/buy\.stripe\.com\//.test(link) ? link : '';
-    }
-
-    function showProofCreditCard({ projectId = '', email = '' } = {}) {
-      const card = document.getElementById('proofCreditCard');
+    function showProofNextStepCard({ projectId = '' } = {}) {
+      const card = document.getElementById('proofNextStepCard');
       if (!card) return;
-      const paymentLink = getProofCreditPaymentLink();
-      const payLink = document.getElementById('proofCreditPaymentLink');
-      const disabledButton = document.getElementById('proofCreditDisabledButton');
-      const status = document.getElementById('proofCreditStatus');
-      const note = document.getElementById('proofCreditNote');
-      const reference = document.getElementById('proofCreditProjectRef');
+      const reference = document.getElementById('proofNextStepProjectRef');
+      const status = document.getElementById('proofNextStepStatus');
 
       lastSavedProofProjectId = projectId || lastSavedProofProjectId;
-      lastSavedProofEmail = email || lastSavedProofEmail;
       card.hidden = false;
       if (reference) reference.textContent = lastSavedProofProjectId ? `Saved design: ${lastSavedProofProjectId}` : '';
-      if (note) note.textContent = 'Use the same email you used for your proof request so we can match your payment to your saved design.';
-
-      if (paymentLink) {
-        if (payLink) {
-          payLink.href = paymentLink;
-          payLink.hidden = false;
-          payLink.removeAttribute('aria-disabled');
-        }
-        if (disabledButton) disabledButton.hidden = true;
-        if (status) status.textContent = 'Your proof request was saved. Payment opens securely through Stripe.';
-      } else {
-        if (payLink) {
-          payLink.hidden = true;
-          payLink.href = '#';
-          payLink.setAttribute('aria-disabled', 'true');
-        }
-        if (disabledButton) disabledButton.hidden = false;
-        if (status) status.textContent = 'Proof credit payment is being finalized. Your proof request was saved.';
-      }
+      if (status) status.textContent = 'Your proof request is ready for manual review.';
     }
 
-    function hideProofCreditCard() {
-      const card = document.getElementById('proofCreditCard');
+    function hideProofNextStepCard() {
+      const card = document.getElementById('proofNextStepCard');
       if (card) card.hidden = true;
       lastSavedProofProjectId = '';
-      lastSavedProofEmail = '';
     }
 
     // Handle email submission
     document.addEventListener('DOMContentLoaded', function() {
       applyGroupState();
+      const proofReturnButton = document.getElementById('proofReturnToBuilderButton');
+      if (proofReturnButton && !proofReturnButton.dataset.bound) {
+        proofReturnButton.dataset.bound = 'true';
+        proofReturnButton.addEventListener('click', () => {
+          document.getElementById('mosaicCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      }
       applyPanelState();
       normalizeOpenPanels();
       updateGroupStatus();
@@ -7844,9 +7817,9 @@
             showStatus(successMessage);
             showToast(successMessage, "success");
             if (requestType === "custom_proof") {
-              showProofCreditCard({ projectId: saveResult.project_id, email });
+              showProofNextStepCard({ projectId: saveResult.project_id });
             } else {
-              hideProofCreditCard();
+              hideProofNextStepCard();
             }
             emailForm.reset();
             if (proofFormatSelect) proofFormatSelect.value = recommendedFormat;
@@ -11059,7 +11032,7 @@
         document.getElementById('upsellBanner').style.display = 'none';
         const postPreviewFlow = document.getElementById('postPreviewFlow');
         if (postPreviewFlow) postPreviewFlow.hidden = true;
-        hideProofCreditCard();
+        hideProofNextStepCard();
         updateFunnelProgress(1);
         document.getElementById('presetDropdown').value = 'original';
         const quickStartDropdown = document.getElementById('corePresetDropdown');
