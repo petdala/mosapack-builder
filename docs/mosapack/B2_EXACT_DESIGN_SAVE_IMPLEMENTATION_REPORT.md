@@ -163,3 +163,38 @@ Admin retrieval status:
 
 - `get-project` returned `500` with `Admin retrieval is disabled until MOSA_ADMIN_TOKEN is configured.`
 - Production deploy is not recommended until `MOSA_ADMIN_TOKEN` is configured and the preview project above is retrieved and deleted successfully.
+
+## Preview Admin Retrieval/Delete Verification - 2026-06-29
+
+Preview deploy verified on the linked `mosapack` Netlify site:
+
+```text
+https://6a41e8b286ae41af51bc41af--mosapack.netlify.app
+```
+
+Fresh preview proof-save test:
+
+- Email: `derek+mosapack-b2-admin-preview-test@example.com`
+- Project id: `82e7335e-644c-4dd8-88a3-dd64e5fde5e8`
+- `save-project` status: 200
+- UI success: yes
+- Netlify Forms metadata included matching `project_id`: yes
+- Netlify Forms metadata included `project_saved=true`: yes
+- Netlify Forms metadata included `save_version=b2-v1`: yes
+- Netlify Forms metadata included `design_storage=netlify_blobs`: yes
+- Netlify Forms payload contained image data: no
+
+Admin retrieval:
+
+- `get-project` returned `ok: true`.
+- Project JSON was retrievable.
+- Preview asset was retrievable.
+- Cropped source asset was retrievable.
+- Token was supplied only via shell environment/clipboard path and was not stored in the repo.
+
+Admin deletion:
+
+- `delete-project` returned `ok: true` and `deleted: true`.
+- Follow-up `get-project` returned 404 `Project not found.`
+
+Production deploy was approved only after preview save/get/delete passed and the full local verification gate passed.

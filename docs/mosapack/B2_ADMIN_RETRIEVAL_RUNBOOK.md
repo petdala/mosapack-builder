@@ -88,3 +88,24 @@ https://6a41a625f430d406693410b6--mosapack.netlify.app
 ```
 
 After `MOSA_ADMIN_TOKEN` is configured, retrieve and delete this preview test project before production deploy approval.
+
+## Preview Admin Verification Completed
+
+On 2026-06-29, admin retrieval and deletion were verified on preview:
+
+```text
+https://6a41e8b286ae41af51bc41af--mosapack.netlify.app
+```
+
+Verified project id:
+
+```text
+82e7335e-644c-4dd8-88a3-dd64e5fde5e8
+```
+
+Result:
+
+- `get-project` returned project JSON plus preview/cropped source assets.
+- `delete-project` deleted the project and assets.
+- Follow-up `get-project` returned 404.
+- The admin token was not written to docs, config, public files, or git.
