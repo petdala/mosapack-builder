@@ -4905,6 +4905,531 @@
       font-weight: 600;
       text-align: center;
     }
+
+
+    /* Public guided proof wizard (Hybrid C) */
+    body.public-wizard {
+      background: #fafafa;
+      padding-bottom: 92px;
+    }
+
+    .public-wizard .header {
+      box-shadow: none;
+      border-bottom: 1px solid rgba(229, 229, 229, 0.85);
+    }
+
+    .public-wizard .header-content {
+      max-width: 1120px;
+    }
+
+    .public-wizard .logo-subtitle {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    .public-wizard .version-badge,
+    .public-wizard .header-cart,
+    .public-wizard #cartToggle,
+    .public-wizard #cartDropdown,
+    .public-wizard .workspace-tabs,
+    .public-wizard .funnel-progress,
+    .public-wizard .canvas-tools-rail,
+    .public-wizard .canvas-header,
+    .public-wizard .pod-product-label,
+    .public-wizard .controls-column,
+    .public-wizard #insightsPanel,
+    .public-wizard #checkoutTrustRow,
+    .public-wizard #expressPayRow,
+    .public-wizard #checkoutModeToggle,
+    .public-wizard #bundleGalleryWrapper,
+    .public-wizard .cart-dropdown,
+    .public-wizard #launchAccessButton {
+      display: none !important;
+    }
+
+    .public-wizard-shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1.4rem 1rem 0;
+    }
+
+    .wizard-hero {
+      display: grid;
+      gap: 1rem;
+      margin: 0 auto 1rem;
+    }
+
+    .wizard-hero h1 {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(2rem, 6vw, 4.4rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+      max-width: 860px;
+    }
+
+    .wizard-hero p {
+      margin: 0;
+      color: var(--text-muted);
+      max-width: 720px;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      line-height: 1.55;
+    }
+
+    .wizard-trust-chips {
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .wizard-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0.4rem 0.72rem;
+      border: 1px solid rgba(11, 191, 146, 0.24);
+      border-radius: 999px;
+      background: #fff;
+      color: #075f4b;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .wizard-chip.is-pink {
+      border-color: rgba(233, 30, 140, 0.24);
+      color: #a01663;
+      background: #fff7fb;
+    }
+
+    .wizard-stepper {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .wizard-step {
+      display: grid;
+      gap: 0.25rem;
+      align-content: start;
+      padding: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text-muted);
+      min-height: 76px;
+    }
+
+    .wizard-step-number {
+      width: 26px;
+      height: 26px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--panel-soft);
+      color: var(--text-muted);
+      font-weight: 900;
+      font-size: 0.78rem;
+    }
+
+    .wizard-step-label {
+      color: inherit;
+      font-weight: 800;
+      font-size: 0.9rem;
+      line-height: 1.15;
+    }
+
+    .wizard-step.is-active {
+      border-color: rgba(11, 191, 146, 0.52);
+      background: var(--primary-pale);
+      color: #064e3b;
+      box-shadow: 0 10px 28px rgba(11, 191, 146, 0.12);
+    }
+
+    .wizard-step.is-active .wizard-step-number,
+    .wizard-step.is-complete .wizard-step-number {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .wizard-mobile-progress {
+      display: none;
+      margin: 0.75rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .public-wizard .container {
+      max-width: 1120px;
+      padding: 0 1rem 2rem;
+      margin: 0 auto;
+    }
+
+    .public-wizard .main-grid,
+    .public-wizard .designer-tab-content,
+    .public-wizard .canvas-workspace,
+    .public-wizard .workspace-main {
+      display: block;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .public-wizard .workspace-main > .panel {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+      border: 0;
+    }
+
+    .wizard-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .public-wizard .canvas-container {
+      border: 1px solid rgba(229, 229, 229, 0.95);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .public-wizard .canvas-viewport {
+      min-height: 560px;
+      height: auto;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 0;
+      border-radius: 0;
+    }
+
+    .wizard-card-heading {
+      display: grid;
+      gap: 0.25rem;
+      padding: 1.15rem 1.15rem 0;
+      background: #fff;
+    }
+
+    .wizard-card-heading h2 {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(1.35rem, 4vw, 2rem);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    .wizard-card-heading p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.98rem;
+    }
+
+    .public-wizard .upload-overlay {
+      inset: 1.15rem;
+      border: 2px dashed rgba(11, 191, 146, 0.35);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, var(--primary-pale) 100%);
+      color: var(--text);
+    }
+
+    .public-wizard .upload-icon {
+      color: var(--primary-dark);
+      font-weight: 900;
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .public-wizard .upload-text {
+      font-size: clamp(1.5rem, 5vw, 2.3rem);
+      font-weight: 900;
+      line-height: 1.05;
+      color: var(--text);
+    }
+
+    .public-wizard .upload-hint {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 360px;
+    }
+
+    .public-wizard .crop-editor.active {
+      position: relative;
+      inset: auto;
+      display: grid;
+      place-items: center;
+      min-height: 560px;
+      padding: 1rem;
+      background: #fff;
+    }
+
+    .public-wizard .crop-card {
+      width: min(100%, 560px);
+      box-shadow: none;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .public-wizard .crop-heading {
+      font-size: 1.5rem;
+    }
+
+    .public-wizard .crop-frame {
+      max-width: min(100%, 420px);
+      margin: 0 auto;
+    }
+
+    .public-wizard .crop-frame canvas {
+      width: 100%;
+      height: auto;
+    }
+
+    .public-wizard .post-preview-flow {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.85rem;
+      padding: 1rem 0 0;
+    }
+
+    .wizard-format-note {
+      margin: 0.35rem 0 0;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    .public-wizard .recommended-format-card,
+    .public-wizard .proof-request-card,
+    .public-wizard .proof-next-step-card {
+      border-radius: 12px;
+      border: 1px solid rgba(229, 229, 229, 0.95);
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+      background: #fff;
+    }
+
+    .public-wizard .recommended-format-card {
+      border-color: rgba(11, 191, 146, 0.22);
+      background: linear-gradient(135deg, #ffffff 0%, var(--primary-pale) 100%);
+    }
+
+    .public-wizard .proof-request-card h3,
+    .public-wizard .proof-next-step-card h3 {
+      font-size: 1.35rem;
+      line-height: 1.15;
+    }
+
+    .public-wizard .proof-actions .btn,
+    .public-wizard .crop-actions .btn {
+      min-height: 48px;
+      border-radius: 8px;
+    }
+
+    .wizard-side-stack {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .wizard-help-card {
+      display: grid;
+      gap: 0.65rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+    }
+
+    .wizard-help-card h3 {
+      margin: 0;
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+
+    .wizard-help-card ul,
+    .wizard-help-card ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .wizard-help-card li + li {
+      margin-top: 0.35rem;
+    }
+
+    .advanced-tools {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .advanced-tools > summary {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 900;
+      list-style: none;
+    }
+
+    .advanced-tools > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .advanced-tools > summary::after {
+      content: '+';
+      color: var(--primary-dark);
+      font-size: 1.2rem;
+    }
+
+    .advanced-tools[open] > summary::after {
+      content: '-';
+    }
+
+    .advanced-tools-body {
+      display: grid;
+      gap: 0.65rem;
+      padding: 0 1rem 1rem;
+    }
+
+    .advanced-tools-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .advanced-tools-row .btn,
+    .advanced-tools-row .toggle-btn {
+      min-height: 42px;
+    }
+
+    .wizard-sticky-cta {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10020;
+      padding: 0.75rem max(1rem, env(safe-area-inset-left)) calc(0.75rem + env(safe-area-inset-bottom));
+      background: rgba(255, 255, 255, 0.96);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.12);
+    }
+
+    .wizard-sticky-cta button {
+      width: 100%;
+      min-height: 50px;
+      border-radius: 8px;
+      border: 0;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 900;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .public-wizard.wizard-state-saved .wizard-sticky-cta {
+      display: none !important;
+    }
+
+    .public-wizard.wizard-state-upload .canvas-wrapper,
+    .public-wizard.wizard-state-upload #baseplateGrid,
+    .public-wizard.wizard-state-upload #numbersOverlay,
+    .public-wizard.wizard-state-upload #mosaicCanvas {
+      visibility: hidden;
+    }
+
+    .public-wizard.wizard-state-crop .upload-overlay,
+    .public-wizard.wizard-state-preview .upload-overlay,
+    .public-wizard.wizard-state-proof .upload-overlay,
+    .public-wizard.wizard-state-saved .upload-overlay {
+      display: none !important;
+    }
+
+    .public-wizard.wizard-state-saved .recommended-format-card,
+    .public-wizard.wizard-state-saved .proof-request-card {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      body.public-wizard {
+        padding-bottom: 88px;
+      }
+
+      .public-wizard-shell {
+        padding: 1rem 0.85rem 0;
+      }
+
+      .wizard-stepper {
+        display: none;
+      }
+
+      .wizard-mobile-progress {
+        display: block;
+      }
+
+      .wizard-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .public-wizard .container {
+        padding: 0 0.85rem 1.25rem;
+      }
+
+      .wizard-side-stack {
+        order: 2;
+      }
+
+      .public-wizard .canvas-container {
+        border-radius: 12px;
+      }
+
+      .public-wizard .canvas-viewport {
+        min-height: min(63vh, 520px);
+      }
+
+      .public-wizard .crop-editor.active {
+        min-height: min(64vh, 560px);
+        padding: 0.75rem;
+      }
+
+      .public-wizard .crop-card {
+        padding: 0.85rem;
+      }
+
+      .public-wizard .crop-actions {
+        display: none;
+      }
+
+      .wizard-sticky-cta {
+        display: block;
+      }
+
+      .public-wizard.wizard-state-saved .wizard-sticky-cta {
+        display: none;
+      }
+
+      .public-wizard .email-gate-card {
+        width: min(100% - 1rem, 520px);
+        max-height: calc(100vh - 6rem);
+        padding-bottom: 1rem;
+        margin-bottom: 5.5rem;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -4926,7 +5451,7 @@
         </svg>
         <div class="logo-text-group">
           <span class="logo-text">MosaPack</span>
-          <span class="logo-subtitle">Mosaic Design Canvas</span>
+          <span class="logo-subtitle">Turn your photo into a custom mosaic</span>
         </div>
         <span class="version-badge">Preview</span>
       </a>
@@ -4944,38 +5469,41 @@
           </div>
           <div class="cart-footer">
             <div class="cart-total">
-              <span>Estimated total</span>
+              <span>Saved preview</span>
               <strong id="cartTotalPreview">$0.00</strong>
             </div>
-            <button class="btn btn-primary" onclick="addToLaunchAccess()">Launch access disabled</button>
+            <button class="btn btn-primary" onclick="addToLaunchAccess()">Proof request only</button>
           </div>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- PATCH 1: Funnel Progress Indicator -->
-  <div class="funnel-progress active" id="funnelProgress">
-    <div class="funnel-step active" data-step="1" aria-current="step">
-      <div class="step-icon">1</div>
-      <span>Upload</span>
-    </div>
-    <div class="funnel-step" data-step="2">
-      <div class="step-icon">2</div>
-      <span>Position</span>
-    </div>
-    <div class="funnel-step" data-step="3">
-      <div class="step-icon">3</div>
-      <span>Preview</span>
-    </div>
-    <div class="funnel-step" data-step="4">
-      <div class="step-icon">4</div>
-      <span>Request Proof</span>
-    </div>
-  </div>
-
   <h1 class="sr-only">MosaPack Custom Photo Mosaic Builder</h1>
   <div id="builderStatus" class="sr-only" role="status" aria-live="polite">Create a free photo mosaic preview.</div>
+
+  <main class="public-wizard-shell" id="publicWizardShell">
+    <section class="wizard-hero" aria-labelledby="wizardHeroTitle">
+      <h1 id="wizardHeroTitle">Create your custom mosaic proof</h1>
+      <p>Upload a photo, preview your mosaic, and request a free custom proof. No payment required right now.</p>
+      <div class="wizard-trust-chips" aria-label="MosaPack trust notes">
+        <span class="wizard-chip">Free preview</span>
+        <span class="wizard-chip is-pink">Custom proof</span>
+        <span class="wizard-chip">No checkout today</span>
+        <span class="wizard-chip">We review every design</span>
+        <span class="wizard-chip is-pink">No payment required right now</span>
+        <span class="wizard-chip">Production starts only after proof approval</span>
+      </div>
+    </section>
+    <nav class="wizard-stepper" aria-label="Builder progress">
+      <div class="wizard-step is-active" data-wizard-step="upload"><span class="wizard-step-number">1</span><span class="wizard-step-label">Upload Photo</span></div>
+      <div class="wizard-step" data-wizard-step="crop"><span class="wizard-step-number">2</span><span class="wizard-step-label">Crop &amp; Position</span></div>
+      <div class="wizard-step" data-wizard-step="preview"><span class="wizard-step-number">3</span><span class="wizard-step-label">Preview Mosaic</span></div>
+      <div class="wizard-step" data-wizard-step="proof"><span class="wizard-step-number">4</span><span class="wizard-step-label">Request Proof</span></div>
+      <div class="wizard-step" data-wizard-step="saved"><span class="wizard-step-number">5</span><span class="wizard-step-label">Proof Saved</span></div>
+    </nav>
+    <div class="wizard-mobile-progress" id="wizardMobileProgress">Step 1 of 5 — Upload Photo</div>
+  </main>
 
   <div class="workspace-tabs">
     <button class="workspace-tab active" data-tab="designer" onclick="showTab('designer')">
@@ -4996,6 +5524,8 @@
 
     <!-- Main Content -->
   <div class="container">
+    <div class="wizard-layout">
+      <div class="wizard-main-card">
     <div class="main-grid">
       <div id="designer-tab" class="tab-content-area active">
         <div class="designer-tab-content">
@@ -5078,6 +5608,10 @@
       </div>
     </div>
 
+        <div class="wizard-card-heading" id="wizardCardHeading" tabindex="-1">
+          <h2 id="wizardStateTitle">Upload your photo</h2>
+          <p id="wizardStateHelper">Clear, close-up photos work best.</p>
+        </div>
         <div class="canvas-container" id="canvasContainer">
           <!-- POD-style: Product label above hero visual -->
           <div class="pod-product-label" id="podProductLabel">
@@ -5113,14 +5647,14 @@
             <div class="upload-overlay" id="uploadOverlay" onclick="document.getElementById('fileInput').click()">
               <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(this)" aria-label="Upload photo">
               <div class="upload-icon" aria-hidden="true">Upload</div>
-              <div class="upload-text">Create a free photo mosaic preview</div>
-              <div class="upload-hint">Upload your photo and adjust the crop before generating.</div>
+              <div class="upload-text">Upload your photo</div>
+              <div class="upload-hint">Clear, close-up photos work best.</div>
             </div>
             <!-- B1 Crop / Focal Control -->
             <div class="crop-editor" id="cropEditor" aria-live="polite">
               <div class="crop-card">
-                <h3 class="crop-heading">Position your subject</h3>
-                <p class="crop-subtitle">Drag to center the subject, then zoom if you want a tighter preview.</p>
+                <h3 class="crop-heading">Crop &amp; Position</h3>
+                <p class="crop-subtitle">Center the face or main subject.</p>
                 <div class="crop-frame" id="cropFrame" aria-label="Drag to center the subject">
                   <canvas id="cropCanvas" width="420" height="420" role="img" aria-label="Crop preview canvas. Drag the image to center the subject."></canvas>
                   <div class="crop-crosshair" aria-hidden="true"></div>
@@ -5129,11 +5663,12 @@
                   <label class="crop-label" for="cropZoomSlider">Zoom</label>
                   <input type="range" id="cropZoomSlider" min="1" max="3" step="0.01" value="1" aria-label="Zoom">
                   <button type="button" class="crop-reset-btn" id="cropResetButton">Reset crop</button>
+                  <button type="button" class="crop-reset-btn" id="chooseDifferentPhotoButton">Choose different photo</button>
                 </div>
                 <div class="crop-warning" id="cropWarning"></div>
                 <div class="crop-actions">
                   <button type="button" class="btn btn-secondary" id="cropFitButton">Fit photo</button>
-                  <button type="button" class="btn btn-primary" id="cropGenerateButton">Looks good - generate preview</button>
+                  <button type="button" class="btn btn-primary" id="cropGenerateButton">Looks good — create my preview</button>
                 </div>
               </div>
             </div>
@@ -5144,8 +5679,9 @@
                 <span class="recommended-format-eyebrow">Recommended format</span>
                 <h3 class="recommended-format-title" id="recommendedFormatTitle">Digital Mystery Reveal Pack</h3>
                 <p class="recommended-format-body" id="recommendedFormatReason">Best for instant keepsake files and sharing.</p>
+                <p class="wizard-format-note">Other formats available after proof review: Sticker · Magnetic · Premium Brick</p>
                 <label class="sr-only" for="proofFormatSelect">Choose another format</label>
-                <select class="premium-select" id="proofFormatSelect" aria-label="Choose another format">
+                <select class="premium-select" id="proofFormatSelect" aria-label="Choose another format" hidden>
                   <option value="Digital Mystery Reveal Pack">Digital Mystery Reveal Pack</option>
                   <option value="Sticker Reveal Kit">Sticker Reveal Kit</option>
                   <option value="Magnetic Reveal Kit">Magnetic Reveal Kit</option>
@@ -5153,27 +5689,27 @@
                 </select>
               </div>
               <div class="proof-request-card">
-                <h3 id="proofRequestTitle">Request Your Custom Proof</h3>
-                <p class="proof-request-body">We'll review your mosaic details and follow up with the next step to confirm your approved design. Production starts only after proof approval when your selected format is ready.</p>
+                <h3 id="proofRequestTitle">Request your free custom proof</h3>
+                <p class="proof-request-body">We'll follow up with the next step after reviewing your saved design.</p>
                 <ul class="proof-points">
                   <li>Free preview first</li>
                   <li>Design confirmation before production</li>
-                  <li>Recommended format based on your photo</li>
+                  <li>Digital proof path recommended first</li>
                   <li>No checkout today</li>
                 </ul>
                 <div class="proof-actions">
-                  <button class="btn btn-primary" type="button" onclick="requestCustomProof()">Request My Custom Proof</button>
-                  <button class="btn btn-secondary" type="button" onclick="saveProject('save_design')">Save Design for Later</button>
+                  <button class="btn btn-primary" type="button" id="requestProofButton" onclick="requestCustomProof()">Request my free proof</button>
+                  <button class="btn btn-secondary" type="button" id="adjustCropButton">Adjust crop</button>
                 </div>
               </div>
               <div class="proof-next-step-card" id="proofNextStepCard" hidden aria-live="polite">
                 <span class="proof-next-step-eyebrow">Proof request saved</span>
-                <h3>Proof Request Saved</h3>
-                <p class="proof-next-step-body">We saved your custom mosaic details and will follow up with the next step. If your photo is not suitable for a production proof, we'll let you know before anything is made.</p>
+                <h3>Proof request saved!</h3>
+                <p class="proof-next-step-body">We saved your custom mosaic details. We'll review the design and follow up with the next step.</p>
                 <p class="proof-next-step-reference" id="proofNextStepProjectRef"></p>
-                <p class="proof-next-step-status" id="proofNextStepStatus">Your proof request is ready for manual review.</p>
+                <p class="proof-next-step-status" id="proofNextStepStatus">If your photo is not suitable for a production proof, we'll let you know before anything is made.</p>
                 <div class="proof-actions">
-                  <button class="btn btn-primary" id="proofReturnToBuilderButton" type="button">Return to Builder</button>
+                  <button class="btn btn-primary" id="proofReturnToBuilderButton" type="button">Create another preview</button>
                   <a class="btn btn-secondary" id="proofContactLink" href="/contact/">Contact MosaPack</a>
                 </div>
                 <p class="proof-next-step-note" id="proofNextStepNote">Keep the same email thread for follow-up so we can match your request to the saved design.</p>
@@ -5181,6 +5717,51 @@
             </section>
         
       </div>
+    </div>
+  </div>
+      </div>
+      <aside class="wizard-side-stack" aria-label="Photo proof guidance">
+        <section class="wizard-help-card">
+          <h3>Best results</h3>
+          <ul>
+            <li>Good lighting</li>
+            <li>Close-up</li>
+            <li>One main subject</li>
+            <li>Clear and in focus</li>
+          </ul>
+        </section>
+        <section class="wizard-help-card">
+          <h3>Avoid</h3>
+          <ul>
+            <li>Tiny or distant subjects</li>
+            <li>Blurry photos</li>
+            <li>Very dark photos</li>
+          </ul>
+        </section>
+        <section class="wizard-help-card">
+          <h3>What happens next</h3>
+          <ol>
+            <li>We review your design</li>
+            <li>We prepare your proof</li>
+            <li>We follow up by email</li>
+          </ol>
+        </section>
+        <details class="advanced-tools" id="advancedTools">
+          <summary>Advanced tools</summary>
+          <div class="advanced-tools-body">
+            <p class="wizard-format-note">Optional controls for fine-tuning your preview.</p>
+            <div class="advanced-tools-row">
+              <button class="btn btn-secondary" type="button" onclick="toggleWorkspacePanel('enhance')">Presets</button>
+              <button class="btn btn-secondary" type="button" onclick="toggleWorkspacePanel('adjust')">Adjust</button>
+              <button class="btn btn-secondary" type="button" onclick="toggleWorkspacePanel('palette')">Palette</button>
+              <button class="btn btn-secondary" type="button" onclick="toggleGrid()">Grid</button>
+              <button class="btn btn-secondary" type="button" onclick="toggleNumbers()">Numbers</button>
+              <button class="btn btn-secondary" type="button" onclick="openScenePreview()">Scene preview</button>
+              <button class="btn btn-secondary" type="button" onclick="saveProject('save_design')">Save design for later</button>
+            </div>
+          </div>
+        </details>
+      </aside>
     </div>
   </div>
       <div id="workspacePanelTemplates" class="workspace-panel-templates">
@@ -5393,7 +5974,7 @@
           <ul class="mega-tips">
             <li>Need a fresh start? Use the Reset button beside the zoom controls.</li>
             <li>Toggle grid &amp; numbers via the Display controls above the canvas.</li>
-            <li class="pro-note">Checkout is temporarily disabled while we finalize launch access.</li>
+            <li class="pro-note">Proof requests are free while launch access is finalized.</li>
           </ul>
           <div id="finish-selector" class="finish-selector">
             <h4 class="mega-subtitle">Made-to-Order Finishes</h4>
@@ -5515,7 +6096,7 @@
           <div class="trust-item">
             <span class="trust-icon" aria-hidden="true">D1</span>
             <div class="trust-copy">
-              <strong>Checkout disabled until D1</strong>
+              <strong>Proof requests are free today</strong>
               <span>Save your design now; payment is not collected here.</span>
             </div>
           </div>
@@ -5731,7 +6312,7 @@
                 Save for Launch Access
               </button>
               <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
-                Checkout is temporarily disabled while we finalize launch access.
+                Proof requests are free while launch access is finalized.
               </div>
             </div>
             <div class="btn-group" style="margin-top: 0.75rem;">
@@ -5787,7 +6368,7 @@
         <!-- Cost & Export -->
         <div class="panel" data-panel-id="cost">
           <div class="panel-header" onclick="togglePanel('cost')">
-            <h3 class="panel-title">Costs & Checkout</h3>
+            <h3 class="panel-title">Materials details</h3>
             <button type="button" class="panel-toggle-btn" aria-label="Toggle proof options and launch access">⌃</button>
           </div>
           <div class="panel-content">
@@ -5805,7 +6386,7 @@
               Save for Launch Access
             </button>
             <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
-              Checkout is temporarily disabled while we finalize launch access.
+              Proof requests are free while launch access is finalized.
             </div>
           </div>
 
@@ -7175,6 +7756,7 @@
     function updateFunnelProgress(currentStep) {
       const progressBar = document.getElementById('funnelProgress');
       const steps = document.querySelectorAll('.funnel-step');
+      if (!progressBar || !steps.length) return;
 
       progressBar.classList.add('active');
 
@@ -7203,18 +7785,18 @@
       const benefits = document.getElementById('emailGateBenefits');
       const submit = document.getElementById('emailGateSubmit');
 
-      if (title) title.textContent = isProof ? 'Request Your Custom Proof' : 'Save Your Design';
+      if (title) title.textContent = isProof ? 'Request your free custom proof' : 'Save Your Design';
       if (subtitle) {
         subtitle.textContent = isProof
-          ? "We'll review your mosaic details and follow up with the next step to confirm your approved design. Production starts only after proof approval when your selected format is ready."
+          ? "We'll follow up with the next step after reviewing your saved design."
           : 'Send metadata only so we can follow up with digital launch access or proof options.';
       }
       if (benefits) {
         benefits.innerHTML = isProof
-          ? '<li>Free preview first</li><li>Design confirmation before production</li><li>Recommended format based on your photo</li><li>No checkout today</li>'
+          ? '<li>Free preview first</li><li>Custom proof review</li><li>We do not store the full original photo</li><li>Production starts only after proof approval</li>'
           : '<li>Free preview first</li><li>Save your current crop and format details</li><li>Choose digital access or a custom proof later</li><li>No checkout today</li>';
       }
-      if (submit) submit.textContent = isProof ? 'Request My Custom Proof' : 'Save design';
+      if (submit) submit.textContent = isProof ? 'Save my proof request' : 'Save design';
     }
 
     // Show save/proof form only when the user asks for it.
@@ -7277,18 +7859,6 @@
     };
 
     function getRecommendedFormat() {
-      const centered = Math.abs((cropState.focalPointX || 0.5) - 0.5) <= 0.18 &&
-        Math.abs((cropState.focalPointY || 0.5) - 0.5) <= 0.18 && !cropState.warning;
-
-      if (currentProductType === 'bricks' && currentSize >= 64) {
-        return 'Premium Brick Kit Quote';
-      }
-      if (currentSize >= 64) {
-        return 'Premium Brick Kit Quote';
-      }
-      if (centered && currentSize >= 48) {
-        return currentMaterialType === 'magnetic' ? 'Magnetic Reveal Kit' : 'Sticker Reveal Kit';
-      }
       return 'Digital Mystery Reveal Pack';
     }
 
@@ -7312,6 +7882,8 @@
         return;
       }
       updateRecommendedFormatCard(document.getElementById('proofFormatSelect')?.value || lastRecommendedFormat);
+      updateWizardState('proof', { status: 'Proof form opened.', focusCard: false });
+      trackBuilderEvent('builder_proof_opened');
       showEmailGate('custom_proof');
     }
 
@@ -7324,7 +7896,82 @@
       lastSavedProofProjectId = projectId || lastSavedProofProjectId;
       card.hidden = false;
       if (reference) reference.textContent = lastSavedProofProjectId ? `Saved design: ${lastSavedProofProjectId}` : '';
-      if (status) status.textContent = 'Your proof request is ready for manual review.';
+      if (status) status.textContent = "If your photo is not suitable for a production proof, we'll let you know before anything is made.";
+      updateWizardState('saved', { status: 'Proof request saved.', focusCard: true });
+      trackBuilderEvent('builder_proof_saved');
+    }
+
+    const WIZARD_STEPS = {
+      upload: { index: 1, title: 'Upload Photo', cardTitle: 'Upload your photo', helper: 'Clear, close-up photos work best.', cta: 'Choose Photo' },
+      crop: { index: 2, title: 'Crop & Position', cardTitle: 'Crop & Position', helper: 'Center the face or main subject.', cta: 'Looks good — create my preview' },
+      preview: { index: 3, title: 'Preview Mosaic', cardTitle: "Here's your mosaic preview", helper: "This is an instant preview. We'll review the saved design before anything is made.", cta: 'Request my free proof' },
+      proof: { index: 4, title: 'Request Proof', cardTitle: 'Request your free custom proof', helper: "We'll follow up with the next step after reviewing your saved design.", cta: 'Save my proof request' },
+      saved: { index: 5, title: 'Proof Saved', cardTitle: 'Proof request saved!', helper: "We saved your custom mosaic details. We'll review the design and follow up with the next step.", cta: '' }
+    };
+
+    let currentWizardState = 'upload';
+
+    function trackBuilderEvent(eventName) {
+      if (typeof gtag !== 'undefined') {
+        try {
+          gtag('event', eventName, {
+            event_category: 'builder_wizard',
+            event_label: 'public_guided_wizard'
+          });
+        } catch (error) { /* no-op */ }
+      }
+    }
+
+    function updateWizardState(state, options = {}) {
+      const config = WIZARD_STEPS[state] || WIZARD_STEPS.upload;
+      currentWizardState = state;
+      document.body.classList.add('public-wizard');
+      Object.keys(WIZARD_STEPS).forEach((key) => document.body.classList.toggle(`wizard-state-${key}`, key === state));
+
+      document.querySelectorAll('.wizard-step').forEach((step) => {
+        const stepConfig = WIZARD_STEPS[step.dataset.wizardStep];
+        const isActive = step.dataset.wizardStep === state;
+        const isComplete = stepConfig && stepConfig.index < config.index;
+        step.classList.toggle('is-active', isActive);
+        step.classList.toggle('is-complete', Boolean(isComplete));
+        step.setAttribute('aria-current', isActive ? 'step' : 'false');
+      });
+
+      const mobileProgress = document.getElementById('wizardMobileProgress');
+      if (mobileProgress) mobileProgress.textContent = `Step ${config.index} of 5 — ${config.title}`;
+
+      const title = document.getElementById('wizardStateTitle');
+      if (title) title.textContent = config.cardTitle;
+      const helper = document.getElementById('wizardStateHelper');
+      if (helper) helper.textContent = config.helper;
+
+      const sticky = document.getElementById('wizardStickyCta');
+      const stickyButton = document.getElementById('wizardStickyButton');
+      if (sticky && stickyButton) {
+        sticky.hidden = state === 'saved';
+        stickyButton.textContent = config.cta || '';
+        stickyButton.setAttribute('aria-label', config.cta || config.title);
+      }
+
+      const status = document.getElementById('builderStatus');
+      if (status && options.status) status.textContent = options.status;
+
+      if (options.focusCard) {
+        const heading = document.getElementById('wizardCardHeading');
+        setTimeout(() => heading?.focus(), 80);
+      }
+    }
+
+    function handleWizardPrimaryAction() {
+      if (currentWizardState === 'upload') {
+        document.getElementById('fileInput')?.click();
+      } else if (currentWizardState === 'crop') {
+        document.getElementById('cropGenerateButton')?.click();
+      } else if (currentWizardState === 'preview') {
+        requestCustomProof();
+      } else if (currentWizardState === 'proof') {
+        document.getElementById('emailGateSubmit')?.click();
+      }
     }
 
     function hideProofNextStepCard() {
@@ -7336,11 +7983,41 @@
     // Handle email submission
     document.addEventListener('DOMContentLoaded', function() {
       applyGroupState();
+      document.body.classList.add('public-wizard');
+      updateWizardState(processedData ? 'preview' : 'upload');
+      const stickyButton = document.getElementById('wizardStickyButton');
+      if (stickyButton && !stickyButton.dataset.bound) {
+        stickyButton.dataset.bound = 'true';
+        stickyButton.addEventListener('click', handleWizardPrimaryAction);
+      }
+      const chooseDifferentPhotoButton = document.getElementById('chooseDifferentPhotoButton');
+      if (chooseDifferentPhotoButton && !chooseDifferentPhotoButton.dataset.bound) {
+        chooseDifferentPhotoButton.dataset.bound = 'true';
+        chooseDifferentPhotoButton.addEventListener('click', () => document.getElementById('fileInput')?.click());
+      }
+      const adjustCropButton = document.getElementById('adjustCropButton');
+      if (adjustCropButton && !adjustCropButton.dataset.bound) {
+        adjustCropButton.dataset.bound = 'true';
+        adjustCropButton.addEventListener('click', () => {
+          if (currentImage) {
+            showCropEditor(true);
+            updateWizardState('crop', { status: 'Crop editor reopened.', focusCard: true });
+          }
+        });
+      }
+      const advancedTools = document.getElementById('advancedTools');
+      if (advancedTools && !advancedTools.dataset.bound) {
+        advancedTools.dataset.bound = 'true';
+        advancedTools.addEventListener('toggle', () => {
+          if (advancedTools.open) trackBuilderEvent('builder_advanced_tools_opened');
+        });
+      }
       const proofReturnButton = document.getElementById('proofReturnToBuilderButton');
       if (proofReturnButton && !proofReturnButton.dataset.bound) {
         proofReturnButton.dataset.bound = 'true';
         proofReturnButton.addEventListener('click', () => {
-          document.getElementById('mosaicCanvas')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          resetBuilder();
+          updateWizardState('upload', { status: 'Create another free photo mosaic preview.', focusCard: true });
         });
       }
       applyPanelState();
@@ -7812,7 +8489,7 @@
             }
 
             const successMessage = requestType === "custom_proof"
-              ? "Proof request saved. We'll follow up with the next step to confirm your approved design."
+              ? "Proof request saved. We'll review the design and follow up with the next step."
               : "Saved. We will email launch access when it is ready.";
             showStatus(successMessage);
             showToast(successMessage, "success");
@@ -8810,7 +9487,7 @@
     }
 
     function addToLaunchAccess(options = {}) {
-      showToast('Checkout is temporarily disabled while we finalize launch access.', 'error');
+      showToast('Proof requests are free while launch access is finalized.', 'error');
     }
 
     function startExpressCheckout(method) {
@@ -8894,6 +9571,9 @@
         initializeCropEditor(img);
         showLoading(false);
         showRegen(false);
+        updateWizardState('crop', { status: 'Photo uploaded. Crop and position your subject.', focusCard: true });
+        trackBuilderEvent('builder_photo_uploaded');
+        trackBuilderEvent('builder_crop_opened');
       };
       img.src = dataUrl;
     }
@@ -9195,6 +9875,8 @@
         showToast('Preview generated successfully!');
         showStatus('Preview ready. You can request a custom proof.');
         updateGroupStatus();
+        updateWizardState('preview', { status: 'Preview ready. You can request a custom proof.', focusCard: true });
+        trackBuilderEvent('builder_preview_created');
 
         const buyButton = document.getElementById('launchAccessButton');
         if (buyButton) buyButton.style.display = 'block';
@@ -11033,6 +11715,7 @@
         const postPreviewFlow = document.getElementById('postPreviewFlow');
         if (postPreviewFlow) postPreviewFlow.hidden = true;
         hideProofNextStepCard();
+        updateWizardState('upload', { status: 'Create a free photo mosaic preview.' });
         updateFunnelProgress(1);
         document.getElementById('presetDropdown').value = 'original';
         const quickStartDropdown = document.getElementById('corePresetDropdown');
@@ -12046,6 +12729,10 @@
     </div>
   </div>
 
+  <div class="wizard-sticky-cta" id="wizardStickyCta">
+    <button type="button" id="wizardStickyButton">Choose Photo</button>
+  </div>
+
   <!-- PATCH 2: Email Gate Overlay -->
   <div class="email-gate-overlay" id="emailGateOverlay" role="dialog" aria-modal="true" aria-labelledby="emailGateTitle" aria-hidden="true" hidden>
     <div class="email-gate-card">
@@ -12124,7 +12811,7 @@
         ></textarea>
         <div class="design-storage-consent">
           <input type="checkbox" id="designStorageConsent" required>
-          <label for="designStorageConsent">I agree that MosaPack may temporarily store this design and preview image to review my custom proof.</label>
+          <label for="designStorageConsent">I consent to save my cropped preview and mosaic details so MosaPack can review and prepare my proof.</label>
         </div>
         <button type="submit" id="emailGateSubmit">Save design</button>
       </form>

@@ -34,7 +34,7 @@ if ! rg -q '/\.netlify/functions/save-project' "$BUILDER"; then
   FAIL=1
 fi
 
-if ! rg -q 'designStorageConsent' "$BUILDER" || ! rg -q 'temporarily store this design and preview image' "$BUILDER"; then
+if ! rg -q 'designStorageConsent' "$BUILDER" || ! rg -q 'temporarily store this design and preview image|I consent to save my cropped preview and mosaic details' "$BUILDER"; then
   echo "MISSING design storage consent checkbox/copy in proof modal"
   FAIL=1
 fi

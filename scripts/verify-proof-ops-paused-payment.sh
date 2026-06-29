@@ -20,7 +20,7 @@ require_file "docs/mosapack/D1_PAYMENT_PAUSED_DECISION.md"
 require_file "docs/mosapack/PROOF_REQUEST_OPERATIONS_RUNBOOK.md"
 require_file "docs/mosapack/SUPPLIER_RFQ_EXECUTION_TRACKER.md"
 
-if ! rg -q 'Request Your Custom Proof|Proof Request Saved' "$BUILDER"; then
+if ! rg -q 'Request Your Custom Proof|Request your free custom proof|Request my free proof|Proof Request Saved|Proof request saved' "$BUILDER"; then
   echo "MISSING free proof request path/copy in builder"
   FAIL=1
 fi

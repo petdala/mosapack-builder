@@ -133,7 +133,7 @@ if rg -n -i "quality score|museum quality score|94% match|gold quality|silver qu
 fi
 rm -f /tmp/mosapack-builder-public-quality.txt
 
-if ! rg -q "Request Your Custom Proof" "$BUILDER"; then
+if ! rg -q "Request Your Custom Proof|Request your free custom proof|Request my free proof" "$BUILDER"; then
   echo "MISSING proof request CTA/copy in builder."
   FAIL=1
 fi
