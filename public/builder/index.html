@@ -5316,6 +5316,35 @@
       min-height: 42px;
     }
 
+    .mosaic-clean-indicator {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.25rem 0.75rem;
+      align-items: center;
+      padding: 0.75rem;
+      border: 1px solid rgba(11, 191, 146, 0.18);
+      border-radius: 8px;
+      background: var(--primary-pale);
+      color: var(--text);
+    }
+
+    .mosaic-clean-indicator label {
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .mosaic-clean-indicator input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .mosaic-clean-indicator span {
+      grid-column: 1 / -1;
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+
     .wizard-sticky-cta {
       display: none;
       position: fixed;
@@ -5750,6 +5779,11 @@
           <summary>Advanced tools</summary>
           <div class="advanced-tools-body">
             <p class="wizard-format-note">Optional controls for fine-tuning your preview.</p>
+            <div class="mosaic-clean-indicator">
+              <label for="mosaicCleanToggle">Mosaic Clean</label>
+              <input type="checkbox" id="mosaicCleanToggle" checked onchange="updateMosaicCleanToggle()">
+              <span>Auto-optimized for mosaic clarity.</span>
+            </div>
             <div class="advanced-tools-row">
               <button class="btn btn-secondary" type="button" onclick="toggleWorkspacePanel('enhance')">Presets</button>
               <button class="btn btn-secondary" type="button" onclick="toggleWorkspacePanel('adjust')">Adjust</button>
@@ -5829,8 +5863,8 @@
             <label class="control-label">Dithering Algorithm</label>
             <select class="control-select" id="ditheringMode" onchange="updateSettings()">
               <option value="none">None (Direct Mapping)</option>
-              <option value="ordered">Ordered (Bayer)</option>
-              <option value="floyd" selected>Floyd-Steinberg</option>
+              <option value="ordered" selected>Ordered (Bayer)</option>
+              <option value="floyd">Floyd-Steinberg</option>
               <option value="atkinson">Atkinson</option>
             </select>
           </div>
@@ -8295,6 +8329,10 @@
             brightness: settings.brightness,
             contrast: settings.contrast,
             saturation: settings.saturation,
+            mosaic_clean: settings.mosaicClean,
+            mosaic_clean_strength: settings.mosaicCleanStrength,
+            detail_protection: settings.detailProtection,
+            buildability_cleanup: settings.buildabilityCleanup,
             linear_light: settings.linearLight,
             despeckle: settings.despeckle,
             ai: {
@@ -8309,6 +8347,18 @@
           };
         }
 
+        function getPreprocessSnapshot() {
+          return {
+            version: "mosaic-clean-v1",
+            enabled: mosaicCleanMeta.enabled,
+            strength: mosaicCleanMeta.strength,
+            detail_protection: mosaicCleanMeta.detail_protection,
+            buildability_cleanup: mosaicCleanMeta.buildability_cleanup,
+            cleanup_stats: mosaicCleanMeta.cleanup_stats,
+            dither_policy: mosaicCleanMeta.dither_policy || "ordered-default-for-buildability"
+          };
+        }
+
         function getProcessedDataSnapshot() {
           if (!processedData) return null;
           return {
@@ -8319,7 +8369,8 @@
               hex: color.hex
             })),
             counts: Array.from(processedData.counts || []),
-            mapped: Array.from(processedData.mapped || [])
+            mapped: Array.from(processedData.mapped || []),
+            preprocess: getPreprocessSnapshot()
           };
         }
 
@@ -8328,6 +8379,7 @@
           const cropSnapshot = getCropStateSnapshot();
           const renderSnapshot = getRenderSettingsSnapshot();
           const processedSnapshot = getProcessedDataSnapshot();
+          const preprocessSnapshot = getPreprocessSnapshot();
           const colorSummary = getColorCounts();
           const configuration = getCurrentConfiguration({ includePreview: false }) || {};
           const timestamp = new Date().toISOString();
@@ -8345,6 +8397,7 @@
             request_type: requestType,
             crop_state: cropSnapshot,
             render_settings: renderSnapshot,
+            preprocess: preprocessSnapshot,
             grid_size: `${currentSize}x${currentSize}`,
             preview_shape: currentMaterialType || "mosaic",
             cropped_source_data_url: captureApprovedSourceDataUrl(),
@@ -8356,6 +8409,7 @@
               generated_at: timestamp,
               crop_state: cropSnapshot,
               render_settings: renderSnapshot,
+              preprocess: preprocessSnapshot,
               configuration,
               processed_data: processedSnapshot
             },
@@ -8805,10 +8859,36 @@
       brightness: 0,
       contrast: 0,
       saturation: 0,
-      dithering: 'floyd',
+      dithering: 'ordered',
       linearLight: true,
-      despeckle: false
+      despeckle: false,
+      mosaicClean: true,
+      mosaicCleanStrength: 'medium',
+      detailProtection: true,
+      buildabilityCleanup: true
     };
+
+    let mosaicCleanMeta = {
+      version: 'mosaic-clean-v1',
+      enabled: true,
+      strength: 'medium',
+      detail_protection: true,
+      buildability_cleanup: true,
+      tone_adjustment_applied: false,
+      smoothing_applied: false,
+      posterization_applied: false,
+      dither_policy: 'ordered-default-for-buildability',
+      cleanup_stats: {
+        speckles_removed: 0,
+        rare_colors_merged: 0,
+        cells_changed: 0,
+        unique_colors_before: 0,
+        unique_colors_after: 0,
+        target_max_colors: 16
+      }
+    };
+
+    let mosaicCleanProtectedCells = null;
 
     // Product configurations
     const PRODUCTS = {
@@ -9857,10 +9937,22 @@
 
         imageData = applyPreset(imageData);
         imageData = applyAdjustments(imageData);
+        const mosaicCleanOptions = getMosaicCleanOptions();
+        imageData = applyMosaicCleanPreprocess(imageData, mosaicCleanOptions);
 
         imageData = applyAiFilters(imageData, procCanvas.width, procCanvas.height);
 
         const result = mapToPalette(imageData);
+        if (mosaicCleanOptions.enabled && mosaicCleanOptions.buildabilityCleanup) {
+          const cleanup = cleanupMappedMosaic(result.mapped, result.width, result.height, result.palette, {
+            ...mosaicCleanOptions,
+            protectedCells: mosaicCleanProtectedCells
+          });
+          result.mapped = cleanup.mapped;
+          result.counts = cleanup.counts;
+          mosaicCleanMeta = buildMosaicCleanPreprocessMeta(mosaicCleanOptions, cleanup.cleanupStats);
+        }
+        result.preprocess = JSON.parse(JSON.stringify(mosaicCleanMeta));
         processedData = result;
 
         renderMosaic();
@@ -10021,6 +10113,455 @@
       }
       
       return imageData;
+    }
+
+    function clampChannel(value) {
+      return Math.max(0, Math.min(255, Math.round(value)));
+    }
+
+    function cloneImageData(imageData) {
+      return new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
+    }
+
+    function getTargetMaxColors() {
+      let target = 24;
+      if (currentSize <= 32) target = 12;
+      else if (currentSize <= 48) target = 16;
+      else if (currentSize <= 64) target = 20;
+
+      if (currentProductType === 'stickers' || currentMaterialType === 'solid-bricks') {
+        target = Math.max(10, target - 3);
+      } else if (currentMaterialType === 'magnetic') {
+        target = Math.min(target, currentSize <= 48 ? 16 : 18);
+      } else if (currentMaterialType === 'transparent-bricks') {
+        target = Math.min(25, target + 2);
+      }
+
+      return Math.max(8, Math.min(25, target));
+    }
+
+    function getMosaicCleanOptions() {
+      const strength = ['light', 'medium', 'bold'].includes(settings.mosaicCleanStrength)
+        ? settings.mosaicCleanStrength
+        : 'medium';
+
+      return {
+        enabled: settings.mosaicClean !== false,
+        strength,
+        detailProtection: settings.detailProtection !== false,
+        buildabilityCleanup: settings.buildabilityCleanup !== false,
+        targetMaxColors: getTargetMaxColors()
+      };
+    }
+
+    function computeLuminanceEdgeMap(imageData, width, height, threshold = 28) {
+      const data = imageData.data;
+      const luminance = new Float32Array(width * height);
+      const edgeMap = new Uint8Array(width * height);
+
+      for (let i = 0; i < width * height; i++) {
+        const idx = i * 4;
+        luminance[i] = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+      }
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
+          const left = luminance[y * width + Math.max(0, x - 1)];
+          const right = luminance[y * width + Math.min(width - 1, x + 1)];
+          const up = luminance[Math.max(0, y - 1) * width + x];
+          const down = luminance[Math.min(height - 1, y + 1) * width + x];
+          const diagA = luminance[Math.max(0, y - 1) * width + Math.max(0, x - 1)];
+          const diagB = luminance[Math.min(height - 1, y + 1) * width + Math.min(width - 1, x + 1)];
+          const gx = Math.abs(right - left);
+          const gy = Math.abs(down - up);
+          const gd = Math.abs(diagB - diagA) * 0.5;
+          edgeMap[idx] = (gx + gy + gd) >= threshold ? 1 : 0;
+        }
+      }
+
+      const dilated = new Uint8Array(edgeMap);
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
+          if (!edgeMap[idx]) continue;
+          for (let oy = -1; oy <= 1; oy++) {
+            for (let ox = -1; ox <= 1; ox++) {
+              const nx = x + ox;
+              const ny = y + oy;
+              if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                dilated[ny * width + nx] = 1;
+              }
+            }
+          }
+        }
+      }
+
+      return dilated;
+    }
+
+    function applyMildToneNormalization(imageData, strength = 'medium') {
+      const output = cloneImageData(imageData);
+      const data = output.data;
+      const tone = {
+        light: { contrast: 1.06, saturation: 1.06, shadowLift: 4 },
+        medium: { contrast: 1.11, saturation: 1.12, shadowLift: 7 },
+        bold: { contrast: 1.17, saturation: 1.16, shadowLift: 10 }
+      }[strength] || { contrast: 1.11, saturation: 1.12, shadowLift: 7 };
+
+      for (let i = 0; i < data.length; i += 4) {
+        let r = data[i];
+        let g = data[i + 1];
+        let b = data[i + 2];
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        const lift = lum < 96 ? tone.shadowLift * (1 - lum / 96) : 0;
+
+        r = (r - 128) * tone.contrast + 128 + lift;
+        g = (g - 128) * tone.contrast + 128 + lift;
+        b = (b - 128) * tone.contrast + 128 + lift;
+
+        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+        data[i] = clampChannel(gray + tone.saturation * (r - gray));
+        data[i + 1] = clampChannel(gray + tone.saturation * (g - gray));
+        data[i + 2] = clampChannel(gray + tone.saturation * (b - gray));
+        data[i + 3] = 255;
+      }
+
+      return output;
+    }
+
+    function applyEdgePreservingSmooth(imageData, edgeMap, strength = 'medium') {
+      const source = cloneImageData(imageData);
+      const output = cloneImageData(imageData);
+      const src = source.data;
+      const dst = output.data;
+      const width = imageData.width;
+      const height = imageData.height;
+      const config = {
+        light: { radius: 1, threshold: 30, blend: 0.38 },
+        medium: { radius: 1, threshold: 42, blend: 0.55 },
+        bold: { radius: 2, threshold: 52, blend: 0.68 }
+      }[strength] || { radius: 1, threshold: 42, blend: 0.55 };
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const cell = y * width + x;
+          if (edgeMap[cell]) continue;
+
+          const idx = cell * 4;
+          const baseR = src[idx];
+          const baseG = src[idx + 1];
+          const baseB = src[idx + 2];
+          let sumR = 0;
+          let sumG = 0;
+          let sumB = 0;
+          let weightTotal = 0;
+
+          for (let oy = -config.radius; oy <= config.radius; oy++) {
+            for (let ox = -config.radius; ox <= config.radius; ox++) {
+              const nx = x + ox;
+              const ny = y + oy;
+              if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+
+              const nCell = ny * width + nx;
+              const nIdx = nCell * 4;
+              const dr = src[nIdx] - baseR;
+              const dg = src[nIdx + 1] - baseG;
+              const db = src[nIdx + 2] - baseB;
+              const colorDistance = Math.sqrt(dr * dr + dg * dg + db * db);
+              if (colorDistance > config.threshold && edgeMap[nCell]) continue;
+
+              const spatialWeight = ox === 0 && oy === 0 ? 1.5 : 1;
+              const colorWeight = Math.max(0.15, 1 - colorDistance / (config.threshold * 2.2));
+              const weight = spatialWeight * colorWeight;
+              sumR += src[nIdx] * weight;
+              sumG += src[nIdx + 1] * weight;
+              sumB += src[nIdx + 2] * weight;
+              weightTotal += weight;
+            }
+          }
+
+          if (weightTotal > 0) {
+            const avgR = sumR / weightTotal;
+            const avgG = sumG / weightTotal;
+            const avgB = sumB / weightTotal;
+            dst[idx] = clampChannel(baseR + (avgR - baseR) * config.blend);
+            dst[idx + 1] = clampChannel(baseG + (avgG - baseG) * config.blend);
+            dst[idx + 2] = clampChannel(baseB + (avgB - baseB) * config.blend);
+            dst[idx + 3] = 255;
+          }
+        }
+      }
+
+      return output;
+    }
+
+    function applyAdaptivePosterization(imageData, edgeMap, strength = 'medium') {
+      const output = cloneImageData(imageData);
+      const data = output.data;
+      const config = {
+        light: { step: 18, edgeStep: 12, blend: 0.34 },
+        medium: { step: 26, edgeStep: 16, blend: 0.48 },
+        bold: { step: 34, edgeStep: 22, blend: 0.62 }
+      }[strength] || { step: 26, edgeStep: 16, blend: 0.48 };
+
+      for (let i = 0; i < data.length; i += 4) {
+        const cell = i / 4;
+        const edge = edgeMap[cell] === 1;
+        const step = edge ? config.edgeStep : config.step;
+        const blend = edge ? config.blend * 0.35 : config.blend;
+
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const qR = Math.round(r / step) * step;
+        const qG = Math.round(g / step) * step;
+        const qB = Math.round(b / step) * step;
+
+        data[i] = clampChannel(r + (qR - r) * blend);
+        data[i + 1] = clampChannel(g + (qG - g) * blend);
+        data[i + 2] = clampChannel(b + (qB - b) * blend);
+        data[i + 3] = 255;
+      }
+
+      return output;
+    }
+
+    function buildMosaicCleanPreprocessMeta(options, cleanupStats = {}) {
+      return {
+        version: 'mosaic-clean-v1',
+        enabled: Boolean(options.enabled),
+        strength: options.strength,
+        detail_protection: Boolean(options.detailProtection),
+        buildability_cleanup: Boolean(options.buildabilityCleanup),
+        tone_adjustment_applied: Boolean(options.enabled),
+        smoothing_applied: Boolean(options.enabled),
+        posterization_applied: Boolean(options.enabled),
+        dither_policy: 'ordered-default-for-buildability',
+        cleanup_stats: {
+          speckles_removed: cleanupStats.speckles_removed || 0,
+          rare_colors_merged: cleanupStats.rare_colors_merged || 0,
+          cells_changed: cleanupStats.cells_changed || 0,
+          unique_colors_before: cleanupStats.unique_colors_before || 0,
+          unique_colors_after: cleanupStats.unique_colors_after || 0,
+          target_max_colors: options.targetMaxColors || getTargetMaxColors()
+        }
+      };
+    }
+
+    function applyMosaicCleanPreprocess(imageData, options = getMosaicCleanOptions()) {
+      mosaicCleanProtectedCells = null;
+
+      if (!options.enabled) {
+        mosaicCleanMeta = buildMosaicCleanPreprocessMeta(options);
+        return cloneImageData(imageData);
+      }
+
+      const source = cloneImageData(imageData);
+      const edgeThreshold = options.strength === 'bold' ? 24 : options.strength === 'light' ? 34 : 28;
+      const edgeMap = options.detailProtection
+        ? computeLuminanceEdgeMap(source, source.width, source.height, edgeThreshold)
+        : new Uint8Array(source.width * source.height);
+
+      let cleaned = applyMildToneNormalization(source, options.strength);
+      cleaned = applyEdgePreservingSmooth(cleaned, edgeMap, options.strength);
+      cleaned = applyAdaptivePosterization(cleaned, edgeMap, options.strength);
+
+      mosaicCleanProtectedCells = edgeMap;
+      mosaicCleanMeta = buildMosaicCleanPreprocessMeta(options);
+      return cleaned;
+    }
+
+    function computeMappedCounts(mapped, paletteLength) {
+      const counts = new Array(paletteLength).fill(0);
+      for (let i = 0; i < mapped.length; i++) {
+        counts[mapped[i]]++;
+      }
+      return counts;
+    }
+
+    function countUniqueColors(counts) {
+      return counts.filter((count) => count > 0).length;
+    }
+
+    function getNeighborColorVotes(mapped, width, height, x, y, excludeColor) {
+      const votes = new Map();
+      const neighbors = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+      for (const [dx, dy] of neighbors) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+        const color = mapped[ny * width + nx];
+        if (color === excludeColor) continue;
+        votes.set(color, (votes.get(color) || 0) + 1);
+      }
+      return votes;
+    }
+
+    function getMajorityNeighborColor(mapped, width, height, component, color) {
+      const votes = new Map();
+      for (const cell of component) {
+        const x = cell % width;
+        const y = Math.floor(cell / width);
+        for (const [neighborColor, count] of getNeighborColorVotes(mapped, width, height, x, y, color)) {
+          votes.set(neighborColor, (votes.get(neighborColor) || 0) + count);
+        }
+      }
+
+      let bestColor = color;
+      let bestVotes = 0;
+      for (const [neighborColor, count] of votes) {
+        if (count > bestVotes) {
+          bestColor = neighborColor;
+          bestVotes = count;
+        }
+      }
+      return bestVotes > 0 ? bestColor : color;
+    }
+
+    function paletteDistance(palette, a, b) {
+      const colorA = palette[a];
+      const colorB = palette[b];
+      if (!colorA || !colorB) return Infinity;
+      const labA = colorA.lab || rgbToLab(hexToRgb(colorA.hex));
+      const labB = colorB.lab || rgbToLab(hexToRgb(colorB.hex));
+      return deltaE00(labA, labB);
+    }
+
+    function findNearestKeptColor(colorIdx, keptColors, palette) {
+      let bestColor = keptColors[0] ?? colorIdx;
+      let bestDistance = Infinity;
+      for (const keptColor of keptColors) {
+        const distance = paletteDistance(palette, colorIdx, keptColor);
+        if (distance < bestDistance) {
+          bestColor = keptColor;
+          bestDistance = distance;
+        }
+      }
+      return bestColor;
+    }
+
+    function cleanupMappedMosaic(mapped, width, height, palette, options = getMosaicCleanOptions()) {
+      const cleaned = new Uint8Array(mapped);
+      const protectedCells = options.protectedCells || mosaicCleanProtectedCells;
+      const initialCounts = computeMappedCounts(cleaned, palette.length);
+      const uniqueColorsBefore = countUniqueColors(initialCounts);
+      const totalCells = width * height;
+      const rareThreshold = Math.max(4, Math.round(totalCells * 0.006));
+      const stats = {
+        speckles_removed: 0,
+        rare_colors_merged: 0,
+        cells_changed: 0,
+        unique_colors_before: uniqueColorsBefore,
+        unique_colors_after: uniqueColorsBefore,
+        target_max_colors: options.targetMaxColors || getTargetMaxColors()
+      };
+
+      if (options.buildabilityCleanup === false) {
+        return { mapped: cleaned, counts: initialCounts, cleanupStats: stats };
+      }
+
+      for (let pass = 0; pass < 2; pass++) {
+        const visited = new Uint8Array(totalCells);
+        const counts = computeMappedCounts(cleaned, palette.length);
+
+        for (let start = 0; start < totalCells; start++) {
+          if (visited[start]) continue;
+          const color = cleaned[start];
+          const stack = [start];
+          const component = [];
+          let protectedComponent = false;
+          visited[start] = 1;
+
+          while (stack.length) {
+            const cell = stack.pop();
+            component.push(cell);
+            if (protectedCells?.[cell]) protectedComponent = true;
+            const x = cell % width;
+            const y = Math.floor(cell / width);
+            const neighbors = [
+              [x + 1, y],
+              [x - 1, y],
+              [x, y + 1],
+              [x, y - 1]
+            ];
+
+            for (const [nx, ny] of neighbors) {
+              if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+              const next = ny * width + nx;
+              if (!visited[next] && cleaned[next] === color) {
+                visited[next] = 1;
+                stack.push(next);
+              }
+            }
+          }
+
+          if (protectedComponent) continue;
+
+          const replacement = getMajorityNeighborColor(cleaned, width, height, component, color);
+          if (replacement === color) continue;
+
+          const replacementDistance = paletteDistance(palette, color, replacement);
+          const shouldReplaceSpeckle = component.length <= 2 &&
+            (counts[color] <= rareThreshold * 6 || replacementDistance <= 18);
+          const shouldReplaceRare = component.length <= 4 &&
+            counts[color] <= rareThreshold &&
+            replacementDistance <= 20;
+
+          if (shouldReplaceSpeckle || shouldReplaceRare) {
+            for (const cell of component) {
+              cleaned[cell] = replacement;
+              stats.cells_changed++;
+            }
+            if (shouldReplaceSpeckle) stats.speckles_removed += component.length;
+            else stats.rare_colors_merged += component.length;
+          }
+        }
+      }
+
+      let counts = computeMappedCounts(cleaned, palette.length);
+      let uniqueColorsAfter = countUniqueColors(counts);
+      const target = stats.target_max_colors;
+
+      if (uniqueColorsAfter > target) {
+        const protectedColorCounts = new Map();
+        if (protectedCells) {
+          for (let i = 0; i < cleaned.length; i++) {
+            if (protectedCells[i]) {
+              protectedColorCounts.set(cleaned[i], (protectedColorCounts.get(cleaned[i]) || 0) + 1);
+            }
+          }
+        }
+
+        const ranked = counts
+          .map((count, idx) => ({ idx, count, protectedCount: protectedColorCounts.get(idx) || 0 }))
+          .filter((entry) => entry.count > 0)
+          .sort((a, b) => (b.protectedCount - a.protectedCount) || (b.count - a.count));
+
+        const kept = ranked.slice(0, target).map((entry) => entry.idx);
+        const keptSet = new Set(kept);
+        const mergeCache = new Map();
+
+        for (let i = 0; i < cleaned.length; i++) {
+          const color = cleaned[i];
+          if (keptSet.has(color)) continue;
+          if (!mergeCache.has(color)) {
+            mergeCache.set(color, findNearestKeptColor(color, kept, palette));
+          }
+          const replacement = mergeCache.get(color);
+          if (replacement !== color) {
+            cleaned[i] = replacement;
+            stats.cells_changed++;
+            stats.rare_colors_merged++;
+          }
+        }
+
+        counts = computeMappedCounts(cleaned, palette.length);
+        uniqueColorsAfter = countUniqueColors(counts);
+      }
+
+      stats.unique_colors_after = uniqueColorsAfter;
+      return { mapped: cleaned, counts, cleanupStats: stats };
     }
 
     function applyDithering(imageData, palette) {
@@ -10567,6 +11108,30 @@
         Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
       }
     }
+
+    function updateMosaicCleanToggle() {
+      const toggle = document.getElementById('mosaicCleanToggle');
+      settings.mosaicClean = toggle ? toggle.checked : true;
+
+      if (currentImage) {
+        Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
+      }
+    }
+
+    window.MosaPackDebug = window.MosaPackDebug || {};
+    window.MosaPackDebug.getMosaicCleanMeta = function() {
+      return JSON.parse(JSON.stringify(mosaicCleanMeta));
+    };
+    window.MosaPackDebug.setMosaicCleanStrength = function(strength) {
+      if (!['light', 'medium', 'bold'].includes(strength)) {
+        return false;
+      }
+      settings.mosaicCleanStrength = strength;
+      if (currentImage) {
+        Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
+      }
+      return true;
+    };
 
     function updateSlider(type) {
       const slider = document.getElementById(`${type}Slider`);

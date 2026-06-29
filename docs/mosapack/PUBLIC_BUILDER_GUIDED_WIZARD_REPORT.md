@@ -4,6 +4,8 @@ Date: 2026-06-29
 Branch: `feature/public-builder-guided-wizard`
 Preview URL: `https://6a42f9a656055ac506b236d3--mosapack.netlify.app`
 
+Mosaic Clean preview addendum: `https://6a4301a104cec7b17c1bd734--mosapack.netlify.app`
+
 ## Decision
 
 Implemented Hybrid C: a guided public proof-request wizard by default, with the advanced builder engine preserved behind a collapsed `Advanced tools` section.
@@ -42,6 +44,7 @@ The public builder now follows the approved mockup direction:
 - Replaced visible format-picking with a post-review note: `Other formats available after proof review: Sticker · Magnetic · Premium Brick`.
 - Added photo guidance, trust, and what-happens-next cards.
 - Added collapsed `Advanced tools` section with presets, adjust, palette, grid, numbers, scene preview, and save design for later.
+- Added Mosaic Clean preprocess internally for cleaner, more buildable previews. Public wizard flow and layout remain unchanged.
 
 ## Old Dashboard Elements Hidden
 
@@ -74,6 +77,7 @@ Preserved:
 - `designStorageConsent`
 - no image/file field in Netlify Forms
 - `recommended_format=Digital Mystery Reveal Pack`
+- Mosaic Clean preprocess metadata in B2 project JSON
 - cropped approved source and rendered preview image sent only to B2 save-project, not Forms
 
 ## Verification Results
@@ -139,3 +143,7 @@ P2:
 ## Production Recommendation
 
 Not approved for production automatically. The preview is ready for Derek visual review on mobile and desktop. Production deploy should wait until Derek approves the new public wizard experience.
+
+## Mosaic Clean Addendum
+
+Mosaic Clean v1 was added internally after the public wizard launch. The public flow, mobile sticky CTA behavior, proof request copy, B2 exact design save contract, and Netlify Forms contract remain unchanged.
