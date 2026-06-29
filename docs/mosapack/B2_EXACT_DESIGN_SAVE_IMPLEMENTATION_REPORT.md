@@ -232,3 +232,16 @@ Verified:
 - The admin token was not printed, stored in docs/config, or committed.
 
 B2 production status: complete for exact design save, admin retrieval, and manual deletion path.
+
+## Admin Token Rotation Verification - 2026-06-29
+
+The admin token was rotated after exposure risk and verified against production. The token itself was not stored in the repo.
+
+Verified after rotation:
+
+- Production functions were mounted.
+- `get-project` returned `ok: true` for the rotation test project.
+- Project JSON, preview asset, and cropped source asset were retrievable.
+- `delete-project` returned `ok: true` and `deleted: true`.
+
+B2 remains complete from the exact design save, retrieval, and deletion gate perspective.

@@ -109,3 +109,14 @@ Result:
 - `delete-project` deleted the project and assets.
 - Follow-up `get-project` returned 404.
 - The admin token was not written to docs, config, public files, or git.
+
+## Token Rotation Note
+
+After admin token exposure risk, `MOSA_ADMIN_TOKEN` was rotated and production retrieval/deletion were verified again. Do not paste real admin tokens into chat, docs, config, terminal logs, or committed files.
+
+If token verification fails with `401 Unauthorized`:
+
+1. Confirm the local test token is exactly the same value saved in Netlify.
+2. Confirm the Netlify variable applies to production functions.
+3. Redeploy production functions with `--functions=netlify/functions --no-build --prod`.
+4. Retest with `get-project` before attempting delete.

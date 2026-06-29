@@ -122,3 +122,17 @@ Result:
 ## D1 Checkout Status
 
 D1 checkout remains blocked until business/product decisions are made. B2 confirms exact design save, retrieval, and deletion, but does not approve Stripe, Shopify, supplier automation, or instant physical checkout.
+
+## Admin Token Rotation Verification - 2026-06-29
+
+After the prior admin token exposure risk, `MOSA_ADMIN_TOKEN` was rotated in Netlify and production functions were redeployed.
+
+Verification result:
+
+- Production function routes were mounted.
+- Authenticated `get-project` passed for the rotation test project.
+- Retrieved project JSON, preview asset, and cropped source asset were present.
+- `delete-project` passed for the rotation test project.
+- The rotated token was not written to docs, config, public files, or git.
+
+B2 status remains production complete.
