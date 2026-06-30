@@ -11132,6 +11132,66 @@
       }
       return true;
     };
+    window.MosaPackDebug.setMosaicCleanEnabled = function(enabled) {
+      settings.mosaicClean = enabled !== false;
+      const toggle = document.getElementById('mosaicCleanToggle');
+      if (toggle) toggle.checked = settings.mosaicClean;
+      if (currentImage) {
+        Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
+      }
+      return settings.mosaicClean;
+    };
+    window.MosaPackDebug.setDitherMode = function(mode) {
+      if (!['none', 'ordered'].includes(mode)) {
+        return false;
+      }
+      settings.dithering = mode;
+      const select = document.getElementById('ditheringMode');
+      if (select) select.value = mode;
+      if (currentImage) {
+        Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
+      }
+      return true;
+    };
+    window.MosaPackDebug.getCurrentPreviewDataUrl = function() {
+      const canvas = document.getElementById('mosaicCanvas');
+      if (!canvas || !canvas.width || !canvas.height) {
+        return null;
+      }
+      return canvas.toDataURL('image/png');
+    };
+    window.MosaPackDebug.getCurrentPreviewSummary = function() {
+      const counts = Array.isArray(processedData?.counts) ? processedData.counts : [];
+      return {
+        width: processedData?.width || 0,
+        height: processedData?.height || 0,
+        cells: (processedData?.width || 0) * (processedData?.height || 0),
+        unique_colors: counts.filter((count) => count > 0).length
+      };
+    };
+    window.MosaPackDebug.renderMosaicCleanVariant = async function(options = {}) {
+      if ('enabled' in options) {
+        settings.mosaicClean = options.enabled !== false;
+        const toggle = document.getElementById('mosaicCleanToggle');
+        if (toggle) toggle.checked = settings.mosaicClean;
+      }
+      if (options.strength && ['light', 'medium', 'bold'].includes(options.strength)) {
+        settings.mosaicCleanStrength = options.strength;
+      }
+      if (options.ditherMode && ['none', 'ordered'].includes(options.ditherMode)) {
+        settings.dithering = options.ditherMode;
+        const select = document.getElementById('ditheringMode');
+        if (select) select.value = options.ditherMode;
+      }
+      if (currentImage) {
+        await processImage();
+      }
+      return {
+        preview: window.MosaPackDebug.getCurrentPreviewDataUrl(),
+        meta: window.MosaPackDebug.getMosaicCleanMeta(),
+        summary: window.MosaPackDebug.getCurrentPreviewSummary()
+      };
+    };
 
     function updateSlider(type) {
       const slider = document.getElementById(`${type}Slider`);
