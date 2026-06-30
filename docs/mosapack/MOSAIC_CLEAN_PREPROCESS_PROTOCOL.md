@@ -1,7 +1,7 @@
 # Mosaic Clean Preprocess Protocol
 
 Date: 2026-06-29
-Status: Mosaic Clean v1 implemented in `public/builder/index.html`.
+Status: Mosaic Clean v1 implemented in `public/builder/index.html`; category profiles v1 added on 2026-06-30.
 
 ## Problem
 
@@ -22,7 +22,7 @@ Mosaic Clean v1 runs in the existing browser pipeline:
 1. Draw approved crop to the current mosaic grid.
 2. Apply existing preset.
 3. Apply existing manual adjustments.
-4. Apply Mosaic Clean preprocess.
+4. Resolve Mosaic Clean category profile and apply Mosaic Clean preprocess.
 5. Apply existing optional local filters.
 6. Map to supplier palette with the existing CIEDE2000 color matcher.
 7. Run mapped-grid buildability cleanup.
@@ -45,13 +45,28 @@ Mosaic Clean does not replace final supplier color matching. The cleaned image i
 
 ## Dither Policy
 
-Default dithering changed from Floyd-Steinberg to ordered dithering:
+Default dithering changed from Floyd-Steinberg to profile-driven buildability defaults:
 
 ```text
-ordered-default-for-buildability
+auto-category-profile-dither
 ```
 
-Reason: Floyd-Steinberg can produce high-frequency build noise on small grids. Ordered dithering is still available as a controlled texture, while advanced users can choose none, Floyd-Steinberg, or Atkinson in advanced tools.
+Reason: Floyd-Steinberg can produce high-frequency build noise on small grids. Most categories use ordered dithering; memorial and corporate/logo profiles use none by default. Advanced users can still reach the legacy dither options in advanced tools.
+
+## Category Profiles
+
+Mosaic Clean category profiles v1 replaced the universal medium default as the public guided path:
+
+- Pet: medium / ordered / normal cleanup
+- Couple / Wedding: light / ordered / conservative cleanup
+- Family: light / ordered / conservative cleanup
+- Baby / Kids: light / ordered / conservative cleanup
+- Memorial: light / none / conservative cleanup / gentle tone
+- Corporate / Logo: none / none / edge-preserve cleanup / lower color budget
+- Holiday Gift: light / ordered / normal cleanup
+- Other / Unknown: light / ordered / conservative cleanup
+
+Universal medium is not approved as a blanket default. Production approval requires Derek visual review of the v3 category-profile package.
 
 ## Color Budget
 
@@ -80,13 +95,17 @@ Do not expose internal metrics, quality scores, or color-distance terminology in
 B2 project JSON now includes:
 
 ```text
-preprocess.version = mosaic-clean-v1
+preprocess.version = mosaic-clean-category-profiles-v1
+preprocess.mode = auto-category
+preprocess.selected_photo_category
+preprocess.resolved_profile
 preprocess.enabled
 preprocess.strength
+preprocess.dither
 preprocess.detail_protection
 preprocess.buildability_cleanup
+preprocess.cleanup_mode
 preprocess.cleanup_stats
-preprocess.dither_policy
 ```
 
 Netlify Forms remain metadata-only and do not receive raw image data.

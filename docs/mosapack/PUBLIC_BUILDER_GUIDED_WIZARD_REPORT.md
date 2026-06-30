@@ -45,6 +45,7 @@ The public builder now follows the approved mockup direction:
 - Added photo guidance, trust, and what-happens-next cards.
 - Added collapsed `Advanced tools` section with presets, adjust, palette, grid, numbers, scene preview, and save design for later.
 - Added Mosaic Clean preprocess internally for cleaner, more buildable previews. Public wizard flow and layout remain unchanged.
+- Added a subtle optional upload category selector for Mosaic Clean category profiles. The guided wizard layout remains unchanged and the selector is not required.
 
 ## Old Dashboard Elements Hidden
 
@@ -78,6 +79,7 @@ Preserved:
 - no image/file field in Netlify Forms
 - `recommended_format=Digital Mystery Reveal Pack`
 - Mosaic Clean preprocess metadata in B2 project JSON
+- Mosaic Clean category profile metadata in B2 project JSON and Netlify Forms metadata
 - cropped approved source and rendered preview image sent only to B2 save-project, not Forms
 
 ## Verification Results
@@ -147,3 +149,9 @@ Not approved for production automatically. The preview is ready for Derek visual
 ## Mosaic Clean Addendum
 
 Mosaic Clean v1 was added internally after the public wizard launch. The public flow, mobile sticky CTA behavior, proof request copy, B2 exact design save contract, and Netlify Forms contract remain unchanged.
+
+Mosaic Clean category profiles v1 were added after Derek selected category-based defaults. Universal medium is not approved as a blanket default; production approval requires Derek visual review of:
+
+```text
+/tmp/mosapack-mosaic-clean-category-profiles-v1/index.html
+```

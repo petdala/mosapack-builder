@@ -133,3 +133,15 @@ After Derek chooses:
 
 - If C: implement category-based Mosaic Clean defaults.
 - If A, B, or D: apply that default and run proof-save regression.
+
+## Category Profile Follow-Up
+
+Derek chose C: category-based Mosaic Clean defaults.
+
+Follow-up package:
+
+```text
+/tmp/mosapack-mosaic-clean-category-profiles-v1/
+```
+
+The v3 package compares Raw Current, Universal Medium, Category Default, and Category Alternate. Universal medium remains unapproved as a blanket default until Derek completes visual review of the v3 package.

@@ -30,7 +30,7 @@ require_no_rg() {
 for term in \
   'applyMosaicCleanPreprocess' \
   'cleanupMappedMosaic' \
-  'mosaic-clean-v1' \
+  'mosaic-clean-(v1|category-profiles-v1)' \
   'mosaicCleanMeta' \
   'settings\.mosaicClean' \
   'getMosaicCleanOptions' \

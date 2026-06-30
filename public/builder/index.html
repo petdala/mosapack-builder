@@ -2950,6 +2950,38 @@
       color: var(--text-muted);
     }
 
+    .photo-category-picker {
+      width: min(340px, 86%);
+      margin-top: 1.25rem;
+      display: grid;
+      gap: 0.45rem;
+      text-align: left;
+      cursor: default;
+    }
+
+    .photo-category-picker label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .photo-category-picker select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.7rem 0.8rem;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+    }
+
+    .photo-category-picker p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
 
     /* B1 Crop / Focal Control */
     .crop-editor {
@@ -5678,6 +5710,21 @@
               <div class="upload-icon" aria-hidden="true">Upload</div>
               <div class="upload-text">Upload your photo</div>
               <div class="upload-hint">Clear, close-up photos work best.</div>
+              <div class="photo-category-picker" onclick="event.stopPropagation()">
+                <label for="photoCategorySelect">What kind of photo is this?</label>
+                <select id="photoCategorySelect" aria-label="What kind of photo is this?" onchange="updatePhotoCategorySelection(this.value)">
+                  <option value="auto">Auto / Not sure</option>
+                  <option value="pet">Pet</option>
+                  <option value="couple_wedding">Couple / Wedding</option>
+                  <option value="family">Family</option>
+                  <option value="baby_kids">Baby / Kids</option>
+                  <option value="memorial">Memorial</option>
+                  <option value="corporate_logo">Corporate / Logo</option>
+                  <option value="holiday_gift">Holiday Gift</option>
+                  <option value="other">Other</option>
+                </select>
+                <p>This helps us optimize the mosaic preview for your photo type.</p>
+              </div>
             </div>
             <!-- B1 Crop / Focal Control -->
             <div class="crop-editor" id="cropEditor" aria-live="polite">
@@ -8316,6 +8363,7 @@
         }
 
         function getRenderSettingsSnapshot() {
+          const profile = getResolvedMosaicCleanProfile();
           return {
             app_version: "canonical-builder-b2",
             product_type: currentProductType,
@@ -8330,7 +8378,10 @@
             contrast: settings.contrast,
             saturation: settings.saturation,
             mosaic_clean: settings.mosaicClean,
+            mosaic_clean_mode: settings.mosaicCleanMode,
             mosaic_clean_strength: settings.mosaicCleanStrength,
+            mosaic_clean_profile: profile.key,
+            mosaic_clean_profile_label: profile.label,
             detail_protection: settings.detailProtection,
             buildability_cleanup: settings.buildabilityCleanup,
             linear_light: settings.linearLight,
@@ -8349,12 +8400,21 @@
 
         function getPreprocessSnapshot() {
           return {
-            version: "mosaic-clean-v1",
+            version: mosaicCleanMeta.version || "mosaic-clean-category-profiles-v1",
             enabled: mosaicCleanMeta.enabled,
+            mode: mosaicCleanMeta.mode || "auto-category",
+            selected_photo_category: mosaicCleanMeta.selected_photo_category || getSelectedPhotoCategory(),
+            resolved_profile: mosaicCleanMeta.resolved_profile || getResolvedMosaicCleanProfile().key,
+            profile_label: mosaicCleanMeta.profile_label || getResolvedMosaicCleanProfile().label,
             strength: mosaicCleanMeta.strength,
+            dither: mosaicCleanMeta.dither || "ordered",
             detail_protection: mosaicCleanMeta.detail_protection,
             buildability_cleanup: mosaicCleanMeta.buildability_cleanup,
+            cleanup_mode: mosaicCleanMeta.cleanup_mode || "normal",
+            target_max_colors: mosaicCleanMeta.target_max_colors || 16,
+            target_max_colors_bias: mosaicCleanMeta.target_max_colors_bias || "normal",
             cleanup_stats: mosaicCleanMeta.cleanup_stats,
+            warnings: mosaicCleanMeta.warnings || [],
             dither_policy: mosaicCleanMeta.dither_policy || "ordered-default-for-buildability"
           };
         }
@@ -8380,6 +8440,7 @@
           const renderSnapshot = getRenderSettingsSnapshot();
           const processedSnapshot = getProcessedDataSnapshot();
           const preprocessSnapshot = getPreprocessSnapshot();
+          const resolvedProfile = getResolvedMosaicCleanProfile();
           const colorSummary = getColorCounts();
           const configuration = getCurrentConfiguration({ includePreview: false }) || {};
           const timestamp = new Date().toISOString();
@@ -8391,6 +8452,12 @@
             name,
             photo_category: photoCategory,
             selected_vertical: photoCategory,
+            mosaic_clean_version: preprocessSnapshot.version,
+            mosaic_clean_profile: resolvedProfile.key,
+            mosaic_clean_profile_label: resolvedProfile.label,
+            mosaic_clean_strength: preprocessSnapshot.strength,
+            mosaic_clean_dither: preprocessSnapshot.dither,
+            mosaic_clean_cleanup_mode: preprocessSnapshot.cleanup_mode,
             recommended_format: recommendedFormat,
             selected_format: recommendedFormat,
             product_interest: currentProductType || "custom_mosaic",
@@ -8475,7 +8542,9 @@
 
           const requestType = pendingRequestType || "save_design";
           const recommendedFormat = document.getElementById('proofFormatSelect')?.value || lastRecommendedFormat || getRecommendedFormat();
-          const photoCategory = document.getElementById("photoCategoryInput")?.value || "Pet";
+          const photoCategoryKey = getSelectedPhotoCategory();
+          const resolvedProfile = getMosaicCleanProfileForCategory(photoCategoryKey);
+          const photoCategory = resolvedProfile.label;
           const name = document.getElementById("nameInput")?.value?.trim() || "";
           const note = document.getElementById("noteInput")?.value?.trim() || "";
           const consent = document.getElementById("designStorageConsent");
@@ -8502,6 +8571,11 @@
           setGateField("savePreviewShape", currentMaterialType || "mosaic");
           setGateField("savePhotoCategory", photoCategory);
           setGateField("saveSelectedVertical", photoCategory);
+          setGateField("saveMosaicCleanVersion", mosaicCleanMeta.version || "mosaic-clean-category-profiles-v1");
+          setGateField("saveMosaicCleanProfile", resolvedProfile.key);
+          setGateField("saveMosaicCleanStrength", mosaicCleanMeta.strength || resolvedProfile.strength);
+          setGateField("saveMosaicCleanDither", mosaicCleanMeta.dither || resolvedProfile.dither);
+          setGateField("saveMosaicCleanCleanupMode", mosaicCleanMeta.cleanup_mode || resolvedProfile.cleanupMode);
           setGateField("savePage", window.location.pathname || "/builder/");
           setGateField("saveSource", requestType === "custom_proof" ? "builder-proof-request" : "builder-save-design");
           setGateField("saveCropX", Number.isFinite(cropState.cropX) ? cropState.cropX.toFixed(2) : "");
@@ -8863,21 +8937,107 @@
       linearLight: true,
       despeckle: false,
       mosaicClean: true,
+      mosaicCleanMode: 'auto-category',
       mosaicCleanStrength: 'medium',
       detailProtection: true,
       buildabilityCleanup: true
     };
 
+    const MOSAIC_CLEAN_CATEGORY_PROFILES = {
+      pet: {
+        label: 'Pet',
+        strength: 'medium',
+        dither: 'ordered',
+        detailProtection: true,
+        buildabilityCleanup: true,
+        cleanupMode: 'normal',
+        targetMaxColorsBias: 'normal'
+      },
+      couple_wedding: {
+        label: 'Couple / Wedding',
+        strength: 'light',
+        dither: 'ordered',
+        detailProtection: true,
+        buildabilityCleanup: true,
+        cleanupMode: 'conservative',
+        targetMaxColorsBias: 'normal'
+      },
+      family: {
+        label: 'Family',
+        strength: 'light',
+        dither: 'ordered',
+        detailProtection: true,
+        buildabilityCleanup: true,
+        cleanupMode: 'conservative',
+        targetMaxColorsBias: 'normal'
+      },
+      baby_kids: {
+        label: 'Baby / Kids',
+        strength: 'light',
+        dither: 'ordered',
+        detailProtection: true,
+        buildabilityCleanup: true,
+        cleanupMode: 'conservative',
+        targetMaxColorsBias: 'normal'
+      },
+      memorial: {
+        label: 'Memorial',
+        strength: 'light',
+        dither: 'none',
+        detailProtection: true,
+        buildabilityCleanup: true,
+        cleanupMode: 'conservative',
+        targetMaxColorsBias: 'normal',
+        toneMode: 'gentle'
+      },
+      corporate_logo: {
+        label: 'Corporate / Logo',
+        strength: 'none',
+        dither: 'none',
+        detailProtection: true,
+        buildabilityCleanup: true,
+        cleanupMode: 'edge-preserve',
+        targetMaxColorsBias: 'lower'
+      },
+      holiday_gift: {
+        label: 'Holiday Gift',
+        strength: 'light',
+        dither: 'ordered',
+        detailProtection: true,
+        buildabilityCleanup: true,
+        cleanupMode: 'normal',
+        targetMaxColorsBias: 'normal'
+      },
+      other: {
+        label: 'Other / Unknown',
+        strength: 'light',
+        dither: 'ordered',
+        detailProtection: true,
+        buildabilityCleanup: true,
+        cleanupMode: 'conservative',
+        targetMaxColorsBias: 'normal'
+      }
+    };
+
     let mosaicCleanMeta = {
-      version: 'mosaic-clean-v1',
+      version: 'mosaic-clean-category-profiles-v1',
       enabled: true,
+      mode: 'auto-category',
+      selected_photo_category: 'other',
+      resolved_profile: 'other',
+      profile_label: 'Other / Unknown',
       strength: 'medium',
+      dither: 'ordered',
       detail_protection: true,
       buildability_cleanup: true,
+      cleanup_mode: 'normal',
+      target_max_colors: 16,
+      target_max_colors_bias: 'normal',
       tone_adjustment_applied: false,
       smoothing_applied: false,
       posterization_applied: false,
       dither_policy: 'ordered-default-for-buildability',
+      warnings: [],
       cleanup_stats: {
         speckles_removed: 0,
         rare_colors_merged: 0,
@@ -9942,7 +10102,10 @@
 
         imageData = applyAiFilters(imageData, procCanvas.width, procCanvas.height);
 
+        const previousDither = settings.dithering;
+        settings.dithering = mosaicCleanOptions.dither || previousDither || 'ordered';
         const result = mapToPalette(imageData);
+        settings.dithering = previousDither;
         if (mosaicCleanOptions.enabled && mosaicCleanOptions.buildabilityCleanup) {
           const cleanup = cleanupMappedMosaic(result.mapped, result.width, result.height, result.palette, {
             ...mosaicCleanOptions,
@@ -10123,7 +10286,60 @@
       return new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
     }
 
-    function getTargetMaxColors() {
+    function normalizePhotoCategory(value) {
+      const normalized = String(value || '').trim().toLowerCase()
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+      const aliases = {
+        '': 'other',
+        auto: 'other',
+        not_sure: 'other',
+        auto_not_sure: 'other',
+        pet: 'pet',
+        pets: 'pet',
+        couple: 'couple_wedding',
+        wedding: 'couple_wedding',
+        couple_wedding: 'couple_wedding',
+        couple_and_wedding: 'couple_wedding',
+        family: 'family',
+        baby: 'baby_kids',
+        kids: 'baby_kids',
+        baby_kids: 'baby_kids',
+        baby_and_kids: 'baby_kids',
+        memorial: 'memorial',
+        corporate: 'corporate_logo',
+        logo: 'corporate_logo',
+        corporate_logo: 'corporate_logo',
+        corporate_and_logo: 'corporate_logo',
+        holiday: 'holiday_gift',
+        holiday_gift: 'holiday_gift',
+        other: 'other',
+        unknown: 'other',
+        other_unknown: 'other'
+      };
+      return aliases[normalized] || (MOSAIC_CLEAN_CATEGORY_PROFILES[normalized] ? normalized : 'other');
+    }
+
+    function getSelectedPhotoCategory() {
+      const uploadSelect = document.getElementById('photoCategorySelect');
+      const proofSelect = document.getElementById('photoCategoryInput');
+      return normalizePhotoCategory(uploadSelect?.value || proofSelect?.value || 'other');
+    }
+
+    function getMosaicCleanProfileForCategory(category) {
+      const key = normalizePhotoCategory(category);
+      return {
+        key,
+        ...(MOSAIC_CLEAN_CATEGORY_PROFILES[key] || MOSAIC_CLEAN_CATEGORY_PROFILES.other)
+      };
+    }
+
+    function getResolvedMosaicCleanProfile() {
+      return getMosaicCleanProfileForCategory(getSelectedPhotoCategory());
+    }
+
+    function getTargetMaxColors(bias = 'normal') {
       let target = 24;
       if (currentSize <= 32) target = 12;
       else if (currentSize <= 48) target = 16;
@@ -10137,20 +10353,41 @@
         target = Math.min(25, target + 2);
       }
 
+      if (bias === 'lower') {
+        target = Math.max(8, target - 3);
+      }
+
       return Math.max(8, Math.min(25, target));
     }
 
     function getMosaicCleanOptions() {
-      const strength = ['light', 'medium', 'bold'].includes(settings.mosaicCleanStrength)
+      const selectedPhotoCategory = getSelectedPhotoCategory();
+      const profile = getMosaicCleanProfileForCategory(selectedPhotoCategory);
+      const allowedModes = ['auto-category', 'off', 'light', 'medium', 'bold'];
+      const mode = allowedModes.includes(settings.mosaicCleanMode) ? settings.mosaicCleanMode : 'auto-category';
+      const manualStrength = ['light', 'medium', 'bold'].includes(settings.mosaicCleanStrength)
         ? settings.mosaicCleanStrength
         : 'medium';
+      const profileStrength = profile.strength || 'light';
+      const strength = mode === 'auto-category' ? profileStrength : mode === 'off' ? 'none' : manualStrength;
+      const enabled = settings.mosaicClean !== false && mode !== 'off';
+      const effectiveDither = mode === 'auto-category' ? profile.dither : settings.dithering;
+      const targetMaxColors = getTargetMaxColors(profile.targetMaxColorsBias || 'normal');
 
       return {
-        enabled: settings.mosaicClean !== false,
+        enabled,
+        mode: mode === 'auto-category' ? 'auto-category' : 'manual',
+        selectedPhotoCategory,
+        profileKey: profile.key,
+        profileLabel: profile.label,
         strength,
-        detailProtection: settings.detailProtection !== false,
-        buildabilityCleanup: settings.buildabilityCleanup !== false,
-        targetMaxColors: getTargetMaxColors()
+        dither: ['none', 'ordered', 'floyd', 'atkinson'].includes(effectiveDither) ? effectiveDither : 'ordered',
+        detailProtection: settings.detailProtection !== false && profile.detailProtection !== false,
+        buildabilityCleanup: settings.buildabilityCleanup !== false && profile.buildabilityCleanup !== false,
+        cleanupMode: profile.cleanupMode || 'normal',
+        targetMaxColors,
+        targetMaxColorsBias: profile.targetMaxColorsBias || 'normal',
+        toneMode: profile.toneMode || 'normal'
       };
     }
 
@@ -10204,6 +10441,7 @@
       const output = cloneImageData(imageData);
       const data = output.data;
       const tone = {
+        gentle: { contrast: 1.03, saturation: 1.03, shadowLift: 2 },
         light: { contrast: 1.06, saturation: 1.06, shadowLift: 4 },
         medium: { contrast: 1.11, saturation: 1.12, shadowLift: 7 },
         bold: { contrast: 1.17, saturation: 1.16, shadowLift: 10 }
@@ -10328,16 +10566,27 @@
     }
 
     function buildMosaicCleanPreprocessMeta(options, cleanupStats = {}) {
+      const warnings = Array.isArray(cleanupStats.warnings) ? cleanupStats.warnings : [];
       return {
-        version: 'mosaic-clean-v1',
+        version: 'mosaic-clean-category-profiles-v1',
         enabled: Boolean(options.enabled),
+        mode: options.mode || 'auto-category',
+        selected_photo_category: options.selectedPhotoCategory || 'other',
+        resolved_profile: options.profileKey || 'other',
+        profile_label: options.profileLabel || 'Other / Unknown',
         strength: options.strength,
+        dither: options.dither || 'ordered',
         detail_protection: Boolean(options.detailProtection),
         buildability_cleanup: Boolean(options.buildabilityCleanup),
-        tone_adjustment_applied: Boolean(options.enabled),
-        smoothing_applied: Boolean(options.enabled),
-        posterization_applied: Boolean(options.enabled),
-        dither_policy: 'ordered-default-for-buildability',
+        cleanup_mode: options.cleanupMode || 'normal',
+        target_max_colors: options.targetMaxColors || getTargetMaxColors(options.targetMaxColorsBias || 'normal'),
+        target_max_colors_bias: options.targetMaxColorsBias || 'normal',
+        tone_mode: options.toneMode || 'normal',
+        tone_adjustment_applied: Boolean(options.enabled && options.strength !== 'none'),
+        smoothing_applied: Boolean(options.enabled && options.strength !== 'none'),
+        posterization_applied: Boolean(options.enabled && options.strength !== 'none'),
+        dither_policy: `${options.dither || 'ordered'}-category-profile-default`,
+        warnings,
         cleanup_stats: {
           speckles_removed: cleanupStats.speckles_removed || 0,
           rare_colors_merged: cleanupStats.rare_colors_merged || 0,
@@ -10352,7 +10601,11 @@
     function applyMosaicCleanPreprocess(imageData, options = getMosaicCleanOptions()) {
       mosaicCleanProtectedCells = null;
 
-      if (!options.enabled) {
+      if (!options.enabled || options.strength === 'none') {
+        const edgeMap = options.detailProtection
+          ? computeLuminanceEdgeMap(imageData, imageData.width, imageData.height, 26)
+          : new Uint8Array(imageData.width * imageData.height);
+        mosaicCleanProtectedCells = edgeMap;
         mosaicCleanMeta = buildMosaicCleanPreprocessMeta(options);
         return cloneImageData(imageData);
       }
@@ -10363,7 +10616,8 @@
         ? computeLuminanceEdgeMap(source, source.width, source.height, edgeThreshold)
         : new Uint8Array(source.width * source.height);
 
-      let cleaned = applyMildToneNormalization(source, options.strength);
+      const toneStrength = options.toneMode === 'gentle' ? 'gentle' : options.strength;
+      let cleaned = applyMildToneNormalization(source, toneStrength);
       cleaned = applyEdgePreservingSmooth(cleaned, edgeMap, options.strength);
       cleaned = applyAdaptivePosterization(cleaned, edgeMap, options.strength);
 
@@ -10444,6 +10698,7 @@
     function cleanupMappedMosaic(mapped, width, height, palette, options = getMosaicCleanOptions()) {
       const cleaned = new Uint8Array(mapped);
       const protectedCells = options.protectedCells || mosaicCleanProtectedCells;
+      const cleanupMode = options.cleanupMode || 'normal';
       const initialCounts = computeMappedCounts(cleaned, palette.length);
       const uniqueColorsBefore = countUniqueColors(initialCounts);
       const totalCells = width * height;
@@ -10454,7 +10709,8 @@
         cells_changed: 0,
         unique_colors_before: uniqueColorsBefore,
         unique_colors_after: uniqueColorsBefore,
-        target_max_colors: options.targetMaxColors || getTargetMaxColors()
+        target_max_colors: options.targetMaxColors || getTargetMaxColors(options.targetMaxColorsBias || 'normal'),
+        warnings: []
       };
 
       if (options.buildabilityCleanup === false) {
@@ -10502,11 +10758,19 @@
           if (replacement === color) continue;
 
           const replacementDistance = paletteDistance(palette, color, replacement);
-          const shouldReplaceSpeckle = component.length <= 2 &&
+          let shouldReplaceSpeckle = component.length <= 2 &&
             (counts[color] <= rareThreshold * 6 || replacementDistance <= 18);
-          const shouldReplaceRare = component.length <= 4 &&
+          let shouldReplaceRare = component.length <= 4 &&
             counts[color] <= rareThreshold &&
             replacementDistance <= 20;
+
+          if (cleanupMode === 'conservative') {
+            shouldReplaceSpeckle = component.length <= 2 && replacementDistance <= 18;
+            shouldReplaceRare = false;
+          } else if (cleanupMode === 'edge-preserve') {
+            shouldReplaceSpeckle = component.length === 1 && replacementDistance <= 14;
+            shouldReplaceRare = false;
+          }
 
           if (shouldReplaceSpeckle || shouldReplaceRare) {
             for (const cell of component) {
@@ -10523,7 +10787,7 @@
       let uniqueColorsAfter = countUniqueColors(counts);
       const target = stats.target_max_colors;
 
-      if (uniqueColorsAfter > target) {
+      if (uniqueColorsAfter > target && cleanupMode !== 'edge-preserve') {
         const protectedColorCounts = new Map();
         if (protectedCells) {
           for (let i = 0; i < cleaned.length; i++) {
@@ -10561,6 +10825,16 @@
       }
 
       stats.unique_colors_after = uniqueColorsAfter;
+      const changedPercent = totalCells ? stats.cells_changed / totalCells : 0;
+      if (['family', 'couple_wedding', 'baby_kids', 'memorial'].includes(options.profileKey) && changedPercent > 0.10) {
+        stats.warnings.push('cleanup_changed_more_than_10_percent_for_sensitive_profile');
+      }
+      if (options.profileKey === 'pet' && changedPercent > 0.15) {
+        stats.warnings.push('cleanup_changed_more_than_15_percent_for_pet_profile');
+      }
+      if (options.profileKey === 'corporate_logo' && changedPercent > 0.08) {
+        stats.warnings.push('logo_cleanup_changed_many_cells');
+      }
       return { mapped: cleaned, counts, cleanupStats: stats };
     }
 
@@ -11109,9 +11383,46 @@
       }
     }
 
+    function updatePhotoCategorySelection(value) {
+      const category = normalizePhotoCategory(value);
+      const uploadSelect = document.getElementById('photoCategorySelect');
+      const proofSelect = document.getElementById('photoCategoryInput');
+      if (uploadSelect && uploadSelect.value !== category) uploadSelect.value = category === 'other' && value === 'auto' ? 'auto' : category;
+      if (proofSelect && proofSelect.value !== category) proofSelect.value = category;
+
+      if (currentImage && processedData) {
+        Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
+      }
+      return category;
+    }
+
+    function syncPhotoCategoryControls() {
+      const category = getSelectedPhotoCategory();
+      const uploadSelect = document.getElementById('photoCategorySelect');
+      const proofSelect = document.getElementById('photoCategoryInput');
+      if (uploadSelect && normalizePhotoCategory(uploadSelect.value) !== category) uploadSelect.value = category;
+      if (proofSelect && normalizePhotoCategory(proofSelect.value) !== category) proofSelect.value = category;
+      return category;
+    }
+
+    function applyMosaicCleanProfile(profile = getResolvedMosaicCleanProfile()) {
+      if (!profile) return null;
+      settings.mosaicCleanMode = 'auto-category';
+      settings.mosaicCleanStrength = profile.strength === 'none' ? 'light' : profile.strength;
+      settings.dithering = profile.dither || 'ordered';
+      settings.detailProtection = profile.detailProtection !== false;
+      settings.buildabilityCleanup = profile.buildabilityCleanup !== false;
+      const select = document.getElementById('ditheringMode');
+      if (select && ['none', 'ordered', 'floyd', 'atkinson'].includes(settings.dithering)) {
+        select.value = settings.dithering;
+      }
+      return profile;
+    }
+
     function updateMosaicCleanToggle() {
       const toggle = document.getElementById('mosaicCleanToggle');
       settings.mosaicClean = toggle ? toggle.checked : true;
+      settings.mosaicCleanMode = settings.mosaicClean ? 'auto-category' : 'off';
 
       if (currentImage) {
         Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
@@ -11123,10 +11434,12 @@
       return JSON.parse(JSON.stringify(mosaicCleanMeta));
     };
     window.MosaPackDebug.setMosaicCleanStrength = function(strength) {
-      if (!['light', 'medium', 'bold'].includes(strength)) {
+      if (!['light', 'medium', 'bold', 'none'].includes(strength)) {
         return false;
       }
-      settings.mosaicCleanStrength = strength;
+      settings.mosaicClean = strength !== 'none';
+      settings.mosaicCleanMode = strength === 'none' ? 'off' : strength;
+      settings.mosaicCleanStrength = strength === 'none' ? 'light' : strength;
       if (currentImage) {
         Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
       }
@@ -11134,6 +11447,7 @@
     };
     window.MosaPackDebug.setMosaicCleanEnabled = function(enabled) {
       settings.mosaicClean = enabled !== false;
+      settings.mosaicCleanMode = settings.mosaicClean ? 'auto-category' : 'off';
       const toggle = document.getElementById('mosaicCleanToggle');
       if (toggle) toggle.checked = settings.mosaicClean;
       if (currentImage) {
@@ -11172,11 +11486,21 @@
     window.MosaPackDebug.renderMosaicCleanVariant = async function(options = {}) {
       if ('enabled' in options) {
         settings.mosaicClean = options.enabled !== false;
+        settings.mosaicCleanMode = settings.mosaicClean ? 'auto-category' : 'off';
         const toggle = document.getElementById('mosaicCleanToggle');
         if (toggle) toggle.checked = settings.mosaicClean;
       }
-      if (options.strength && ['light', 'medium', 'bold'].includes(options.strength)) {
-        settings.mosaicCleanStrength = options.strength;
+      if (options.category) {
+        updatePhotoCategorySelection(options.category);
+      }
+      if (options.mode && ['auto-category', 'off', 'light', 'medium', 'bold'].includes(options.mode)) {
+        settings.mosaicCleanMode = options.mode;
+        settings.mosaicClean = options.mode !== 'off';
+      }
+      if (options.strength && ['light', 'medium', 'bold', 'none'].includes(options.strength)) {
+        settings.mosaicCleanMode = options.strength === 'none' ? 'off' : options.strength;
+        settings.mosaicClean = options.strength !== 'none';
+        settings.mosaicCleanStrength = options.strength === 'none' ? 'light' : options.strength;
       }
       if (options.ditherMode && ['none', 'ordered'].includes(options.ditherMode)) {
         settings.dithering = options.ditherMode;
@@ -13387,6 +13711,11 @@
         <input type="hidden" name="preview_shape" id="savePreviewShape">
         <input type="hidden" name="photo_category" id="savePhotoCategory">
         <input type="hidden" name="selected_vertical" id="saveSelectedVertical">
+        <input type="hidden" name="mosaic_clean_version" id="saveMosaicCleanVersion">
+        <input type="hidden" name="mosaic_clean_profile" id="saveMosaicCleanProfile">
+        <input type="hidden" name="mosaic_clean_strength" id="saveMosaicCleanStrength">
+        <input type="hidden" name="mosaic_clean_dither" id="saveMosaicCleanDither">
+        <input type="hidden" name="mosaic_clean_cleanup_mode" id="saveMosaicCleanCleanupMode">
         <input type="hidden" name="crop_x" id="saveCropX">
         <input type="hidden" name="crop_y" id="saveCropY">
         <input type="hidden" name="crop_zoom" id="saveCropZoom">
@@ -13417,16 +13746,17 @@
           id="photoCategoryInput"
           name="photo_category_visible"
           aria-label="What kind of photo is this?"
+          onchange="updatePhotoCategorySelection(this.value)"
         >
-          <option value="">What kind of photo is this?</option>
-          <option value="Pet" selected>Pet</option>
-          <option value="Couple / Wedding">Couple / Wedding</option>
-          <option value="Family">Family</option>
-          <option value="Baby / Kids">Baby / Kids</option>
-          <option value="Memorial">Memorial</option>
-          <option value="Corporate / Logo">Corporate / Logo</option>
-          <option value="Holiday Gift">Holiday Gift</option>
-          <option value="Other">Other</option>
+          <option value="auto">Auto / Not sure</option>
+          <option value="pet">Pet</option>
+          <option value="couple_wedding">Couple / Wedding</option>
+          <option value="family">Family</option>
+          <option value="baby_kids">Baby / Kids</option>
+          <option value="memorial">Memorial</option>
+          <option value="corporate_logo">Corporate / Logo</option>
+          <option value="holiday_gift">Holiday Gift</option>
+          <option value="other">Other</option>
         </select>
         <textarea
           id="noteInput"
