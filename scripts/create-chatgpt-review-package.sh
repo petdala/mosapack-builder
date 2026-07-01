@@ -79,6 +79,8 @@ UNION_LIST="$(mktemp)"
 PRE_STATUS="$(mktemp)"
 PRE_DIFF_STAT="$(mktemp)"
 PRE_CHANGED_FILES="$(mktemp)"
+PRE_DIRTY_TRACKED="$(mktemp)"
+PRE_UNTRACKED_FILES="$(mktemp)"
 SECRET_HITS="${OUT_DIR}/99_SECRET_SCAN_REVIEW_REQUIRED.txt"
 GENERATED_CONTENTS="${OUT_DIR}/REVIEW_PACKAGE_CONTENTS.txt"
 GENERATED_WARNINGS="$(mktemp)"
@@ -90,7 +92,7 @@ ZIP_CREATED=0
 BRANCH_SCOPE_WARNING=""
 
 cleanup() {
-  rm -f "$FILE_LIST" "$CHANGED_ONLY_LIST" "$UNION_LIST" "$PRE_STATUS" "$PRE_DIFF_STAT" "$PRE_CHANGED_FILES" "$GENERATED_WARNINGS" "$ARTIFACT_FACTS" "$VERIFICATION_CAPTURE"
+  rm -f "$FILE_LIST" "$CHANGED_ONLY_LIST" "$UNION_LIST" "$PRE_STATUS" "$PRE_DIFF_STAT" "$PRE_CHANGED_FILES" "$PRE_DIRTY_TRACKED" "$PRE_UNTRACKED_FILES" "$GENERATED_WARNINGS" "$ARTIFACT_FACTS" "$VERIFICATION_CAPTURE"
 }
 trap cleanup EXIT
 
@@ -111,6 +113,11 @@ capture_pre_report_state() {
   run_or_blank git status --short > "$PRE_STATUS"
   run_or_blank git diff --stat > "$PRE_DIFF_STAT"
   {
+    run_or_blank git diff --name-status
+    run_or_blank git diff --cached --name-status
+  } | sort -u > "$PRE_DIRTY_TRACKED"
+  run_or_blank git ls-files --others --exclude-standard > "$PRE_UNTRACKED_FILES"
+  {
     if git show-ref --verify --quiet refs/heads/main; then
       run_or_blank git diff --name-only main...HEAD
     fi
@@ -127,6 +134,10 @@ detect_branch_scope_warning() {
   else
     BRANCH_SCOPE_WARNING=""
   fi
+}
+
+filter_generated_report_paths() {
+  grep -Ev '(^|[[:space:]])docs/mosapack/reviews/(latest/|[0-9]{8}-[0-9]{6}[^/]*/)' || true
 }
 
 make_changed_file_union() {
@@ -525,17 +536,29 @@ write_files_changed_markdown() {
     echo
     echo "## Dirty Tracked Files"
     echo
+    echo "Generated review report files are intentionally excluded from dirty/untracked sections."
+    echo
     echo '```text'
-    run_or_blank git diff --name-status
+    if filter_generated_report_paths < "$PRE_DIRTY_TRACKED" | grep .; then
+      true
+    else
+      echo "No dirty tracked files before report generation."
+    fi
     echo '```'
     echo
     echo "## Untracked Files"
     echo
+    echo "Generated review report files are intentionally excluded from dirty/untracked sections."
+    echo
     echo '```text'
-    run_or_blank git ls-files --others --exclude-standard
+    if filter_generated_report_paths < "$PRE_UNTRACKED_FILES" | grep .; then
+      true
+    else
+      echo "No untracked files before report generation."
+    fi
     echo '```'
     echo
-    if git ls-files --others --exclude-standard | grep -E 'docs/.+\.md$' >/dev/null 2>&1; then
+    if filter_generated_report_paths < "$PRE_UNTRACKED_FILES" | grep -E 'docs/.+\.md$' >/dev/null 2>&1; then
       echo "Warning: important untracked docs may not be visible to GitHub/ChatGPT unless committed."
       echo
     fi
