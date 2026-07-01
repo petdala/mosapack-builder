@@ -1,0 +1,12 @@
+Status before report generation
+
+A  .github/PULL_REQUEST_TEMPLATE/mosapack_review.md
+M  .gitignore
+M  AGENTS.md
+M  CLAUDE.md
+A  docs/mosapack/CHATGPT_REVIEW_HANDOFF_PROTOCOL.md
+A  docs/mosapack/CODEX_TO_CHATGPT_HANDOFF_TEMPLATE.md
+A  docs/mosapack/research/Photo_to_Mosaic_Tools.md
+AM scripts/create-chatgpt-review-package.sh
+
+Report files are generated after this status snapshot.
