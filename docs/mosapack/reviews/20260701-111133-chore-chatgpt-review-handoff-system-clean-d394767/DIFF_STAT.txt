@@ -1,0 +1,6 @@
+Diff before report generation
+
+ scripts/create-chatgpt-review-package.sh | 31 +++++++++++++++++++++++++++----
+ 1 file changed, 27 insertions(+), 4 deletions(-)
+
+Report files are generated after this diff snapshot.

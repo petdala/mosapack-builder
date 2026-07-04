@@ -1,0 +1,5 @@
+Status before report generation
+
+ M scripts/create-chatgpt-review-package.sh
+
+Report files are generated after this status snapshot.

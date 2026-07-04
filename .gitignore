@@ -8,3 +8,5 @@ dist/
 .netlify/
 *.zip
 *.log
+mosapack-chatgpt-review-*.zip
+mosapack-chatgpt-review-*/
