@@ -1,0 +1,5 @@
+Status before report generation
+
+No tracked or untracked changes before report generation.
+
+Report files are generated after this status snapshot.
