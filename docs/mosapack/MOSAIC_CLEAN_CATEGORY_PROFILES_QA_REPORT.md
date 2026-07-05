@@ -145,3 +145,23 @@ Passed:
 ## Production Recommendation
 
 No production deploy. Production approval is blocked on Derek review of the v3 package.
+
+## 2026-07-05 Validation Update
+
+Synthetic-safe category-profile review supports option C directionally, but it is not sufficient for production or paid fulfillment approval.
+
+A private real-photo validation package was created for Derek review:
+
+```text
+/tmp/mosapack-real-photo-category-profile-validation/
+```
+
+Private ZIP:
+
+```text
+/tmp/mosapack-real-photo-category-profile-validation.zip
+```
+
+This package contains real/private QA-derived images and must not be deployed publicly, committed, or uploaded unless Derek intentionally shares the private ZIP.
+
+Open-source mosaic-builder research should inform Detail Priority Map v1 and sticker/magnet production-output experiments. GPL code must not be copied directly into MosaPack.

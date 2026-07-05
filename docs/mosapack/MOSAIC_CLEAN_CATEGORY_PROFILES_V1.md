@@ -139,3 +139,23 @@ Raw image data is still not submitted through Netlify Forms.
 - Compare category defaults against real customer proof outcomes.
 - Add manual proof-review variant comparison for support/admin use.
 - Calibrate profiles against printed, sticker, magnetic, and brick samples.
+
+## 2026-07-05 Review Gate
+
+Synthetic-safe review supports category profiles directionally, but real-photo validation is required before production deploy or paid fulfillment.
+
+The private real-photo validation package is:
+
+```text
+/tmp/mosapack-real-photo-category-profile-validation/
+```
+
+The private ZIP is:
+
+```text
+/tmp/mosapack-real-photo-category-profile-validation.zip
+```
+
+Do not publish, deploy, commit, or upload this package by default. It contains real/private QA-derived images.
+
+Open-source audit findings should influence future Detail Priority Map and sticker/magnet production-output work. GPL code must remain concept-only and must not be copied into MosaPack.
