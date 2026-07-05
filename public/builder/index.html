@@ -11543,6 +11543,26 @@
           buildabilityCleanup: true
         };
       }
+      if (options.debugOverrides && typeof options.debugOverrides === 'object') {
+        const allowedOverride = {};
+        const override = options.debugOverrides;
+        if ('enabled' in override) allowedOverride.enabled = override.enabled !== false;
+        if (['auto-category', 'manual'].includes(override.mode)) allowedOverride.mode = override.mode;
+        if (override.profileKey) allowedOverride.profileKey = String(override.profileKey);
+        if (override.profileLabel) allowedOverride.profileLabel = String(override.profileLabel);
+        if (['none', 'light', 'medium', 'bold'].includes(override.strength)) allowedOverride.strength = override.strength;
+        if (['none', 'ordered', 'floyd', 'atkinson'].includes(override.dither)) allowedOverride.dither = override.dither;
+        if (['normal', 'conservative', 'edge-preserve'].includes(override.cleanupMode)) allowedOverride.cleanupMode = override.cleanupMode;
+        if (Number.isFinite(override.targetMaxColors)) allowedOverride.targetMaxColors = Math.max(8, Math.min(25, Math.round(override.targetMaxColors)));
+        if (['normal', 'lower'].includes(override.targetMaxColorsBias)) allowedOverride.targetMaxColorsBias = override.targetMaxColorsBias;
+        if (['normal', 'gentle'].includes(override.toneMode)) allowedOverride.toneMode = override.toneMode;
+        if ('detailProtection' in override) allowedOverride.detailProtection = override.detailProtection !== false;
+        if ('buildabilityCleanup' in override) allowedOverride.buildabilityCleanup = override.buildabilityCleanup !== false;
+        mosaicCleanDebugOverrides = {
+          ...(mosaicCleanDebugOverrides || {}),
+          ...allowedOverride
+        };
+      }
       try {
         if (currentImage) {
           await processImage();
