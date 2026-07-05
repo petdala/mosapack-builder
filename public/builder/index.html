@@ -9049,6 +9049,7 @@
     };
 
     let mosaicCleanProtectedCells = null;
+    let mosaicCleanDebugOverrides = null;
 
     // Product configurations
     const PRODUCTS = {
@@ -10374,7 +10375,7 @@
       const effectiveDither = mode === 'auto-category' ? profile.dither : settings.dithering;
       const targetMaxColors = getTargetMaxColors(profile.targetMaxColorsBias || 'normal');
 
-      return {
+      const options = {
         enabled,
         mode: mode === 'auto-category' ? 'auto-category' : 'manual',
         selectedPhotoCategory,
@@ -10389,6 +10390,15 @@
         targetMaxColorsBias: profile.targetMaxColorsBias || 'normal',
         toneMode: profile.toneMode || 'normal'
       };
+
+      if (mosaicCleanDebugOverrides && typeof mosaicCleanDebugOverrides === 'object') {
+        return {
+          ...options,
+          ...mosaicCleanDebugOverrides
+        };
+      }
+
+      return options;
     }
 
     function computeLuminanceEdgeMap(imageData, width, height, threshold = 28) {
@@ -11405,6 +11415,15 @@
       return category;
     }
 
+    function setPhotoCategoryControlsSilently(value) {
+      const category = normalizePhotoCategory(value);
+      const uploadSelect = document.getElementById('photoCategorySelect');
+      const proofSelect = document.getElementById('photoCategoryInput');
+      if (uploadSelect) uploadSelect.value = category;
+      if (proofSelect) proofSelect.value = category;
+      return category;
+    }
+
     function applyMosaicCleanProfile(profile = getResolvedMosaicCleanProfile()) {
       if (!profile) return null;
       settings.mosaicCleanMode = 'auto-category';
@@ -11484,6 +11503,8 @@
       };
     };
     window.MosaPackDebug.renderMosaicCleanVariant = async function(options = {}) {
+      const previousDebugOverrides = mosaicCleanDebugOverrides;
+      mosaicCleanDebugOverrides = null;
       if ('enabled' in options) {
         settings.mosaicClean = options.enabled !== false;
         settings.mosaicCleanMode = settings.mosaicClean ? 'auto-category' : 'off';
@@ -11491,7 +11512,7 @@
         if (toggle) toggle.checked = settings.mosaicClean;
       }
       if (options.category) {
-        updatePhotoCategorySelection(options.category);
+        setPhotoCategoryControlsSilently(options.category);
       }
       if (options.mode && ['auto-category', 'off', 'light', 'medium', 'bold'].includes(options.mode)) {
         settings.mosaicCleanMode = options.mode;
@@ -11507,14 +11528,33 @@
         const select = document.getElementById('ditheringMode');
         if (select) select.value = options.ditherMode;
       }
-      if (currentImage) {
-        await processImage();
+      if (options.profileOverride === 'universal-medium') {
+        mosaicCleanDebugOverrides = {
+          mode: 'manual',
+          profileKey: 'universal_medium',
+          profileLabel: 'Universal Medium',
+          strength: 'medium',
+          dither: 'ordered',
+          cleanupMode: 'normal',
+          targetMaxColors: getTargetMaxColors('normal'),
+          targetMaxColorsBias: 'normal',
+          toneMode: 'normal',
+          detailProtection: true,
+          buildabilityCleanup: true
+        };
       }
-      return {
-        preview: window.MosaPackDebug.getCurrentPreviewDataUrl(),
-        meta: window.MosaPackDebug.getMosaicCleanMeta(),
-        summary: window.MosaPackDebug.getCurrentPreviewSummary()
-      };
+      try {
+        if (currentImage) {
+          await processImage();
+        }
+        return {
+          preview: window.MosaPackDebug.getCurrentPreviewDataUrl(),
+          meta: window.MosaPackDebug.getMosaicCleanMeta(),
+          summary: window.MosaPackDebug.getCurrentPreviewSummary()
+        };
+      } finally {
+        mosaicCleanDebugOverrides = previousDebugOverrides;
+      }
     };
 
     function updateSlider(type) {

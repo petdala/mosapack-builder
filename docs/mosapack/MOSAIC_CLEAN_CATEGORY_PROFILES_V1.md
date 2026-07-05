@@ -159,3 +159,22 @@ The private ZIP is:
 Do not publish, deploy, commit, or upload this package by default. It contains real/private QA-derived images.
 
 Open-source audit findings should influence future Detail Priority Map and sticker/magnet production-output work. GPL code must remain concept-only and must not be copied into MosaPack.
+
+## 2026-07-05 Variant Integrity Finding
+
+The original private validation package was not sufficient for approval because it used CSS-only visual treatments rather than actual builder-rendered variant images.
+
+The debug-only variant generation path now supports:
+
+- Raw Current: Mosaic Clean off
+- Universal Medium: medium / ordered / normal cleanup / `universal_medium`
+- Category Default: selected category profile
+- Category Alternate: category alternate strength/dither
+
+Private diagnostic package:
+
+```text
+/tmp/mosapack-category-profile-variant-integrity-audit/
+```
+
+The audit found actual non-pet category outputs are distinct from Universal Medium. Pet outputs remain identical by design because the pet category default is the same as Universal Medium.

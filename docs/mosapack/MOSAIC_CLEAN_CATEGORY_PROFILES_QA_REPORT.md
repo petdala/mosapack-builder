@@ -165,3 +165,31 @@ Private ZIP:
 This package contains real/private QA-derived images and must not be deployed publicly, committed, or uploaded unless Derek intentionally shares the private ZIP.
 
 Open-source mosaic-builder research should inform Detail Priority Map v1 and sticker/magnet production-output experiments. GPL code must not be copied directly into MosaPack.
+
+## 2026-07-05 Variant Integrity Audit
+
+Derek reported that the private real-photo contact sheet variants looked too similar.
+
+Audit result:
+
+- The prior private real-photo package was not a valid variant proof package; it reused the same source image with CSS-only variant styling.
+- A debug-only variant rendering bug was fixed so category changes do not trigger an un-awaited background render during variant generation.
+- Universal Medium now uses an explicit debug override for `medium / ordered / normal` instead of inheriting category cleanup settings.
+- Actual builder-rendered private diagnostics are available at:
+
+```text
+/tmp/mosapack-category-profile-variant-integrity-audit/
+```
+
+Private ZIP:
+
+```text
+/tmp/mosapack-category-profile-variant-integrity-audit.zip
+```
+
+Category Default vs Universal Medium result across 20 real images:
+
+- Pet: 5/5 identical, expected because pet default equals universal medium
+- Non-pet categories: distinct outputs, mostly major differences
+
+Production remains blocked pending Derek review of the diagnostic package.
