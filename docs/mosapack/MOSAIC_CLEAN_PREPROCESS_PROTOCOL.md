@@ -1,7 +1,7 @@
 # Mosaic Clean Preprocess Protocol
 
 Date: 2026-06-29
-Status: Mosaic Clean v1 implemented in `public/builder/index.html`; category profiles v1 added on 2026-06-30.
+Status: Mosaic Clean v1 implemented in `public/builder/index.html`; category profiles v1 added on 2026-06-30; current tuning rejected as production criteria on 2026-07-05.
 
 ## Problem
 
@@ -68,6 +68,8 @@ Mosaic Clean category profiles v1 replaced the universal medium default as the p
 
 Universal medium is not approved as a blanket default. Production approval requires Derek visual review of the v3 category-profile package.
 
+2026-07-05 update: Derek rejected the current Mosaic Clean tuning as production criteria. Mosaic Clean may remain an internal helper, but category profiles are not production-approved. Future tuning must be evaluated against buildable sticker/magnet proof output, not standalone visual preference.
+
 ## Color Budget
 
 Target max color policy:
@@ -119,6 +121,7 @@ Netlify Forms remain metadata-only and do not receive raw image data.
 
 ## Future Improvements
 
+- Buildable Sticker/Magnet Proof Output v1.
 - Higher-resolution working preprocess before final grid downsample.
 - True bilateral filter.
 - Guided filter.

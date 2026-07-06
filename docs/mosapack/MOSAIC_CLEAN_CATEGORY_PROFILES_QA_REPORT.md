@@ -3,7 +3,7 @@
 Date: 2026-06-30
 Branch: `feature/mosaic-clean-category-profiles-v1`
 Preview URL: `https://6a435db8dd874ae94a13ecc1--mosapack.netlify.app`
-Status: visual review package generated; hosted proof-save regression passed; production approval pending Derek review.
+Status: visual review package generated; hosted proof-save regression passed; production approval rejected as of 2026-07-05.
 
 ## Purpose
 
@@ -146,6 +146,8 @@ Passed:
 
 No production deploy. Production approval is blocked on Derek review of the v3 package.
 
+2026-07-05 update: Derek rejected current Mosaic Clean tuning as production criteria. The package remains useful for diagnostics, but it is not a production gate.
+
 ## 2026-07-05 Validation Update
 
 Synthetic-safe category-profile review supports option C directionally, but it is not sufficient for production or paid fulfillment approval.
@@ -193,3 +195,21 @@ Category Default vs Universal Medium result across 20 real images:
 - Non-pet categories: distinct outputs, mostly major differences
 
 Production remains blocked pending Derek review of the diagnostic package.
+
+## 2026-07-05 Tuning Rejection
+
+Derek reviewed the corrected profile tuning package:
+
+```text
+/tmp/mosapack-mosaic-clean-profile-tuning-v1/
+```
+
+Private ZIP:
+
+```text
+/tmp/mosapack-mosaic-clean-profile-tuning-v1.zip
+```
+
+Decision: E - reject current Mosaic Clean tuning as production criteria.
+
+Mosaic Clean category profiles are not production-approved. Future image optimization must be validated against Buildable Sticker/Magnet Proof Output v1 rather than standalone visual variants.

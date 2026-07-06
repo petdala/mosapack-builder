@@ -1,13 +1,21 @@
 # Mosaic Clean Category Profiles v1
 
 Date: 2026-06-30
-Status: implemented on `feature/mosaic-clean-category-profiles-v1`.
+Status: implemented on `feature/mosaic-clean-category-profiles-v1`; not production-approved.
 
 ## Decision
 
 Derek chose option C from the Mosaic Clean visual review: category-based defaults.
 
 Reason: one universal medium default is too risky. Pets and busy photos can benefit from medium preprocessing, while human faces, memorial photos, baby/kids images, and logo/text graphics need more conservative handling.
+
+## 2026-07-05 Rejection Update
+
+Derek later chose E - reject current Mosaic Clean tuning as production criteria.
+
+Category profiles remain available as internal/helper behavior, but they are not approved for production or paid fulfillment. The current tuning work is frozen as diagnostic evidence only.
+
+The next milestone is Buildable Sticker/Magnet Proof Output v1. Future profile decisions must be judged against actual buildable proof outputs, not standalone image-processing variants.
 
 ## Category Profiles
 
@@ -178,3 +186,9 @@ Private diagnostic package:
 ```
 
 The audit found actual non-pet category outputs are distinct from Universal Medium. Pet outputs remain identical by design because the pet category default is the same as Universal Medium.
+
+## 2026-07-05 Tuning Gate Result
+
+The private tuning package at `/tmp/mosapack-mosaic-clean-profile-tuning-v1/` was rejected as production criteria.
+
+Reason: it did not meaningfully prove sticker/magnet buildability. Different rendered variants are not enough. Production readiness now depends on Buildable Sticker/Magnet Proof Output v1: reproducible cell output, SVG/PDF/legend/package metadata, and supplier/local sample validation.

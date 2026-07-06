@@ -33,9 +33,11 @@ MosaPack must not fake the final mosaic with overlays, hallucinated visuals, or 
 
 ## Current Category-Profile Gate
 
-Synthetic-safe review supports category profiles directionally.
+Current Mosaic Clean tuning is rejected as production criteria.
 
-Private real-photo validation is required before production deploy or paid fulfillment.
+Mosaic Clean may remain an internal/helper optimization layer, but production readiness must be judged against buildable proof output: real cells, real colors, placement grids, legends, SVG/PDF assets, and production metadata.
+
+Detail Priority Map is deferred until Buildable Sticker/Magnet Proof Output v1 proves the output format.
 
 ## Open-Source Guardrail
 
@@ -60,3 +62,9 @@ Record and preserve:
 - Proof operator decision
 
 Do not send raw image data through Netlify Forms.
+
+## Next Milestone
+
+Buildable Sticker/Magnet Proof Output v1.
+
+This milestone should produce a reproducible sticker/magnet proof package before MosaPack resumes deeper image-optimization tuning.

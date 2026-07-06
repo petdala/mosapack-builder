@@ -124,6 +124,14 @@ This summary is not a visual approval. Derek must review the private gallery bef
 
 No production deploy. Do not approve category profiles for production or paid fulfillment until Derek reviews the private tuning package and chooses final defaults.
 
+## 2026-07-05 Rejection Decision
+
+Derek chose E - reject current Mosaic Clean tuning as production criteria.
+
+The tuning package is useful as diagnostic evidence, but it does not validate the real sticker/magnet proof output. Current Mosaic Clean variants are not approved as production criteria, and category-profile tuning is paused as the main release gate.
+
+The next milestone is Buildable Sticker/Magnet Proof Output v1. Future image optimization must be evaluated against actual buildable proof files: SVG layout, numbered grid, color legend, assembly guide, proof preview, and production metadata.
+
 ## Next Step
 
-Derek should open `/tmp/mosapack-mosaic-clean-profile-tuning-v1/index.html`, fill or annotate `data/profile-tuning-scorecard.csv`, and choose one of A/B/C/D.
+Derek should review Buildable Sticker/Magnet Proof Output v1 next. The private tuning package remains private QA reference material, not production approval evidence.
