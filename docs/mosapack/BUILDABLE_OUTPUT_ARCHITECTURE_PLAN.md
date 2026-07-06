@@ -1,7 +1,7 @@
 # Buildable Output Architecture Plan
 
 Date: 2026-07-05
-Status: implementation plan for Buildable Sticker/Magnet Proof Output v1.
+Status: v1 browser/operator export implemented.
 
 ## Recommendation
 
@@ -40,10 +40,10 @@ Tradeoffs:
 
 ## Recommended v1 Path
 
-1. Browser/operator export from the currently loaded saved project.
-2. Store/export `production.json` and deterministic SVG/PDF assets.
-3. Validate with suppliers/local production.
-4. Add Netlify Function export only after the output format is proven.
+1. Browser/operator export from the currently loaded project. Implemented.
+2. Store/export `production.json` and deterministic SVG/HTML/PNG assets. Implemented.
+3. Validate with suppliers/local production. Pending.
+4. Add Netlify Function export only after the output format is proven. Deferred.
 
 ## Files Likely Touched
 
@@ -55,15 +55,15 @@ Tradeoffs:
 
 ## Export Functions Needed
 
-- generate optimized source PNG
-- generate buildable mosaic PNG
-- generate numbered grid data
-- generate color legend data
-- generate sticker/magnet SVG
-- generate PDF placement grid
-- generate PDF assembly guide
-- generate proof email image
-- generate `production.json`
+- `generateOptimizedSourcePng()` implemented
+- `generateProofPreviewPng()` implemented
+- `generateNumberedGridSvg()` implemented
+- `generateColorLegendHtmlOrSvg()` implemented
+- sticker/magnet SVG layout covered by rounded-square numbered grid SVG in v1
+- PDF placement grid deferred
+- PDF assembly guide deferred
+- `generateProofEmailImage()` implemented
+- `generateProductionJson()` implemented
 
 ## B2 Metadata Needed
 
@@ -96,3 +96,9 @@ Tradeoffs:
 - Confirm `production.json` can regenerate the same layout.
 - Send sample SVG/PDF files to sticker/magnet suppliers or a local shop.
 - Record supplier comments before production approval.
+
+## v1 QA Status
+
+Synthetic local QA generated and validated one full export package under `/tmp/mosapack-buildable-proof-output-qa/`.
+
+Hosted QA and supplier validation remain required before production approval.

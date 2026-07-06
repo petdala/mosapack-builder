@@ -5348,6 +5348,49 @@
       min-height: 42px;
     }
 
+    .proof-export-tools {
+      margin-top: 0.35rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .proof-export-tools h4 {
+      margin: 0 0 0.35rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 900;
+    }
+
+    .proof-export-tools p {
+      margin: 0 0 0.7rem;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .proof-export-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .proof-export-grid .btn {
+      justify-content: center;
+      min-height: 42px;
+      white-space: normal;
+    }
+
+    .proof-export-grid .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .proof-export-status {
+      margin-top: 0.65rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
     .mosaic-clean-indicator {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -5840,6 +5883,19 @@
               <button class="btn btn-secondary" type="button" onclick="openScenePreview()">Scene preview</button>
               <button class="btn btn-secondary" type="button" onclick="saveProject('save_design')">Save design for later</button>
             </div>
+            <section class="proof-export-tools" id="proofExportTools" aria-labelledby="proofExportToolsTitle">
+              <h4 id="proofExportToolsTitle">Proof Export Tools</h4>
+              <p>Generate buildable proof files for manual review. Not shown to customers by default.</p>
+              <div class="proof-export-grid">
+                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('proof-preview')">Download Proof Preview PNG</button>
+                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('optimized-source')">Download Optimized Source PNG</button>
+                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('numbered-grid')">Download Numbered Grid SVG</button>
+                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('color-legend')">Download Color Legend</button>
+                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('production-json')">Download Production JSON</button>
+                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('proof-email-image')">Download Proof Email Image</button>
+              </div>
+              <div class="proof-export-status" id="proofExportStatus">Generate a preview before exporting proof files.</div>
+            </section>
           </div>
         </details>
       </aside>
@@ -7979,6 +8035,7 @@
       if (reference) reference.textContent = lastSavedProofProjectId ? `Saved design: ${lastSavedProofProjectId}` : '';
       if (status) status.textContent = "If your photo is not suitable for a production proof, we'll let you know before anything is made.";
       updateWizardState('saved', { status: 'Proof request saved.', focusCard: true });
+      updateBuildableProofExportState();
       trackBuilderEvent('builder_proof_saved');
     }
 
@@ -8116,6 +8173,7 @@
       updateCompactPrice(currentPrice);
       renderBundleRecommendations();
       highlightBundleSelections();
+      updateBuildableProofExportState();
 
       // Initialize POD hero product label
       updatePODProductLabel();
@@ -9727,6 +9785,405 @@
       };
     }
 
+    function escapeProofXml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    }
+
+    function getProofColorId(colorIndex) {
+      return `C${String(colorIndex + 1).padStart(2, '0')}`;
+    }
+
+    function getProofProjectId() {
+      return lastSavedProofProjectId || document.getElementById('saveProjectId')?.value || '';
+    }
+
+    function getProofExportBaseName() {
+      const projectId = getProofProjectId() || 'unsaved-preview';
+      return `mosapack-${String(projectId).replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'proof'}`;
+    }
+
+    function getProofCropStateSnapshot() {
+      const rect = getCropSourceRect();
+      return {
+        crop_x: Number.isFinite(cropState.cropX) ? cropState.cropX : rect.x,
+        crop_y: Number.isFinite(cropState.cropY) ? cropState.cropY : rect.y,
+        crop_zoom: Number.isFinite(cropState.zoom) ? cropState.zoom : 1,
+        focal_point_x: Number.isFinite(cropState.focalPointX) ? cropState.focalPointX : 0.5,
+        focal_point_y: Number.isFinite(cropState.focalPointY) ? cropState.focalPointY : 0.5,
+        crop_version: cropState.version || 'b1-crop-v1',
+        image_natural_width: cropState.imageNaturalWidth || currentImage?.naturalWidth || currentImage?.width || 0,
+        image_natural_height: cropState.imageNaturalHeight || currentImage?.naturalHeight || currentImage?.height || 0,
+        crop_rect: {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height
+        },
+        warning: cropState.warning || ''
+      };
+    }
+
+    function getProofRenderSettingsSnapshot() {
+      const profile = typeof getResolvedMosaicCleanProfile === 'function'
+        ? getResolvedMosaicCleanProfile()
+        : { key: 'unknown', label: 'Unknown' };
+      return {
+        app_version: 'canonical-builder-b2',
+        product_type: currentProductType,
+        material: currentMaterialType,
+        finish: currentFinish,
+        baseplate: currentBaseplate,
+        size: currentSize,
+        palette_key: currentPalette,
+        preset: currentPreset,
+        dithering: settings.dithering,
+        brightness: settings.brightness,
+        contrast: settings.contrast,
+        saturation: settings.saturation,
+        mosaic_clean: settings.mosaicClean,
+        mosaic_clean_mode: settings.mosaicCleanMode,
+        mosaic_clean_strength: settings.mosaicCleanStrength,
+        mosaic_clean_profile: profile.key,
+        mosaic_clean_profile_label: profile.label,
+        detail_protection: settings.detailProtection,
+        buildability_cleanup: settings.buildabilityCleanup,
+        view_mode: viewMode,
+        show_grid: showGrid,
+        show_numbers: showNumbers
+      };
+    }
+
+    function getBuildableColorLegend() {
+      if (!processedData?.palette || !processedData?.counts) return [];
+      return processedData.palette
+        .map((color, index) => ({
+          id: getProofColorId(index),
+          index,
+          name: color.name || `Color ${index + 1}`,
+          hex: color.hex || '#000000',
+          count: processedData.counts[index] || 0
+        }))
+        .filter((color) => color.count > 0)
+        .sort((a, b) => a.index - b.index);
+    }
+
+    function getBuildableCellMap() {
+      if (!processedData?.mapped || !processedData?.width || !processedData?.height) return [];
+      const rows = [];
+      for (let y = 0; y < processedData.height; y++) {
+        const row = [];
+        for (let x = 0; x < processedData.width; x++) {
+          const colorIndex = processedData.mapped[y * processedData.width + x];
+          row.push(getProofColorId(colorIndex));
+        }
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function getBuildableProofState() {
+      if (!processedData) return null;
+      const timestamp = new Date().toISOString();
+      const legend = getBuildableColorLegend();
+      const recommendedOutput = currentSize <= 24
+        ? { grid: '24x24', target_colors: '8-12' }
+        : currentSize <= 32
+          ? { grid: '32x32', target_colors: '10-16' }
+          : { grid: `${currentSize}x${currentSize}`, note: 'Current grid exported; fixed 24x24 or 32x32 resampling is deferred to v1.1.' };
+
+      return {
+        version: 'buildable-proof-output-v1',
+        project_id: getProofProjectId(),
+        project_saved: Boolean(getProofProjectId()),
+        selected_photo_category: typeof getSelectedPhotoCategory === 'function' ? getSelectedPhotoCategory() : 'other',
+        grid_width: processedData.width,
+        grid_height: processedData.height,
+        grid_size: `${processedData.width}x${processedData.height}`,
+        preview_shape: currentMaterialType || 'mosaic',
+        production_shape: 'rounded-square',
+        material_intent: currentMaterialType === 'magnetic' ? 'magnet' : 'sticker-magnet-proof',
+        recommended_output: recommendedOutput,
+        palette: legend.map(({ id, name, hex, count }) => ({ id, name, hex, count })),
+        color_counts: legend.reduce((acc, color) => {
+          acc[color.id] = color.count;
+          return acc;
+        }, {}),
+        cell_map: getBuildableCellMap(),
+        crop_state: getProofCropStateSnapshot(),
+        render_settings: getProofRenderSettingsSnapshot(),
+        photo_suitability: window.photoSuitabilityMeta || window.photoSuitability || null,
+        mosaic_clean: JSON.parse(JSON.stringify(mosaicCleanMeta || {})),
+        created_at: timestamp,
+        app_version: 'canonical-builder-b2'
+      };
+    }
+
+    function generateProofPreviewPng() {
+      const canvas = document.getElementById('mosaicCanvas');
+      if (!processedData || !canvas || !canvas.width || !canvas.height) {
+        throw new Error('Generate a preview before exporting proof files.');
+      }
+      return canvas.toDataURL('image/png');
+    }
+
+    function generateOptimizedSourcePng() {
+      if (!currentImage) throw new Error('Upload and crop a photo before exporting.');
+      const rect = getCropSourceRect();
+      const canvas = document.createElement('canvas');
+      const maxDimension = 1024;
+      const ratio = Math.min(1, maxDimension / Math.max(rect.width, rect.height));
+      canvas.width = Math.max(1, Math.round(rect.width * ratio));
+      canvas.height = Math.max(1, Math.round(rect.height * ratio));
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(currentImage, rect.x, rect.y, rect.width, rect.height, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/png');
+    }
+
+    function generateNumberedGridSvg(options = {}) {
+      const state = getBuildableProofState();
+      if (!state) throw new Error('Generate a preview before exporting proof files.');
+      const margin = Number.isFinite(options.margin) ? options.margin : 48;
+      const cell = Number.isFinite(options.cellSize) ? options.cellSize : 24;
+      const gap = Number.isFinite(options.gap) ? options.gap : 2;
+      const radius = Math.max(2, Math.round(cell * 0.18));
+      const labelCells = options.labels !== false && cell >= 14;
+      const width = margin * 2 + state.grid_width * cell + (state.grid_width - 1) * gap;
+      const height = margin * 2 + state.grid_height * cell + (state.grid_height - 1) * gap + 64;
+      const paletteById = Object.fromEntries(state.palette.map((color) => [color.id, color]));
+      const title = `MosaPack buildable proof grid ${state.project_id || 'unsaved preview'}`;
+      const cells = [];
+      for (let y = 0; y < state.grid_height; y++) {
+        for (let x = 0; x < state.grid_width; x++) {
+          const colorId = state.cell_map[y][x];
+          const color = paletteById[colorId] || { hex: '#ffffff' };
+          const px = margin + x * (cell + gap);
+          const py = margin + 46 + y * (cell + gap);
+          const rgb = hexToRgb(color.hex);
+          const brightness = rgb ? (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000 : 255;
+          const textColor = brightness > 140 ? '#111827' : '#ffffff';
+          cells.push(`<rect x="${px}" y="${py}" width="${cell}" height="${cell}" rx="${radius}" ry="${radius}" fill="${escapeProofXml(color.hex)}" data-color-id="${escapeProofXml(colorId)}" data-row="${y + 1}" data-col="${x + 1}"/>`);
+          if (labelCells) {
+            cells.push(`<text x="${px + cell / 2}" y="${py + cell / 2 + cell * 0.16}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.max(5, Math.floor(cell * 0.34))}" font-weight="700" fill="${textColor}">${escapeProofXml(colorId.replace(/^C0?/, ''))}</text>`);
+          }
+        }
+      }
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title desc">
+  <title id="title">${escapeProofXml(title)}</title>
+  <desc id="desc">Rounded-square buildable sticker/magnet placement grid generated from the saved mosaic cell map.</desc>
+  <metadata>${escapeProofXml(JSON.stringify({
+    version: state.version,
+    project_id: state.project_id || 'unsaved-preview',
+    grid_size: state.grid_size,
+    production_shape: state.production_shape,
+    created_at: state.created_at
+  }))}</metadata>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="${margin}" y="28" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">MosaPack buildable proof grid</text>
+  <text x="${margin}" y="50" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Grid ${escapeProofXml(state.grid_size)} · rounded-square cells · ${escapeProofXml(state.project_id || 'unsaved preview')}</text>
+  ${cells.join('\n  ')}
+</svg>`;
+    }
+
+    function generateColorLegendHtmlOrSvg(options = {}) {
+      const state = getBuildableProofState();
+      if (!state) throw new Error('Generate a preview before exporting proof files.');
+      const rows = state.palette.map((color) => `
+        <tr>
+          <td><span class="swatch" style="background:${escapeProofXml(color.hex)}"></span></td>
+          <td>${escapeProofXml(color.id)}</td>
+          <td>${escapeProofXml(color.name)}</td>
+          <td><code>${escapeProofXml(color.hex)}</code></td>
+          <td>${Number(color.count || 0).toLocaleString()}</td>
+        </tr>`).join('');
+      return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MosaPack Color Legend</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 24px; color: #111827; }
+    table { border-collapse: collapse; width: 100%; max-width: 760px; }
+    th, td { border: 1px solid #d1d5db; padding: 8px 10px; text-align: left; }
+    th { background: #f3f4f6; }
+    .swatch { display: inline-block; width: 26px; height: 26px; border: 1px solid #9ca3af; border-radius: 6px; vertical-align: middle; }
+    .note { color: #4b5563; max-width: 760px; }
+  </style>
+</head>
+<body>
+  <h1>MosaPack Color Legend</h1>
+  <p class="note">Buildable sticker/magnet proof legend for ${escapeProofXml(state.project_id || 'unsaved preview')}. Manual review required before anything is made.</p>
+  <table>
+    <thead><tr><th>Swatch</th><th>ID</th><th>Color</th><th>Hex</th><th>Cells</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</body>
+</html>`;
+    }
+
+    function generateProductionJson() {
+      const state = getBuildableProofState();
+      if (!state) throw new Error('Generate a preview before exporting proof files.');
+      return {
+        proof_output_version: 'buildable-proof-output-v1',
+        project_id: state.project_id || null,
+        project_saved: state.project_saved,
+        grid_width: state.grid_width,
+        grid_height: state.grid_height,
+        cell_shape: state.production_shape,
+        preview_shape: state.preview_shape,
+        material_intent: state.material_intent,
+        recommended_output: state.recommended_output,
+        palette: state.palette,
+        color_legend: state.palette,
+        cell_map: state.cell_map,
+        crop_state: state.crop_state,
+        category: state.selected_photo_category,
+        photo_suitability: state.photo_suitability,
+        preprocess_metadata: state.mosaic_clean,
+        render_settings: state.render_settings,
+        source_policy: {
+          forms_receive_raw_image_data: false,
+          export_files_are_local_downloads: true,
+          approved_crop_only: true
+        },
+        output_files_expected: [
+          'proof-preview.png',
+          'optimized-source.png',
+          'numbered-grid.svg',
+          'color-legend.html',
+          'proof-email-image.png',
+          'production.json'
+        ],
+        created_at: state.created_at
+      };
+    }
+
+    function loadProofExportImage(dataUrl) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = dataUrl;
+      });
+    }
+
+    async function generateProofEmailImage() {
+      const cropDataUrl = generateOptimizedSourcePng();
+      const previewDataUrl = generateProofPreviewPng();
+      const [cropImage, previewImage] = await Promise.all([
+        loadProofExportImage(cropDataUrl),
+        loadProofExportImage(previewDataUrl)
+      ]);
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 720;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '700 38px Inter, Arial, sans-serif';
+      ctx.fillText('Custom proof preview', 48, 64);
+      ctx.fillStyle = '#475569';
+      ctx.font = '22px Inter, Arial, sans-serif';
+      ctx.fillText('Manual review before anything is made', 48, 100);
+
+      const panelY = 140;
+      const panelSize = 480;
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(48, panelY, panelSize, panelSize);
+      ctx.fillRect(672, panelY, panelSize, panelSize);
+      ctx.drawImage(cropImage, 48, panelY, panelSize, panelSize);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(previewImage, 672, panelY, panelSize, panelSize);
+      ctx.imageSmoothingEnabled = true;
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(48, panelY, panelSize, panelSize);
+      ctx.strokeRect(672, panelY, panelSize, panelSize);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '700 24px Inter, Arial, sans-serif';
+      ctx.fillText('Approved crop', 48, 654);
+      ctx.fillText('Buildable mosaic preview', 672, 654);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '18px Inter, Arial, sans-serif';
+      ctx.fillText(`Project: ${getProofProjectId() || 'unsaved preview'}`, 48, 690);
+      return canvas.toDataURL('image/png');
+    }
+
+    function dataUrlToProofBlob(dataUrl) {
+      const parts = String(dataUrl).split(',');
+      const mimeMatch = /^data:([^;]+);base64$/.exec(parts[0]);
+      const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+      const binary = atob(parts[1] || '');
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return new Blob([bytes], { type: mime });
+    }
+
+    function downloadBuildableProofFile(filename, blobOrDataUrl) {
+      const blob = typeof blobOrDataUrl === 'string' && blobOrDataUrl.startsWith('data:')
+        ? dataUrlToProofBlob(blobOrDataUrl)
+        : blobOrDataUrl;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function downloadBuildableProofExport(kind) {
+      if (!processedData) {
+        showToast('Generate a preview before exporting proof files.', 'error');
+        return;
+      }
+      const base = getProofExportBaseName();
+      try {
+        if (kind === 'proof-preview') {
+          downloadBuildableProofFile(`${base}-proof-preview.png`, generateProofPreviewPng());
+        } else if (kind === 'optimized-source') {
+          downloadBuildableProofFile(`${base}-optimized-source.png`, generateOptimizedSourcePng());
+        } else if (kind === 'numbered-grid') {
+          downloadBuildableProofFile(`${base}-numbered-grid.svg`, new Blob([generateNumberedGridSvg()], { type: 'image/svg+xml;charset=utf-8' }));
+        } else if (kind === 'color-legend') {
+          downloadBuildableProofFile(`${base}-color-legend.html`, new Blob([generateColorLegendHtmlOrSvg()], { type: 'text/html;charset=utf-8' }));
+        } else if (kind === 'production-json') {
+          downloadBuildableProofFile(`${base}-production.json`, new Blob([JSON.stringify(generateProductionJson(), null, 2)], { type: 'application/json;charset=utf-8' }));
+        } else if (kind === 'proof-email-image') {
+          downloadBuildableProofFile(`${base}-proof-email-image.png`, await generateProofEmailImage());
+        }
+        showToast('Proof export file generated.', 'success');
+      } catch (error) {
+        console.error('Proof export failed', error);
+        showToast(error.message || 'Proof export failed.', 'error');
+      }
+    }
+
+    function updateBuildableProofExportState() {
+      const hasPreview = Boolean(processedData);
+      document.querySelectorAll('[data-requires-preview="true"]').forEach((button) => {
+        button.disabled = !hasPreview;
+      });
+      const status = document.getElementById('proofExportStatus');
+      if (status) {
+        const projectId = getProofProjectId();
+        status.textContent = hasPreview
+          ? `Ready to export ${projectId ? `saved project ${projectId}` : 'unsaved preview files'}.`
+          : 'Generate a preview before exporting proof files.';
+      }
+    }
+
     function addToLaunchAccess(options = {}) {
       showToast('Proof requests are free while launch access is finalized.', 'error');
     }
@@ -9794,6 +10251,7 @@
       const img = new Image();
       img.onload = function() {
         currentImage = img;
+        processedData = null;
         hasAutoFitOnce = false;
 
         const tempCanvas = document.createElement('canvas');
@@ -9812,6 +10270,7 @@
         initializeCropEditor(img);
         showLoading(false);
         showRegen(false);
+        updateBuildableProofExportState();
         updateWizardState('crop', { status: 'Photo uploaded. Crop and position your subject.', focusCard: true });
         trackBuilderEvent('builder_photo_uploaded');
         trackBuilderEvent('builder_crop_opened');
@@ -10132,6 +10591,7 @@
         showStatus('Preview ready. You can request a custom proof.');
         updateGroupStatus();
         updateWizardState('preview', { status: 'Preview ready. You can request a custom proof.', focusCard: true });
+        updateBuildableProofExportState();
         trackBuilderEvent('builder_preview_created');
 
         const buyButton = document.getElementById('launchAccessButton');
@@ -12745,6 +13205,7 @@
 
         showToast('Builder reset');
         updateGroupStatus();
+        updateBuildableProofExportState();
     }
 
     // =====================================================

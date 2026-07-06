@@ -75,6 +75,27 @@ console.log({
 - Photo appears suitable for at least one path: digital, sticker, magnetic, or brick quote.
 - Customer note does not request a capability MosaPack cannot currently support.
 
+## Buildable Proof Export Tools
+
+After generating a preview, operators can open the collapsed Advanced tools section and use:
+
+```text
+Proof Export Tools
+```
+
+These tools generate local proof files for manual review:
+
+- proof preview PNG
+- optimized source PNG
+- numbered grid SVG
+- color legend HTML
+- production JSON
+- proof email image PNG
+
+If the proof request has already been saved, the generated production JSON includes the saved `project_id`. If not, it is marked as an unsaved preview.
+
+Do not attach or upload generated files that contain private customer imagery outside the intended proof workflow. Do not imply checkout, ordering, shipping, or production has started. Production starts only after proof approval and a paid product path is explicitly confirmed later.
+
 ## Manual Reply Templates
 
 ### 1. Looks Good / Next Step

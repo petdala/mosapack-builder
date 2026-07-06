@@ -1,7 +1,7 @@
 # Buildable Sticker/Magnet Proof Output v1 Spec
 
 Date: 2026-07-05
-Status: draft spec for next build milestone.
+Status: v1 browser/operator export implemented on `feature/buildable-sticker-magnet-proof-output-v1`.
 
 ## Inputs
 
@@ -19,12 +19,13 @@ Status: draft spec for next build milestone.
 
 - `proof-preview.png`
 - `optimized-source.png`
-- `numbered-grid.pdf`
-- `color-legend.pdf`
+- `numbered-grid.svg`
+- `color-legend.html`
 - `sticker-magnet-layout.svg`
-- `assembly-guide.pdf`
 - `proof-email-image.png`
 - `production.json`
+
+PDF placement grid, PDF legend, and assembly-guide PDF are deferred until the SVG/HTML/JSON output format is supplier-reviewed.
 
 ## Grid Defaults
 
@@ -97,9 +98,17 @@ It must not contain raw original photo data submitted through Netlify Forms.
 - Grid is buildable.
 - Legend matches cells.
 - SVG layout matches the rendered preview.
-- PDF placement grid is readable at 24x24 and 32x32.
+- SVG placement grid is readable and self-contained.
 - Proof email image is customer-friendly and not a fake overlay.
 - Netlify Forms remain metadata-only.
 - No supplier API required.
 - No checkout.
 - No production deploy.
+
+## v1 Implementation Notes
+
+- Proof export is browser/operator-only inside collapsed Advanced tools.
+- Export buttons are disabled until a mosaic preview exists.
+- Current grid is exported as-is.
+- Fixed 24x24 and 32x32 output resampling is deferred to v1.1.
+- Export files are local downloads and are not submitted through Netlify Forms.
