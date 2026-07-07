@@ -1,7 +1,7 @@
 # Production JSON Adapter Plan
 
 Date: 2026-07-07
-Status: plan only; no runtime adapter implemented in this task.
+Status: JS adapter implemented; generator port still deferred.
 
 ## Purpose
 
@@ -41,7 +41,7 @@ That JSON is optimized for operator review:
 
 ## JS Adapter Responsibilities
 
-Add a browser/operator export adapter after this diff is resolved.
+Canonical Design Export Adapter v1 is now implemented in the browser/operator export path.
 
 The adapter should:
 
@@ -60,7 +60,15 @@ The adapter should:
 10. Add or preserve `proof_ref`.
 11. Move crop, suitability, Mosaic Clean, and export metadata into `source`.
 12. Leave `production` as derived/cache only.
-13. Validate against `config/design-schema.v1.json`.
+13. Validate against the critical invariants from `config/design-schema.v1.json`.
+
+Implemented output path:
+
+```text
+Download Canonical Design JSON -> mosapack-design-v1.json
+```
+
+The current proof-output `production.json` also embeds `canonical_design` and `canonical_design_validation` for review continuity.
 
 ## Future Python Adapter Responsibilities
 
@@ -111,10 +119,14 @@ The generator-side loader should:
 
 ## Recommendation
 
-Implement the JS canonical-design export adapter first.
+The JS canonical-design export adapter has been implemented.
 
 Port the Python generator only after:
 
 - the adapter emits schema-valid JSON,
 - OL2050 passes alignment validation,
 - the First Hello or Pixel Portrait sample packet is physically tested.
+
+Current recommendation:
+
+Port the generator next as a local/operator renderer only, using `mosapack-design-v1.json` and `config/production-constants.json`.

@@ -2,7 +2,7 @@
 
 Date: 2026-07-07
 Branch: `feature/production-schema-constants-v1`
-Status: draft diff; no runtime adapter implemented yet.
+Status: adapter implemented; generator still deferred.
 
 ## 1. Current Sample Source
 
@@ -232,6 +232,34 @@ Canonical schema does not treat output files as design truth. Output file lists 
 
 ## Conclusion
 
-Current Buildable Proof Output `production.json` cannot feed the generator today without an adapter.
+Current Buildable Proof Output `production.json` could not feed the generator without an adapter because it used 2D `Cxx` cell IDs and proof-export fields.
 
-The next safe implementation step is a JS export adapter that emits canonical design JSON v1.1 alongside the existing proof-output JSON.
+Canonical Design Export Adapter v1 now emits schema-aligned design JSON from the browser/operator export path.
+
+## Adapter Update
+
+Implemented:
+
+- `generateCanonicalDesignJson()`
+- `validateCanonicalDesignJson()`
+- flat row-major integer `cell_map`
+- `grid` and `size_in`
+- `palette_id`
+- `black_base`
+- `proof_ref`
+- derived/cache `production`
+- flexible `source`
+
+Current production JSON also includes:
+
+```text
+canonical_design
+canonical_design_validation
+```
+
+Remaining mismatch:
+
+- Current proof-output JSON remains an operator export wrapper.
+- `mosapack-design-v1.json` is the generator candidate, not the legacy proof-output JSON wrapper.
+- Runtime palette IDs are normalized from current proof colors; production palette calibration remains future work.
+- Generator port remains deferred.

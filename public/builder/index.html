@@ -5892,6 +5892,7 @@
                 <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('numbered-grid')">Download Numbered Grid SVG</button>
                 <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('color-legend')">Download Color Legend</button>
                 <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('production-json')">Download Production JSON</button>
+                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('canonical-design')">Download Canonical Design JSON</button>
                 <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('proof-email-image')">Download Proof Email Image</button>
               </div>
               <div class="proof-export-status" id="proofExportStatus">Generate a preview before exporting proof files.</div>
@@ -9886,6 +9887,310 @@
       return rows;
     }
 
+    const PRODUCTION_CONSTANTS_V1 = {
+      schema_version: 1.1,
+      supported_grids: [24, 32, 48],
+      size_by_grid: { 24: 12, 32: 16, 48: 24 },
+      default_profile: 'OL2050',
+      sheet_profiles: {
+        OL2050: { profile_id: 'OL2050', verified: false, verification_status: 'pending_alignment_test' },
+        OL5425: { profile_id: 'OL5425', verified: false, verification_status: 'unverified_future_profile' }
+      },
+      black_base: { excluded_color_id: 'ink_black' }
+    };
+
+    function getCanonicalProjectId() {
+      const savedProjectId = getProofProjectId();
+      if (savedProjectId) return savedProjectId;
+      if (!window.mosapackPreviewProjectId) {
+        window.mosapackPreviewProjectId = (window.crypto?.randomUUID && window.crypto.randomUUID())
+          || `preview-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+      }
+      return window.mosapackPreviewProjectId;
+    }
+
+    function generateProofRef(projectId) {
+      if (window.mosapackProofRef && /^MP-[A-Z0-9]{4,8}$/.test(window.mosapackProofRef)) {
+        return window.mosapackProofRef;
+      }
+      const source = String(projectId || Date.now()).toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const token = (source.slice(0, 6) || 'PREVIEW').padEnd(6, '0').slice(0, 6);
+      const proofRef = `MP-${token}`;
+      window.mosapackProofRef = proofRef;
+      return proofRef;
+    }
+
+    function getCanonicalGridSize() {
+      if (!processedData?.width || !processedData?.height) {
+        return { grid: null, warnings: ['Generate a preview before exporting canonical design JSON.'] };
+      }
+      if (processedData.width !== processedData.height) {
+        return { grid: null, warnings: [`Unsupported non-square grid ${processedData.width}x${processedData.height}.`] };
+      }
+      const grid = processedData.width;
+      if (PRODUCTION_CONSTANTS_V1.supported_grids.includes(grid)) {
+        return { grid, warnings: [] };
+      }
+      const nearest = PRODUCTION_CONSTANTS_V1.supported_grids
+        .slice()
+        .sort((a, b) => Math.abs(a - grid) - Math.abs(b - grid))[0];
+      return {
+        grid: null,
+        nearest_supported_grid: nearest,
+        warnings: [`Current grid ${grid} is not supported by schema v1.1. Regenerate at ${nearest} before generator export.`]
+      };
+    }
+
+    function getSizeInForGrid(grid) {
+      const size = PRODUCTION_CONSTANTS_V1.size_by_grid[grid];
+      if (!size) throw new Error(`Unsupported canonical grid size: ${grid}`);
+      return size;
+    }
+
+    function toCanonicalPaletteId(value, fallback) {
+      const base = String(value || fallback || 'color')
+        .toLowerCase()
+        .replace(/#[0-9a-f]{6}/gi, '')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .replace(/_{2,}/g, '_');
+      return base || fallback || 'color';
+    }
+
+    function normalizePaletteForDesignJson(palette, colorLegend = []) {
+      const sourcePalette = Array.isArray(palette) && palette.length ? palette : colorLegend;
+      const usedLegendByIndex = new Map((colorLegend || []).map((color) => [color.index, color]));
+      const usedSourceIds = new Set((colorLegend || []).map((color) => color.id).filter(Boolean));
+      const usedIds = new Set();
+      const normalized = [];
+
+      sourcePalette.forEach((color, sourceIndex) => {
+        const legendColor = usedLegendByIndex.get(color.index ?? sourceIndex) || color;
+        const sourceId = legendColor.id || color.id || getProofColorId(color.index ?? sourceIndex);
+        if (usedSourceIds.size && !usedSourceIds.has(sourceId)) return;
+        const index = normalized.length;
+        const name = legendColor.name || color.name || `Color ${String(index + 1).padStart(2, '0')}`;
+        const hex = /^#[0-9a-fA-F]{6}$/.test(legendColor.hex || color.hex || '')
+          ? (legendColor.hex || color.hex).toLowerCase()
+          : '#000000';
+        let id = toCanonicalPaletteId(name || sourceId, `color_${String(index + 1).padStart(2, '0')}`);
+        if (/^c\d+$/i.test(id)) id = `color_${String(index + 1).padStart(2, '0')}`;
+        const originalId = id;
+        let suffix = 2;
+        while (usedIds.has(id)) {
+          id = `${originalId}_${suffix}`;
+          suffix += 1;
+        }
+        usedIds.add(id);
+        normalized.push({ id, name, hex, index, source_id: sourceId });
+      });
+
+      return normalized;
+    }
+
+    function convertCellMapToRowMajorIndexes(currentCellMap, palette) {
+      const errors = [];
+      if (!Array.isArray(currentCellMap) || !Array.isArray(palette) || !palette.length) {
+        return { cell_map: [], errors: ['Missing cell map or palette.'] };
+      }
+      const sourceIdToIndex = new Map();
+      palette.forEach((color, index) => {
+        sourceIdToIndex.set(color.source_id || color.id, index);
+        sourceIdToIndex.set(color.id, index);
+      });
+      const flat = [];
+      currentCellMap.forEach((row, rowIndex) => {
+        if (!Array.isArray(row)) {
+          errors.push(`Cell map row ${rowIndex + 1} is not an array.`);
+          return;
+        }
+        row.forEach((value, colIndex) => {
+          let index = null;
+          if (Number.isInteger(value)) {
+            index = value;
+          } else if (sourceIdToIndex.has(value)) {
+            index = sourceIdToIndex.get(value);
+          }
+          if (!Number.isInteger(index) || index < 0 || index >= palette.length) {
+            errors.push(`Invalid cell value at row ${rowIndex + 1}, col ${colIndex + 1}.`);
+            index = 0;
+          }
+          flat.push(index);
+        });
+      });
+      return { cell_map: flat, errors };
+    }
+
+    function resolveBlackBase(canonicalPalette, photoCategory, options = {}) {
+      const category = String(photoCategory || '').toLowerCase();
+      const requested = Boolean(options.blackBase || options.black_base || /sonogram|first hello|baby scan/.test(category));
+      const excluded = PRODUCTION_CONSTANTS_V1.black_base.excluded_color_id;
+      if (!requested) return { black_base: false, warnings: [] };
+      const warnings = [];
+      if (!canonicalPalette.some((color) => color.id === excluded)) {
+        const darkest = canonicalPalette
+          .map((color) => ({ color, rgb: hexToRgb(color.hex) }))
+          .filter((entry) => entry.rgb)
+          .sort((a, b) => (a.rgb.r + a.rgb.g + a.rgb.b) - (b.rgb.r + b.rgb.g + b.rgb.b))[0];
+        if (darkest) {
+          darkest.color.id = excluded;
+          darkest.color.name = darkest.color.name || 'Ink Black';
+        } else {
+          warnings.push('Black base requested but no palette color can be assigned ink_black.');
+        }
+      }
+      return { black_base: true, warnings };
+    }
+
+    function generateCanonicalDesignJson() {
+      const state = getBuildableProofState();
+      if (!state) throw new Error('Generate a preview before exporting canonical design JSON.');
+      const gridResult = getCanonicalGridSize();
+      const warnings = [...(gridResult.warnings || [])];
+      if (!gridResult.grid) {
+        const error = new Error(warnings[0] || 'Unsupported canonical grid.');
+        error.schemaCheck = { ok: false, errors: warnings, warnings: [] };
+        throw error;
+      }
+      const grid = gridResult.grid;
+      const sizeIn = getSizeInForGrid(grid);
+      const projectId = getCanonicalProjectId();
+      const proofRef = generateProofRef(projectId);
+      const canonicalPalette = normalizePaletteForDesignJson(state.palette, getBuildableColorLegend());
+      const blackBaseResult = resolveBlackBase(canonicalPalette, state.selected_photo_category, {});
+      warnings.push(...blackBaseResult.warnings);
+      const converted = convertCellMapToRowMajorIndexes(state.cell_map, canonicalPalette);
+      const proofStatus = state.project_saved ? 'requested' : 'preview';
+      const design = {
+        schema_version: 1.1,
+        project_id: projectId,
+        proof_ref: proofRef,
+        grid,
+        size_in: sizeIn,
+        sheet_profile: PRODUCTION_CONSTANTS_V1.default_profile,
+        palette_id: blackBaseResult.black_base ? 'heirloom_v1' : 'standard_v1',
+        palette: canonicalPalette.map(({ id, name, hex, index }) => ({ id, name, hex, index })),
+        cell_map: converted.cell_map,
+        black_base: blackBaseResult.black_base,
+        kit_format: state.material_intent === 'magnet' ? 'magnet' : 'sticker',
+        render_style: 'pixel_portrait',
+        pipeline_variant: state.mosaic_clean?.enabled === false ? 'classic' : 'enhanced',
+        photo_category: state.selected_photo_category || 'other',
+        proof_status: proofStatus,
+        production: {
+          derived_cache: true,
+          source: 'browser_adapter_v1',
+          expected_grid_cells: grid * grid,
+          color_count: canonicalPalette.length,
+          sheet_profile: PRODUCTION_CONSTANTS_V1.default_profile,
+          output_files_expected: [
+            'proof-preview.png',
+            'optimized-source.png',
+            'numbered-grid.svg',
+            'color-legend.html',
+            'proof-email-image.png',
+            'production.json',
+            'mosapack-design-v1.json'
+          ]
+        },
+        proof: {
+          output_version: state.version,
+          project_saved: state.project_saved,
+          preview_shape: state.preview_shape,
+          production_shape: state.production_shape,
+          recommended_output: state.recommended_output
+        },
+        output_files: [
+          'proof-preview.png',
+          'optimized-source.png',
+          'numbered-grid.svg',
+          'color-legend.html',
+          'proof-email-image.png',
+          'production.json',
+          'mosapack-design-v1.json'
+        ],
+        source: {
+          adapter_version: 'canonical-design-export-adapter-v1',
+          app_version: state.app_version,
+          unsaved_preview: !state.project_saved,
+          crop_state: state.crop_state,
+          render_settings: state.render_settings,
+          photo_suitability: state.photo_suitability,
+          mosaic_clean: state.mosaic_clean,
+          original_cell_ids: state.palette.map(({ id, name, hex }) => ({ id, name, hex })),
+          warnings
+        },
+        created_at: state.created_at
+      };
+      if (converted.errors.length) design.source.warnings.push(...converted.errors);
+      const schemaCheck = validateCanonicalDesignJson(design);
+      if (!schemaCheck.ok) {
+        const error = new Error(schemaCheck.errors.join(' '));
+        error.schemaCheck = schemaCheck;
+        throw error;
+      }
+      design.schema_check = schemaCheck;
+      return design;
+    }
+
+    function validateCanonicalDesignJson(design) {
+      const errors = [];
+      const warnings = [];
+      const supported = PRODUCTION_CONSTANTS_V1.supported_grids;
+      const commerceTerms = ['check' + 'out', 'pay' + 'ment', 'str' + 'ipe', 'shop' + 'ify', 'ord' + 'er'];
+      const bannedKeyPattern = new RegExp(commerceTerms.join('|'), 'i');
+      const scanValue = (value, path = '') => {
+        if (typeof value === 'string') {
+          if (/^data:/i.test(value)) errors.push(`Data URL is not allowed at ${path || 'root'}.`);
+          if (commerceTerms.some((term) => new RegExp(`\\b${term}\\b`, 'i').test(value))) {
+            errors.push(`Commerce text is not allowed at ${path || 'root'}.`);
+          }
+        } else if (Array.isArray(value)) {
+          value.forEach((entry, index) => scanValue(entry, `${path}[${index}]`));
+        } else if (value && typeof value === 'object') {
+          Object.entries(value).forEach(([key, entry]) => {
+            if (bannedKeyPattern.test(key)) errors.push(`Commerce field is not allowed: ${path ? `${path}.` : ''}${key}`);
+            scanValue(entry, path ? `${path}.${key}` : key);
+          });
+        }
+      };
+
+      if (!design || typeof design !== 'object') errors.push('Design must be an object.');
+      if (design?.schema_version !== 1.1) errors.push('schema_version must be 1.1.');
+      if (!design?.project_id || typeof design.project_id !== 'string') errors.push('project_id is required.');
+      if (!/^MP-[A-Z0-9]{4,8}$/.test(design?.proof_ref || '')) errors.push('proof_ref must match MP-XXXX.');
+      if (!supported.includes(design?.grid)) errors.push('grid must be 24, 32, or 48.');
+      if (supported.includes(design?.grid) && design?.size_in !== design.grid / 2) errors.push('size_in must equal grid / 2.');
+      if (!PRODUCTION_CONSTANTS_V1.sheet_profiles[design?.sheet_profile]) errors.push('sheet_profile is not defined in production constants.');
+      if (!Array.isArray(design?.palette) || !design.palette.length) errors.push('palette must be a non-empty array.');
+      const ids = new Set();
+      (design?.palette || []).forEach((color, index) => {
+        if (!color || typeof color !== 'object') errors.push(`palette[${index}] must be an object.`);
+        if (!/^[a-z0-9_]+$/.test(color?.id || '')) errors.push(`palette[${index}].id must be snake_case.`);
+        if (ids.has(color?.id)) errors.push(`palette id is duplicated: ${color.id}`);
+        ids.add(color?.id);
+        if (!/^#[0-9a-fA-F]{6}$/.test(color?.hex || '')) errors.push(`palette[${index}].hex must be #RRGGBB.`);
+      });
+      if (!Array.isArray(design?.cell_map)) errors.push('cell_map must be an array.');
+      if (Array.isArray(design?.cell_map) && supported.includes(design?.grid) && design.cell_map.length !== design.grid * design.grid) {
+        errors.push(`cell_map length ${design.cell_map.length} must equal grid * grid (${design.grid * design.grid}).`);
+      }
+      (design?.cell_map || []).forEach((value, index) => {
+        if (!Number.isInteger(value) || value < 0 || value >= (design.palette || []).length) {
+          errors.push(`cell_map[${index}] is outside palette range.`);
+        }
+      });
+      if (design?.black_base && !(design.palette || []).some((color) => color.id === PRODUCTION_CONSTANTS_V1.black_base.excluded_color_id)) {
+        errors.push('black_base requires ink_black palette entry.');
+      }
+      if (design?.source?.unsaved_preview) warnings.push('Canonical design export uses a local preview project_id until proof save returns storage project_id.');
+      if (design?.sheet_profile && PRODUCTION_CONSTANTS_V1.sheet_profiles[design.sheet_profile]?.verified === false) {
+        warnings.push(`${design.sheet_profile} is not production-verified yet.`);
+      }
+      scanValue(design);
+      return { ok: errors.length === 0, errors, warnings };
+    }
+
     function getBuildableProofState() {
       if (!processedData) return null;
       const timestamp = new Date().toISOString();
@@ -10032,6 +10337,14 @@
     function generateProductionJson() {
       const state = getBuildableProofState();
       if (!state) throw new Error('Generate a preview before exporting proof files.');
+      let canonicalDesign = null;
+      let canonicalCheck = null;
+      try {
+        canonicalDesign = generateCanonicalDesignJson();
+        canonicalCheck = canonicalDesign.schema_check;
+      } catch (error) {
+        canonicalCheck = error.schemaCheck || { ok: false, errors: [error.message || 'Canonical design export failed.'], warnings: [] };
+      }
       return {
         proof_output_version: 'buildable-proof-output-v1',
         project_id: state.project_id || null,
@@ -10061,8 +10374,11 @@
           'numbered-grid.svg',
           'color-legend.html',
           'proof-email-image.png',
-          'production.json'
+          'production.json',
+          'mosapack-design-v1.json'
         ],
+        canonical_design: canonicalDesign,
+        canonical_design_check: canonicalCheck,
         created_at: state.created_at
       };
     }
@@ -10160,6 +10476,9 @@
           downloadBuildableProofFile(`${base}-color-legend.html`, new Blob([generateColorLegendHtmlOrSvg()], { type: 'text/html;charset=utf-8' }));
         } else if (kind === 'production-json') {
           downloadBuildableProofFile(`${base}-production.json`, new Blob([JSON.stringify(generateProductionJson(), null, 2)], { type: 'application/json;charset=utf-8' }));
+        } else if (kind === 'canonical-design') {
+          const design = generateCanonicalDesignJson();
+          downloadBuildableProofFile('mosapack-design-v1.json', new Blob([JSON.stringify(design, null, 2)], { type: 'application/json;charset=utf-8' }));
         } else if (kind === 'proof-email-image') {
           downloadBuildableProofFile(`${base}-proof-email-image.png`, await generateProofEmailImage());
         }
@@ -10252,6 +10571,8 @@
       img.onload = function() {
         currentImage = img;
         processedData = null;
+        window.mosapackPreviewProjectId = '';
+        window.mosapackProofRef = '';
         hasAutoFitOnce = false;
 
         const tempCanvas = document.createElement('canvas');
@@ -13157,6 +13478,8 @@
         document.body.classList.remove('builder-has-photo', 'builder-has-preview');
         originalImageData = null;
         processedData = null;
+        window.mosapackPreviewProjectId = '';
+        window.mosapackProofRef = '';
         currentPreset = 'original';
         cropState = {
           imageNaturalWidth: 0,

@@ -135,6 +135,39 @@ Generated hosted QA files were written under:
 
 Generated hosted QA files were not committed.
 
+## Canonical Design Adapter Update
+
+Canonical Design Export Adapter v1 was added after Buildable Proof Output v1.
+
+New operator-only export:
+
+```text
+Download Canonical Design JSON
+```
+
+Output:
+
+```text
+mosapack-design-v1.json
+```
+
+The adapter emits schema-aligned design JSON for future generator input while preserving the existing proof-output `production.json` export.
+
+QA sample paths:
+
+```text
+/tmp/mosapack-canonical-design-export-qa/mosapack-design-v1.json
+/tmp/mosapack-canonical-design-export-hosted-qa/mosapack-design-v1.json
+```
+
+Hosted canonical adapter QA project ID:
+
+```text
+556e7d29-33b3-4d43-8f6c-600bb8a9ec21
+```
+
+The generator was not ported.
+
 ## Limitations
 
 - No server-side export function yet.

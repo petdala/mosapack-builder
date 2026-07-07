@@ -126,7 +126,7 @@ Production doctrine:
 - shared production constants are production physics truth
 - generator output is downstream rendering only
 
-Current Buildable Proof Output v1 `production.json` is an operator proof-export format. It does not yet match schema v1.1. See:
+Current Buildable Proof Output v1 `production.json` is an operator proof-export format. Canonical Design Export Adapter v1 now emits schema-aligned design JSON for future generator input. See:
 
 - `docs/mosapack/PRODUCTION_JSON_SCHEMA_DIFF_REPORT.md`
 - `docs/mosapack/PRODUCTION_JSON_ADAPTER_PLAN.md`
@@ -144,4 +144,35 @@ Current Buildable Proof Output v1 `production.json` is an operator proof-export 
 - 48x48 / 24-inch is made-to-order beta.
 - Magnets remain waitlist until material and supplier validation.
 
-Do not port the kit-pack generator until the schema adapter and Gate A evidence exist.
+Do not port the kit-pack generator into customer runtime. The next safe step is a local/operator generator port that consumes `mosapack-design-v1.json` and `config/production-constants.json`, followed by Gate A evidence.
+
+## Canonical Design Export Adapter v1
+
+Implemented operator-only export:
+
+```text
+Download Canonical Design JSON
+```
+
+Output filename:
+
+```text
+mosapack-design-v1.json
+```
+
+The adapter converts current proof state into:
+
+- schema version 1.1
+- internal `project_id`
+- customer-facing `proof_ref`
+- supported `grid`
+- `size_in`
+- `sheet_profile`
+- `palette_id`
+- stable palette objects
+- flat row-major integer `cell_map`
+- `black_base`
+- flexible `source`
+- derived/cache `production`
+
+Generated canonical JSON is local/operator download only and is not submitted through Netlify Forms.
