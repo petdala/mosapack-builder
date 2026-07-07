@@ -138,3 +138,24 @@ Do not move the generator into Netlify/runtime until:
 Current recommendation:
 
 Run Gate A alignment and 100-150 sticker physical sample validation using local PDFs generated from canonical design JSON and `config/production-constants.json`.
+
+## Fulfillment Mode Manifest Math
+
+The generator now supports manifest-only fulfillment math:
+
+- `printed_mixed_sheets` remains default.
+- `stock_color_sheets` is an internal math candidate.
+- `hybrid_stock_plus_topoff` is a future planning model.
+
+This does not change current canonical design schema v1.1 and does not add stock/hybrid PDF pages.
+
+Future schema v1.2 should add:
+
+- `cell_size_in`
+- `finished_size_in`
+- `fulfillment_mode`
+- `stock_sheet_plan`
+- `vendor_only`
+- `customer_buildable`
+
+Current adapter behavior remains unchanged for Gate A.

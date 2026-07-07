@@ -37,6 +37,14 @@ SUPPORTED_GRIDS = {24, 32, 48}
 COMMERCE_RE = re.compile(r"stripe|shopify|checkout|payment|order placed|payment received", re.I)
 CALIBRATION_Y_IN = 0.40
 FEED_FIDUCIAL_TOP_OFFSET_IN = 0.22
+FULFILLMENT_ALIASES = {
+    "printed_mixed": "printed_mixed_sheets",
+    "printed_mixed_sheets": "printed_mixed_sheets",
+    "stock": "stock_color_sheets",
+    "stock_color_sheets": "stock_color_sheets",
+    "hybrid": "hybrid_stock_plus_topoff",
+    "hybrid_stock_plus_topoff": "hybrid_stock_plus_topoff",
+}
 
 
 def repo_root() -> Path:
@@ -262,6 +270,13 @@ def compute_spares(counts: Counter[int], constants: dict[str, Any]) -> list[tupl
     return spares
 
 
+def normalize_fulfillment_mode(mode: str | None) -> str:
+    key = (mode or "printed_mixed").strip().lower().replace("-", "_")
+    if key not in FULFILLMENT_ALIASES:
+        raise ValueError(f"unsupported fulfillment mode: {mode}")
+    return FULFILLMENT_ALIASES[key]
+
+
 def compute_sheet_plan(design: dict[str, Any], constants: dict[str, Any]) -> dict[str, Any]:
     base_index = compute_black_base_exclusion(design, constants)
     sequence, section_ranges, section_size = build_sequence(design, constants, base_index)
@@ -285,6 +300,91 @@ def compute_sheet_plan(design: dict[str, Any], constants: dict[str, Any]) -> dic
         "total_stickers": len(sequence) + len(spares),
     }
     return plan
+
+
+def fulfillment_mode_constants(constants: dict[str, Any], mode: str) -> dict[str, Any]:
+    return constants.get("fulfillment_modes", {}).get(mode, {})
+
+
+def stock_sheet_row(color: dict[str, Any], placed: int, spare_rate: float, per_sheet: int) -> dict[str, Any]:
+    spares = math.ceil(placed * spare_rate)
+    needed = placed + spares
+    sheets = math.ceil(needed / per_sheet) if needed > 0 else 0
+    included = sheets * per_sheet
+    extras = included - needed
+    return {
+        "color_id": color["id"],
+        "color_name": color["name"],
+        "placed": placed,
+        "spares": spares,
+        "needed": needed,
+        "sheets": sheets,
+        "included": included,
+        "extras": extras,
+        "supplier_sku": None,
+        "pick_pack_label": f"{color['id']} - {color['name']}",
+    }
+
+
+def compute_fulfillment_plan(design: dict[str, Any], constants: dict[str, Any], plan: dict[str, Any], mode: str) -> dict[str, Any]:
+    canonical_mode = normalize_fulfillment_mode(mode)
+    per_sheet = int(plan["stickers_per_sheet"])
+    spare_rate = float(constants.get("spares", {}).get("rate", 0.05))
+    active_colors = [
+        color for color in design["palette"]
+        if int(plan["placed_counts"].get(color["index"], 0)) > 0
+    ]
+    stock_config = fulfillment_mode_constants(constants, "stock_color_sheets")
+    hybrid_config = fulfillment_mode_constants(constants, "hybrid_stock_plus_topoff")
+    stock_min = int(hybrid_config.get("stock_min_per_color_default", 150))
+    launch_cap = int(stock_config.get("max_palette_colors_launch_hint", 4))
+    customer_note = str(stock_config.get(
+        "customer_extra_note",
+        "Includes spare stickers in every color for mistakes, repairs, and finishing touches.",
+    ))
+    stock_plan = [
+        stock_sheet_row(color, int(plan["placed_counts"].get(color["index"], 0)), spare_rate, per_sheet)
+        for color in active_colors
+    ]
+    stock_total_sheets = sum(row["sheets"] for row in stock_plan)
+    stock_included = stock_total_sheets * per_sheet
+    needed_total = sum(row["needed"] for row in stock_plan)
+    stock_extras = stock_included - needed_total
+    warnings: list[str] = []
+    palette_color_count = len(active_colors)
+    if palette_color_count > launch_cap:
+        warnings.append(f"stock_color_sheets launch hint is {launch_cap} colors; active design uses {palette_color_count}")
+    average_placed = (plan["total_placed"] / palette_color_count) if palette_color_count else 0
+    if palette_color_count and average_placed < stock_min:
+        warnings.append(f"average placed per color is {average_placed:.1f}, below stock efficiency threshold {stock_min}")
+
+    hybrid_stock_plan = [row for row in stock_plan if row["needed"] >= stock_min]
+    hybrid_topoff_needed = sum(row["needed"] for row in stock_plan if row["needed"] < stock_min)
+    hybrid_topoff_sheets = math.ceil(hybrid_topoff_needed / per_sheet) if hybrid_topoff_needed > 0 else 0
+    hybrid_stock_sheets = sum(row["sheets"] for row in hybrid_stock_plan)
+    hybrid_total_sheets = hybrid_stock_sheets + hybrid_topoff_sheets
+
+    return {
+        "mode": canonical_mode,
+        "stickers_per_sheet": per_sheet,
+        "spare_rate": spare_rate,
+        "stock_min_per_color": stock_min,
+        "palette_color_count": palette_color_count,
+        "placed_total": plan["total_placed"],
+        "spares_total": plan["total_spares"],
+        "needed_total": plan["total_stickers"],
+        "printed_mixed_sheets": plan["printed_mixed_sheets"],
+        "stock_sheet_plan": stock_plan if canonical_mode == "stock_color_sheets" else [],
+        "stock_total_sheets": stock_total_sheets if canonical_mode == "stock_color_sheets" else 0,
+        "stock_included_stickers": stock_included if canonical_mode == "stock_color_sheets" else 0,
+        "stock_extras": stock_extras if canonical_mode == "stock_color_sheets" else 0,
+        "hybrid_stock_sheet_plan": hybrid_stock_plan if canonical_mode == "hybrid_stock_plus_topoff" else [],
+        "hybrid_topoff_needed": hybrid_topoff_needed if canonical_mode == "hybrid_stock_plus_topoff" else 0,
+        "hybrid_topoff_sheets": hybrid_topoff_sheets if canonical_mode == "hybrid_stock_plus_topoff" else 0,
+        "hybrid_total_sheets": hybrid_total_sheets if canonical_mode == "hybrid_stock_plus_topoff" else 0,
+        "customer_extra_note": customer_note if canonical_mode == "stock_color_sheets" else "",
+        "warnings": warnings if canonical_mode in ("stock_color_sheets", "hybrid_stock_plus_topoff") else [],
+    }
 
 
 def warn_on_production_mismatch(design: dict[str, Any], plan: dict[str, Any]) -> list[str]:
@@ -312,6 +412,7 @@ def build_manifest(
     page_h: float,
     gate_a: bool,
     bleed_values_used: list[float],
+    fulfillment: dict[str, Any],
     warnings: list[str],
     palette_warnings: list[str],
     mismatch_warnings: list[str],
@@ -354,6 +455,7 @@ def build_manifest(
         "sheet_count": plan["printed_mixed_sheets"],
         "gate_a_mode": gate_a,
         "bleed_values_used": bleed_values_used,
+        "fulfillment": fulfillment,
         "calibration": {
             "horizontal_bar": True,
             "horizontal_bar_length_in": 1.0,
@@ -676,11 +778,14 @@ def render_pdf(
     constants_path: str | Path,
     bleed_override: float | None = None,
     gate_a: bool = False,
+    fulfillment_mode: str = "printed_mixed",
     write_manifest_file: bool = True,
 ) -> dict[str, Any]:
     profile = constants["sheet_profiles"][design["sheet_profile"]]
     page_w, page_h = page_size_for(profile)
     plan = compute_sheet_plan(design, constants)
+    canonical_fulfillment_mode = normalize_fulfillment_mode(fulfillment_mode)
+    fulfillment = compute_fulfillment_plan(design, constants, plan, canonical_fulfillment_mode)
     mismatch_warnings = warn_on_production_mismatch(design, plan)
     palette_warnings = palette_drift_warnings(design, constants)
     warnings = list(warnings) + mismatch_warnings + palette_warnings
@@ -713,6 +818,7 @@ def render_pdf(
         page_h,
         gate_a,
         bleed_values_used,
+        fulfillment,
         warnings,
         palette_warnings,
         mismatch_warnings,
@@ -730,6 +836,7 @@ def render_pdf(
         "spares": plan["total_spares"],
         "sheets": plan["printed_mixed_sheets"],
         "gate_a_mode": gate_a,
+        "fulfillment_mode": canonical_fulfillment_mode,
         "bleed_values_used": bleed_values_used,
         "warnings": warnings,
     }
@@ -742,6 +849,7 @@ def generate(
     *,
     bleed_override: float | None = None,
     gate_a: bool = False,
+    fulfillment_mode: str = "printed_mixed",
     write_manifest_file: bool = True,
 ) -> dict[str, Any]:
     resolved_constants_path = Path(constants_path) if constants_path else default_constants_path()
@@ -757,6 +865,7 @@ def generate(
         constants_path=resolved_constants_path,
         bleed_override=bleed_override,
         gate_a=gate_a,
+        fulfillment_mode=fulfillment_mode,
         write_manifest_file=write_manifest_file,
     )
 
@@ -768,6 +877,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--constants", default=None, help="Production constants JSON path")
     parser.add_argument("--bleed", type=float, default=None, help="Override bleed in inches for normal output")
     parser.add_argument("--gate-a", action="store_true", help="Generate Gate A validation PDF with sheet 1 at 0.03in and 0.05in bleed")
+    parser.add_argument("--fulfillment", default="printed_mixed", choices=sorted(FULFILLMENT_ALIASES), help="Manifest-only fulfillment math mode")
     parser.add_argument("--no-manifest", action="store_true", help="Do not emit sidecar manifest JSON")
     return parser.parse_args(argv)
 
@@ -781,6 +891,7 @@ def main(argv: list[str] | None = None) -> int:
             args.constants,
             bleed_override=args.bleed,
             gate_a=args.gate_a,
+            fulfillment_mode=args.fulfillment,
             write_manifest_file=not args.no_manifest,
         )
     except Exception as exc:

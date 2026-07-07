@@ -13,6 +13,12 @@ OUT_PDF="$OUT_DIR/first-hello-kit.pdf"
 OUT_MANIFEST="$OUT_DIR/first-hello-kit.manifest.json"
 GATE_A_PDF="$OUT_DIR/first-hello-gate-a.pdf"
 GATE_A_MANIFEST="$OUT_DIR/first-hello-gate-a.manifest.json"
+MIXED_PDF="$OUT_DIR/first-hello-mixed.pdf"
+MIXED_MANIFEST="$OUT_DIR/first-hello-mixed.manifest.json"
+STOCK_PDF="$OUT_DIR/first-hello-stock.pdf"
+STOCK_MANIFEST="$OUT_DIR/first-hello-stock.manifest.json"
+HYBRID_PDF="$OUT_DIR/first-hello-hybrid.pdf"
+HYBRID_MANIFEST="$OUT_DIR/first-hello-hybrid.manifest.json"
 FAIL=0
 
 require_file() {
@@ -48,38 +54,37 @@ then
 fi
 
 mkdir -p "$OUT_DIR"
-rm -f "$OUT_PDF" "$OUT_MANIFEST" "$GATE_A_PDF" "$GATE_A_MANIFEST"
+rm -f "$OUT_PDF" "$OUT_MANIFEST" "$GATE_A_PDF" "$GATE_A_MANIFEST" "$MIXED_PDF" "$MIXED_MANIFEST" "$STOCK_PDF" "$STOCK_MANIFEST" "$HYBRID_PDF" "$HYBRID_MANIFEST"
 python3 "$GENERATOR" "$SAMPLE" "$OUT_PDF" --constants "$CONSTANTS"
+python3 "$GENERATOR" "$SAMPLE" "$MIXED_PDF" --constants "$CONSTANTS" --fulfillment printed_mixed
+python3 "$GENERATOR" "$SAMPLE" "$STOCK_PDF" --constants "$CONSTANTS" --fulfillment stock
+python3 "$GENERATOR" "$SAMPLE" "$HYBRID_PDF" --constants "$CONSTANTS" --fulfillment hybrid
 python3 "$GENERATOR" "$SAMPLE" "$GATE_A_PDF" --constants "$CONSTANTS" --gate-a
 
-if [ ! -s "$OUT_PDF" ]; then
-  echo "MISSING: generated PDF is empty or absent"
-  exit 1
-fi
-if [ ! -s "$GATE_A_PDF" ]; then
-  echo "MISSING: generated Gate A PDF is empty or absent"
-  exit 1
-fi
-if [ ! -s "$OUT_MANIFEST" ]; then
-  echo "MISSING: normal manifest is empty or absent"
-  exit 1
-fi
-if [ ! -s "$GATE_A_MANIFEST" ]; then
-  echo "MISSING: Gate A manifest is empty or absent"
-  exit 1
-fi
+for generated in "$OUT_PDF" "$MIXED_PDF" "$STOCK_PDF" "$HYBRID_PDF" "$GATE_A_PDF" "$OUT_MANIFEST" "$MIXED_MANIFEST" "$STOCK_MANIFEST" "$HYBRID_MANIFEST" "$GATE_A_MANIFEST"; do
+  if [ ! -s "$generated" ]; then
+    echo "MISSING: generated file is empty or absent: $generated"
+    exit 1
+  fi
+done
 
-python3 - "$OUT_MANIFEST" "$GATE_A_MANIFEST" <<'PY'
+python3 - "$OUT_MANIFEST" "$GATE_A_MANIFEST" "$MIXED_MANIFEST" "$STOCK_MANIFEST" "$HYBRID_MANIFEST" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 normal_path = Path(sys.argv[1])
 gate_path = Path(sys.argv[2])
+mixed_path = Path(sys.argv[3])
+stock_path = Path(sys.argv[4])
+hybrid_path = Path(sys.argv[5])
 normal = json.loads(normal_path.read_text())
 gate = json.loads(gate_path.read_text())
+mixed = json.loads(mixed_path.read_text())
+stock = json.loads(stock_path.read_text())
+hybrid = json.loads(hybrid_path.read_text())
 
-for label, manifest in (("normal", normal), ("gate_a", gate)):
+for label, manifest in (("normal", normal), ("gate_a", gate), ("mixed", mixed), ("stock", stock), ("hybrid", hybrid)):
     for key in ("proof_ref", "project_id", "sheet_profile", "total_placed_stickers", "total_spares", "total_stickers"):
         if key not in manifest:
             raise SystemExit(f"{label} manifest missing {key}")
@@ -109,10 +114,35 @@ fiducials = gate.get("feed_fiducials", {})
 if fiducials.get("y_from_top_in", 0) < 0.22:
     raise SystemExit("Gate A feed/skew fiducials are too close to top trim")
 
+if normal.get("fulfillment", {}).get("mode") != "printed_mixed_sheets":
+    raise SystemExit("default manifest fulfillment mode should be printed_mixed_sheets")
+if mixed.get("fulfillment", {}).get("mode") != "printed_mixed_sheets":
+    raise SystemExit("printed_mixed manifest fulfillment mode mismatch")
+if stock.get("fulfillment", {}).get("mode") != "stock_color_sheets":
+    raise SystemExit("stock manifest fulfillment mode mismatch")
+if hybrid.get("fulfillment", {}).get("mode") != "hybrid_stock_plus_topoff":
+    raise SystemExit("hybrid manifest fulfillment mode mismatch")
+if not stock.get("fulfillment", {}).get("stock_sheet_plan"):
+    raise SystemExit("stock manifest missing stock_sheet_plan")
+if stock.get("fulfillment", {}).get("stock_total_sheets", 0) <= 0:
+    raise SystemExit("stock manifest missing stock_total_sheets")
+if stock.get("fulfillment", {}).get("stock_extras", -1) < 0:
+    raise SystemExit("stock manifest missing stock_extras")
+if "customer_extra_note" not in stock.get("fulfillment", {}):
+    raise SystemExit("stock manifest missing customer_extra_note")
+if "warnings" not in stock.get("fulfillment", {}):
+    raise SystemExit("stock manifest missing warnings")
+if "hybrid_stock_sheet_plan" not in hybrid.get("fulfillment", {}):
+    raise SystemExit("hybrid manifest missing hybrid_stock_sheet_plan")
+if "hybrid_topoff_sheets" not in hybrid.get("fulfillment", {}):
+    raise SystemExit("hybrid manifest missing hybrid_topoff_sheets")
+if "hybrid_total_sheets" not in hybrid.get("fulfillment", {}):
+    raise SystemExit("hybrid manifest missing hybrid_total_sheets")
+
 print("Manifest checks passed.")
 PY
 
-python3 - "$OUT_PDF" "$GATE_A_PDF" <<'PY'
+python3 - "$OUT_PDF" "$GATE_A_PDF" "$MIXED_PDF" "$STOCK_PDF" "$HYBRID_PDF" <<'PY'
 import sys
 from pathlib import Path
 
@@ -129,6 +159,8 @@ for pdf_path in pdf_paths:
         raise SystemExit(f"{pdf_path} has no pages")
     if pdf_path.name == "first-hello-gate-a.pdf" and len(reader.pages) != 5:
         raise SystemExit("Gate A PDF must have exactly 5 pages")
+    if pdf_path.name in ("first-hello-mixed.pdf", "first-hello-stock.pdf", "first-hello-hybrid.pdf") and len(reader.pages) != 5:
+        raise SystemExit(f"{pdf_path} should remain the normal 5-page PDF; fulfillment mode must not add pages")
     text = "\n".join((page.extract_text() or "") for page in reader.pages[:5])
     for needle in (
         "MosaPack",

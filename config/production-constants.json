@@ -39,6 +39,38 @@
     }
   },
   "default_profile": "OL2050",
+  "fulfillment_modes": {
+    "printed_mixed_sheets": {
+      "status": "implemented",
+      "default": true,
+      "description": "Custom per-design mixed sheets ordered by build sequence.",
+      "best_for": [
+        "premium",
+        "high-color",
+        "fine-control",
+        "made-to-order"
+      ]
+    },
+    "stock_color_sheets": {
+      "status": "internal_math_candidate",
+      "default": false,
+      "description": "Full pre-approved color sheets per palette color; extras included.",
+      "best_for": [
+        "low-color starter kits",
+        "supplier conversations",
+        "possible grayscale/simple kits"
+      ],
+      "max_palette_colors_launch_hint": 4,
+      "waste_warning": "Pure stock becomes inefficient when average placed per color is below about 150.",
+      "customer_extra_note": "Includes spare stickers in every color for mistakes, repairs, and finishing touches."
+    },
+    "hybrid_stock_plus_topoff": {
+      "status": "future",
+      "default": false,
+      "description": "Stock sheets for high-count colors plus mixed top-off sheet for rare colors.",
+      "stock_min_per_color_default": 150
+    }
+  },
   "print": {
     "bleed_in": 0.03,
     "bleed_escalation_in": 0.05,

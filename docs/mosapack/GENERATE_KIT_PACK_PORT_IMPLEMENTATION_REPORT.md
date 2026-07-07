@@ -124,8 +124,13 @@ Normal output also supports:
 ```text
 --bleed 0.03
 --bleed 0.05
+--fulfillment printed_mixed
+--fulfillment stock
+--fulfillment hybrid
 --no-manifest
 ```
+
+`--fulfillment` is manifest math only. It does not add stock/hybrid PDF pages and does not change Gate A rendering.
 
 ## QA Outputs
 
@@ -174,6 +179,10 @@ Verified:
 - output PDF text includes `Measure me: 1.000 in`
 - output PDF text includes `Vertical check: 1.000 in`
 - output PDF text includes `feed/skew fiducials`
+- default fulfillment manifest mode is `printed_mixed_sheets`
+- stock fulfillment manifest includes `stock_sheet_plan`
+- hybrid fulfillment manifest includes hybrid stock/top-off fields
+- stock and hybrid PDFs remain the same 5-page normal operator PDF shape
 
 `pdftoppm` is not available in this environment. Gate A page previews were rendered with macOS Quick Look after splitting the relevant PDF pages.
 
@@ -191,6 +200,8 @@ Verified:
 - No supplier API integration.
 - No ZIP packet generation.
 - No physical sample evidence yet.
+- Stock and hybrid fulfillment modes are manifest math only.
+- Fine-cell profiles are documented only and are not implemented in the generator.
 
 ## Production Recommendation
 

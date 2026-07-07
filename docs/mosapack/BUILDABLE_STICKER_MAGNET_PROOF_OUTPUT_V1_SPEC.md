@@ -204,3 +204,40 @@ The generated PDF includes:
 - build guide / section map
 
 The PDF is an operator QA artifact. It is not a customer order document and does not imply production approval.
+
+## Fulfillment Modes
+
+Current v1 fulfillment default:
+
+```text
+printed_mixed_sheets
+```
+
+The local generator now supports manifest-only math for:
+
+- `printed_mixed_sheets`
+- `stock_color_sheets`
+- `hybrid_stock_plus_topoff`
+
+Stock and hybrid modes do not add PDF pages and are not customer-facing options. They exist to support supplier conversations and internal fulfillment economics.
+
+Related docs:
+
+- `docs/mosapack/FULFILLMENT_MODES_V1.md`
+- `docs/mosapack/STOCK_COLOR_SHEET_MATH_MODEL.md`
+
+## Cell Size Profiles
+
+Current runtime assumption:
+
+```text
+cell_size_in = 0.5
+size_in == grid / 2
+```
+
+Fine-cell profiles are documented but not implemented:
+
+- `fine_12`: 32x32 at 0.375in
+- `micro_12`: 48x48 at 0.25in
+
+These remain vendor/POD-only future profiles until physical evidence proves they are peelable and placeable.

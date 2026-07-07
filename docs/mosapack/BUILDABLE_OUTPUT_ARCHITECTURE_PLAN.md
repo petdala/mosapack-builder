@@ -130,6 +130,14 @@ Gate A QA outputs:
 /tmp/mosapack-gate-a-pdf-qa-v2/
 ```
 
+Fulfillment mode manifest math now supports:
+
+- `printed_mixed_sheets` as the default and current output path
+- `stock_color_sheets` as an internal math candidate
+- `hybrid_stock_plus_topoff` as a future target
+
+Stock and hybrid modes do not add PDF pages and do not change Gate A output. They only add manifest economics for supplier and fulfillment planning.
+
 ## Schema/Constants Reconciliation
 
 Draft production constants and canonical design schema now live at:
@@ -161,6 +169,15 @@ Architecture rule:
 - 16-inch Gallery is a premium proof option.
 - 24-inch Signature remains made-to-order beta.
 - Magnets remain waitlist until material validation.
+
+## Future Cell-Size Profiles
+
+Cell-size profiles are documented but not implemented in runtime output.
+
+- Gate A remains `OL2050 / 0.5in`.
+- `0.375in` cells are vendor-first and physically unproven.
+- `0.25in` cells are vendor-only and deferred.
+- Smaller cell options must not be public until peel/place evidence exists.
 
 ## Gate A Print Order
 

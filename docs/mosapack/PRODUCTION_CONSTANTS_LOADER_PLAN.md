@@ -44,6 +44,8 @@ The generator should import constants for:
 - black-base exclusion
 - board tokens
 - launch SKU metadata
+- fulfillment mode metadata
+- future cell-size profile metadata
 
 It must not hard-code OL2050 values.
 
@@ -106,3 +108,31 @@ It must not be used for production until geometry, material, printer, and cut be
 ## Loader Recommendation
 
 Use the validation script for now. Add a shared JS loader only when the builder or adapter begins importing constants at runtime. Add a Python loader when the generator is ported.
+
+## Fulfillment Mode Constants
+
+`config/production-constants.json` now documents:
+
+- `printed_mixed_sheets`
+- `stock_color_sheets`
+- `hybrid_stock_plus_topoff`
+
+These constants are used for manifest math only. They do not imply a production-ready stock-sheet workflow and do not alter Gate A output.
+
+Loader v1.2 should validate:
+
+- exactly one default fulfillment mode
+- stock mode launch color cap
+- hybrid stock threshold
+- customer extra note text
+
+## Future Cell-Size Constants
+
+Cell-size profiles are documented, not implemented in runtime constants yet.
+
+Schema v1.2 should later add:
+
+- `cell_size_in`
+- `finished_size_in`
+- `vendor_only`
+- `customer_buildable`

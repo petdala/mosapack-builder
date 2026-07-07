@@ -123,8 +123,17 @@ Manifest includes:
 - warnings
 - palette drift warnings
 - stored production mismatch warnings
+- fulfillment mode math
 
 For black-base designs, `ink_black` remains in the `cell_map` and manifest, while the sticker sequence omits only excluded base cells.
+
+Fulfillment modes are manifest math only:
+
+- `printed_mixed_sheets` remains default.
+- `stock_color_sheets` can be generated with `--fulfillment stock`.
+- `hybrid_stock_plus_topoff` can be generated with `--fulfillment hybrid`.
+
+These modes do not add stock/hybrid PDF pages and do not change Gate A page count or bleed comparison.
 
 ## Palette Validation
 

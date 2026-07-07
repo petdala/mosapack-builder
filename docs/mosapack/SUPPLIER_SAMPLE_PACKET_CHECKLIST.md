@@ -59,6 +59,35 @@ Only after plain-paper and label-stock Gate A checks pass, prepare:
 - numbered grid / build guide
 - notes on selected bleed and sheet profile
 
+## Stock Color Sheet Supplier Questions
+
+- Can you print-on-demand full solid-color `0.5in` sticker sheets per order?
+- Or is full-color-sheet fulfillment inventory/pick-pack only?
+- What is cost per solid-color sheet vs custom mixed sheet?
+- Can you label sheets by color ID/name?
+- Can you package full color sheets per order?
+- Can you provide sample sheets for a fixed 4, 6, or 8 color palette?
+- Can you store client-owned preprinted stock?
+- Do you charge storage fees?
+- Do you charge pick/pack fees?
+- Can you create a numbered board/map?
+- Do you support mixed top-off sheets for rare colors?
+- Can stock sheets and top-off sheets be packed together?
+
+## Fine Cell Supplier Questions
+
+- Can you produce `0.375in` rounded-square stickers?
+- Can you produce `0.25in` rounded-square stickers?
+- What is your minimum kiss-cut size?
+- What is your minimum safe gap?
+- What registration tolerance can you hold?
+- Are small cells peelable by hand?
+- Can customers place these manually?
+- What material options are available at 0.375in and 0.25in?
+- Can small-cell sheets be packaged by color or section?
+- What are MOQ and sample costs for small-cell sheets?
+- Do you offer vendor assembly, transfer film, or pre-mounted panels?
+
 ## Warnings
 
 - `OL2050` remains unverified until Gate A passes.
