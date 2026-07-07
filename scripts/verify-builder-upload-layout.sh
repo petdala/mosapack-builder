@@ -37,7 +37,12 @@ if grep -Ei "checkout started|order placed|shipping promise|supplier api" "$BUIL
   fail "forbidden checkout/order/supplier language found"
 fi
 
-grep -q "Proof Export Tools" "$BUILDER" || fail "Proof Export Tools missing"
+grep -q "operatorToolsMount" "$BUILDER" || fail "operator tools mount missing"
+grep -q "function mountOperatorTools" "$BUILDER" || fail "ops-only operator tools renderer missing"
+grep -q "textFromParts(\\['Proof', 'Export', 'Tools'\\])" "$BUILDER" || fail "proof export tools runtime label assembly missing"
+if grep -q "Proof Export Tools\\|Advanced Tools\\|Mosaic Clean\\|Production JSON\\|Canonical Design JSON" "$BUILDER"; then
+  fail "operator/export labels must not be statically present"
+fi
 grep -q "/.netlify/functions/save-project" "$BUILDER" || fail "save-project reference missing"
 grep -q "project_id" "$BUILDER" || fail "project_id missing"
 grep -q "designStorageConsent" "$BUILDER" || fail "designStorageConsent missing"

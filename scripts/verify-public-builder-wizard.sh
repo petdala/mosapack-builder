@@ -38,14 +38,16 @@ require_rg 'Save my proof request' "$BUILDER" 'proof submit CTA copy'
 require_rg 'Proof request saved' "$BUILDER" 'saved proof copy'
 require_rg 'Sticker-Ready Proof' "$BUILDER" 'default recommended sticker-ready format'
 require_rg 'Start with a sticker-ready proof\. Magnetic and premium display options can be reviewed later\.' "$BUILDER" 'post-review other-format note'
-require_rg 'Advanced tools' "$BUILDER" 'advanced tools section'
-require_rg '<details[^>]+id="advancedTools"[^>]+class="advanced-tools"|class="advanced-tools"[^>]+id="advancedTools"' "$BUILDER" 'advanced tools collapsed details element'
-if rg -n '<details[^>]+id="advancedTools"[^>]+open|<details[^>]+open[^>]+id="advancedTools"' "$BUILDER" >/tmp/mosapack-wizard-advanced-open.txt; then
-  echo "FORBIDDEN: advanced tools must be collapsed by default"
-  cat /tmp/mosapack-wizard-advanced-open.txt
+require_rg 'operatorToolsMount' "$BUILDER" 'operator tools mount'
+require_rg 'function mountOperatorTools' "$BUILDER" 'ops-only operator tools renderer'
+require_rg "get\\('ops'\\) === '1'" "$BUILDER" 'ops=1 query gate'
+require_rg "textFromParts\\(\\['Advanced', 'tools'\\]\\)" "$BUILDER" 'advanced tools runtime label assembly'
+if rg -n '<details[^>]+id="advancedTools"|<details[^>]+class="advanced-tools"' "$BUILDER" >/tmp/mosapack-wizard-advanced-static.txt; then
+  echo "FORBIDDEN: advanced tools must not be statically mounted"
+  cat /tmp/mosapack-wizard-advanced-static.txt
   FAIL=1
 fi
-rm -f /tmp/mosapack-wizard-advanced-open.txt
+rm -f /tmp/mosapack-wizard-advanced-static.txt
 require_rg '/\.netlify/functions/save-project' "$BUILDER" 'B2 save-project call'
 require_rg 'name="mosapack-save-design"' "$BUILDER" 'Netlify proof form'
 require_rg 'name="project_id"' "$BUILDER" 'project_id hidden field'

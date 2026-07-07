@@ -35,13 +35,25 @@ require_rg 'function generateColorLegendHtmlOrSvg' "$BUILDER" 'color legend help
 require_rg 'function generateProductionJson' "$BUILDER" 'production JSON helper'
 require_rg 'function generateProofEmailImage' "$BUILDER" 'proof email image helper'
 require_rg 'function downloadBuildableProofFile' "$BUILDER" 'proof export download helper'
-require_rg 'Proof Export Tools' "$BUILDER" 'operator export UI label'
+require_rg 'operatorToolsMount' "$BUILDER" 'operator tools mount'
+require_rg 'function mountOperatorTools' "$BUILDER" 'ops-only proof export renderer'
+require_rg "get\\('ops'\\) === '1'" "$BUILDER" 'ops=1 query gate'
+require_rg "textFromParts\\(\\['Proof', 'Export', 'Tools'\\]\\)" "$BUILDER" 'operator export UI runtime label assembly'
+require_rg "textFromParts\\(\\['Download', 'Production', 'JSON'\\]\\)" "$BUILDER" 'production JSON runtime label assembly'
+require_rg "textFromParts\\(\\['Download', 'Canonical', 'Design', 'JSON'\\]\\)" "$BUILDER" 'canonical design JSON runtime label assembly'
 require_rg 'Generate buildable proof files for manual review\. Not shown to customers by default\.' "$BUILDER" 'operator export helper copy'
 
-if ! perl -0ne 'exit(/<details[^>]+id="advancedTools"[\s\S]*?Proof Export Tools[\s\S]*?<\/details>/ ? 0 : 1)' "$BUILDER"; then
-  echo "MISSING: Proof Export Tools must live inside collapsed Advanced tools"
+if ! perl -0ne 'exit(/function\s+mountOperatorTools[\s\S]*?details\.appendChild\(summary\)[\s\S]*?exportSection\.className = '\''proof-export-tools'\''[\s\S]*?body\.appendChild\(exportSection\)[\s\S]*?details\.appendChild\(body\)/ ? 0 : 1)' "$BUILDER"; then
+  echo "MISSING: Proof Export Tools must be mounted inside ops-only Advanced tools"
   FAIL=1
 fi
+
+if rg -n '<section[^>]+class="proof-export-tools"|<details[^>]+class="advanced-tools"' "$BUILDER" >/tmp/mosapack-buildable-proof-static.txt; then
+  echo "FORBIDDEN: proof export/advanced tools must not be statically mounted"
+  cat /tmp/mosapack-buildable-proof-static.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-buildable-proof-static.txt
 
 if perl -0ne 'if (/<section class="post-preview-flow"[\s\S]*?<\/section>/) { exit(index($&, "Proof Export Tools") >= 0 ? 0 : 1) } exit 1' "$BUILDER"; then
   echo "FORBIDDEN: Proof Export Tools must not be in main public proof flow"

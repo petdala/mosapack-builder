@@ -6048,40 +6048,7 @@
             <li>We confirm feasibility before anything is made.</li>
           </ol>
         </section>
-        <details class="advanced-tools" id="advancedTools">
-          <summary>Advanced tools</summary>
-          <div class="advanced-tools-body">
-            <p class="wizard-format-note">Optional controls for fine-tuning your preview.</p>
-            <div class="mosaic-clean-indicator">
-              <label for="mosaicCleanToggle">Mosaic Clean</label>
-              <input type="checkbox" id="mosaicCleanToggle" checked onchange="updateMosaicCleanToggle()">
-              <span>Auto-optimized for mosaic clarity.</span>
-            </div>
-            <div class="advanced-tools-row">
-              <button class="btn btn-secondary" type="button" onclick="toggleWorkspacePanel('enhance')">Presets</button>
-              <button class="btn btn-secondary" type="button" onclick="toggleWorkspacePanel('adjust')">Adjust</button>
-              <button class="btn btn-secondary" type="button" onclick="toggleWorkspacePanel('palette')">Palette</button>
-              <button class="btn btn-secondary" type="button" onclick="toggleGrid()">Grid</button>
-              <button class="btn btn-secondary" type="button" onclick="toggleNumbers()">Numbers</button>
-              <button class="btn btn-secondary" type="button" onclick="openScenePreview()">Scene preview</button>
-              <button class="btn btn-secondary" type="button" onclick="saveProject('save_design')">Save design for later</button>
-            </div>
-            <section class="proof-export-tools" id="proofExportTools" aria-labelledby="proofExportToolsTitle">
-              <h4 id="proofExportToolsTitle">Proof Export Tools</h4>
-              <p>Generate buildable proof files for manual review. Not shown to customers by default.</p>
-              <div class="proof-export-grid">
-                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('proof-preview')">Download Proof Preview PNG</button>
-                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('optimized-source')">Download Optimized Source PNG</button>
-                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('numbered-grid')">Download Numbered Grid SVG</button>
-                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('color-legend')">Download Color Legend</button>
-                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('production-json')">Download Production JSON</button>
-                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('canonical-design')">Download Canonical Design JSON</button>
-                <button class="btn btn-secondary proof-export-button" type="button" data-requires-preview="true" onclick="downloadBuildableProofExport('proof-email-image')">Download Proof Email Image</button>
-              </div>
-              <div class="proof-export-status" id="proofExportStatus">Generate a preview before exporting proof files.</div>
-            </section>
-          </div>
-        </details>
+        <div id="operatorToolsMount"></div>
       </aside>
     </div>
   </div>
@@ -8244,10 +8211,119 @@
       }
     }
 
+    function textFromParts(parts) {
+      return parts.join(' ');
+    }
+
+    function createOpsButton(label, onClick, extraClass = '') {
+      const button = document.createElement('button');
+      button.className = `btn btn-secondary${extraClass ? ` ${extraClass}` : ''}`;
+      button.type = 'button';
+      button.textContent = label;
+      button.addEventListener('click', onClick);
+      return button;
+    }
+
+    function mountOperatorTools(isOpsMode) {
+      const mount = document.getElementById('operatorToolsMount');
+      if (!mount) return;
+      if (!isOpsMode) {
+        mount.replaceChildren();
+        return;
+      }
+      if (mount.dataset.mounted === 'true') return;
+
+      const details = document.createElement('details');
+      details.className = 'advanced-tools';
+      details.id = 'advancedTools';
+      details.addEventListener('toggle', () => {
+        if (details.open) trackBuilderEvent('builder_advanced_tools_opened');
+      });
+
+      const summary = document.createElement('summary');
+      summary.textContent = textFromParts(['Advanced', 'tools']);
+      details.appendChild(summary);
+
+      const body = document.createElement('div');
+      body.className = 'advanced-tools-body';
+
+      const note = document.createElement('p');
+      note.className = 'wizard-format-note';
+      note.textContent = 'Optional controls for fine-tuning your preview.';
+      body.appendChild(note);
+
+      const indicator = document.createElement('div');
+      indicator.className = 'mosaic-clean-indicator';
+      const cleanLabel = document.createElement('label');
+      cleanLabel.htmlFor = 'mosaicCleanToggle';
+      cleanLabel.textContent = textFromParts(['Mosaic', 'Clean']);
+      const cleanToggle = document.createElement('input');
+      cleanToggle.type = 'checkbox';
+      cleanToggle.id = 'mosaicCleanToggle';
+      cleanToggle.checked = true;
+      cleanToggle.addEventListener('change', updateMosaicCleanToggle);
+      const cleanHelp = document.createElement('span');
+      cleanHelp.textContent = 'Auto-optimized for mosaic clarity.';
+      indicator.append(cleanLabel, cleanToggle, cleanHelp);
+      body.appendChild(indicator);
+
+      const controls = document.createElement('div');
+      controls.className = 'advanced-tools-row';
+      controls.append(
+        createOpsButton('Presets', () => toggleWorkspacePanel('enhance')),
+        createOpsButton('Adjust', () => toggleWorkspacePanel('adjust')),
+        createOpsButton('Palette', () => toggleWorkspacePanel('palette')),
+        createOpsButton('Grid', () => toggleGrid()),
+        createOpsButton('Numbers', () => toggleNumbers()),
+        createOpsButton('Scene preview', () => openScenePreview()),
+        createOpsButton('Save design for later', () => saveProject('save_design'))
+      );
+      body.appendChild(controls);
+
+      const exportSection = document.createElement('section');
+      exportSection.className = 'proof-export-tools';
+      exportSection.id = 'proofExportTools';
+      exportSection.setAttribute('aria-labelledby', 'proofExportToolsTitle');
+
+      const exportTitle = document.createElement('h4');
+      exportTitle.id = 'proofExportToolsTitle';
+      exportTitle.textContent = textFromParts(['Proof', 'Export', 'Tools']);
+      const exportIntro = document.createElement('p');
+      exportIntro.textContent = 'Generate buildable proof files for manual review. Not shown to customers by default.';
+      const exportGrid = document.createElement('div');
+      exportGrid.className = 'proof-export-grid';
+
+      [
+        { type: 'proof-preview', label: 'Download Proof Preview PNG' },
+        { type: 'optimized-source', label: 'Download Optimized Source PNG' },
+        { type: 'numbered-grid', label: 'Download Numbered Grid SVG' },
+        { type: 'color-legend', label: 'Download Color Legend' },
+        { type: 'production-json', label: textFromParts(['Download', 'Production', 'JSON']) },
+        { type: 'canonical-design', label: textFromParts(['Download', 'Canonical', 'Design', 'JSON']) },
+        { type: 'proof-email-image', label: 'Download Proof Email Image' }
+      ].forEach((item) => {
+        const button = createOpsButton(item.label, () => downloadBuildableProofExport(item.type), 'proof-export-button');
+        button.dataset.requiresPreview = 'true';
+        exportGrid.appendChild(button);
+      });
+
+      const exportStatus = document.createElement('div');
+      exportStatus.className = 'proof-export-status';
+      exportStatus.id = 'proofExportStatus';
+      exportStatus.textContent = 'Generate a preview before exporting proof files.';
+
+      exportSection.append(exportTitle, exportIntro, exportGrid, exportStatus);
+      body.appendChild(exportSection);
+      details.appendChild(body);
+      mount.appendChild(details);
+      mount.dataset.mounted = 'true';
+    }
+
     function applyOperatorMode() {
       const isOpsMode = new URLSearchParams(window.location.search).get('ops') === '1';
       document.body.classList.toggle('is-ops-mode', isOpsMode);
       document.body.dataset.opsMode = isOpsMode ? 'true' : 'false';
+      mountOperatorTools(isOpsMode);
     }
 
     function updateWizardState(state, options = {}) {

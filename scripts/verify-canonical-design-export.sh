@@ -53,7 +53,7 @@ require_rg 'function convertCellMapToRowMajorIndexes' "$BUILDER" 'cell map row-m
 require_rg 'function resolveBlackBase' "$BUILDER" 'black-base resolver'
 require_rg 'function generateCanonicalDesignJson' "$BUILDER" 'canonical design JSON generator'
 require_rg 'function validateCanonicalDesignJson' "$BUILDER" 'canonical design JSON validator'
-require_rg 'Download Canonical Design JSON' "$BUILDER" 'operator export button'
+require_rg "textFromParts\\(\\['Download', 'Canonical', 'Design', 'JSON'\\]\\)" "$BUILDER" 'operator export button runtime label assembly'
 require_rg 'mosapack-design-v1\.json' "$BUILDER" 'canonical design download filename'
 require_rg 'schema_version.*1\.1' "$BUILDER" 'schema_version 1.1 represented'
 require_rg '24.*12' "$BUILDER" '24->12 grid size mapping represented'
@@ -62,10 +62,17 @@ require_rg '48.*24' "$BUILDER" '48->24 grid size mapping represented'
 require_rg 'project_id' "$BUILDER" 'project_id represented'
 require_rg 'proof_ref' "$BUILDER" 'proof_ref represented'
 
-if ! perl -0ne 'exit(/<details[^>]+id="advancedTools"[\s\S]*?Proof Export Tools[\s\S]*?Download Canonical Design JSON[\s\S]*?<\/details>/ ? 0 : 1)' "$BUILDER"; then
-  echo "MISSING: Download Canonical Design JSON must live inside collapsed Proof Export Tools"
+if ! perl -0ne 'exit(/function\s+mountOperatorTools[\s\S]*?exportSection\.className = '\''proof-export-tools'\''[\s\S]*?textFromParts\(\['\''Download'\'', '\''Canonical'\'', '\''Design'\'', '\''JSON'\''\]\)[\s\S]*?body\.appendChild\(exportSection\)/ ? 0 : 1)' "$BUILDER"; then
+  echo "MISSING: Download Canonical Design JSON must be mounted inside ops-only Proof Export Tools"
   FAIL=1
 fi
+
+if rg -n 'Download Canonical Design JSON|Proof Export Tools|Production JSON|Canonical Design JSON' "$BUILDER" >/tmp/mosapack-canonical-static.txt; then
+  echo "FORBIDDEN: canonical/export labels must not be statically present"
+  cat /tmp/mosapack-canonical-static.txt
+  FAIL=1
+fi
+rm -f /tmp/mosapack-canonical-static.txt
 
 if perl -0ne 'if (/<section class="post-preview-flow"[\s\S]*?<\/section>/) { exit(index($&, "Download Canonical Design JSON") >= 0 ? 0 : 1) } exit 1' "$BUILDER"; then
   echo "FORBIDDEN: canonical design export button must not be in main public proof flow"
