@@ -13,9 +13,9 @@ test -f "$BUILDER" || fail "public/builder/index.html missing"
 
 grep -q "wizard-state-upload .canvas-container" "$BUILDER" || fail "upload-state canvas-container override missing"
 grep -q "wizard-state-upload .canvas-viewport" "$BUILDER" || fail "upload-state canvas-viewport override missing"
-grep -q "max-width: 760px" "$BUILDER" || fail "desktop upload viewport max-width clamp missing"
-grep -q "min-height: clamp(320px, 42vh, 480px)" "$BUILDER" || fail "desktop upload min-height clamp missing"
-grep -q "min-height: clamp(280px, 40vh, 330px)" "$BUILDER" || fail "mobile upload min-height clamp missing"
+grep -q "max-width: none" "$BUILDER" || fail "desktop upload viewport full-width override missing"
+grep -q "min-height: clamp(340px, 38vh, 430px)" "$BUILDER" || fail "desktop upload min-height clamp missing"
+grep -q "min-height: clamp(275px, 38vh, 330px)" "$BUILDER" || fail "mobile upload min-height clamp missing"
 grep -q "overflow-x: clip" "$BUILDER" || fail "overflow-x guard missing"
 
 grep -q "Drag a photo here or click to browse" "$BUILDER" || fail "dropzone browse copy missing"

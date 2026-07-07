@@ -4951,7 +4951,7 @@
     }
 
     .public-wizard .header-content {
-      max-width: 1120px;
+      max-width: 1240px;
     }
 
     .public-wizard .logo-subtitle {
@@ -4983,7 +4983,7 @@
     }
 
     .public-wizard-shell {
-      max-width: 1120px;
+      max-width: 1240px;
       margin: 0 auto;
       padding: 1.4rem 1rem 0;
       overflow-x: clip;
@@ -5100,7 +5100,7 @@
     }
 
     .public-wizard .container {
-      max-width: 1120px;
+      max-width: 1240px;
       padding: 0 1rem 2rem;
       margin: 0 auto;
       overflow-x: clip;
@@ -5131,6 +5131,11 @@
       align-items: start;
     }
 
+    .public-wizard.wizard-state-upload .wizard-layout {
+      grid-template-columns: minmax(620px, 1fr) minmax(330px, 380px);
+      gap: 1.25rem;
+    }
+
     .public-wizard .canvas-container {
       border: 1px solid rgba(229, 229, 229, 0.95);
       border-radius: 12px;
@@ -5149,7 +5154,7 @@
 
     .public-wizard.wizard-state-upload .canvas-container {
       min-height: auto;
-      padding: 1rem;
+      padding: 1.1rem;
       flex: none;
       align-items: stretch;
       justify-content: flex-start;
@@ -5157,8 +5162,8 @@
 
     .public-wizard.wizard-state-upload .canvas-viewport {
       width: 100%;
-      max-width: 760px;
-      min-height: clamp(320px, 42vh, 480px);
+      max-width: none;
+      min-height: clamp(340px, 38vh, 430px);
       margin: 0 auto;
     }
 
@@ -5291,6 +5296,10 @@
       gap: 0.85rem;
     }
 
+    .public-wizard.wizard-state-upload .wizard-side-stack {
+      gap: 0.75rem;
+    }
+
     .wizard-help-card {
       display: grid;
       gap: 0.65rem;
@@ -5320,11 +5329,51 @@
       margin-top: 0.35rem;
     }
 
+    .wizard-help-card.is-compact {
+      gap: 0.75rem;
+    }
+
+    .wizard-tips-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .wizard-tip-group {
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .wizard-tip-label {
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .wizard-tip-group ul {
+      padding-left: 1rem;
+      font-size: 0.86rem;
+    }
+
+    .wizard-help-card.is-next ol {
+      display: grid;
+      gap: 0.35rem;
+      padding-left: 1.1rem;
+    }
+
     .advanced-tools {
       border: 1px solid var(--border);
       border-radius: 12px;
       background: #fff;
       overflow: hidden;
+    }
+
+    .public-wizard.wizard-state-upload .advanced-tools {
+      display: none;
+    }
+
+    .public-wizard.is-ops-mode.wizard-state-upload .advanced-tools {
+      display: block;
     }
 
     .advanced-tools > summary {
@@ -5371,10 +5420,44 @@
       min-height: 42px;
     }
 
+    .advanced-tools .btn.btn-secondary,
+    .advanced-tools .toggle-btn,
+    .proof-export-grid .btn.btn-secondary {
+      background: #fff;
+      border-color: rgba(11, 191, 146, 0.24);
+      color: #075f4b;
+      box-shadow: none;
+    }
+
+    .advanced-tools .btn.btn-secondary:hover,
+    .advanced-tools .toggle-btn:hover,
+    .proof-export-grid .btn.btn-secondary:hover,
+    .advanced-tools .btn.btn-secondary:active,
+    .advanced-tools .toggle-btn:active,
+    .proof-export-grid .btn.btn-secondary:active {
+      background: var(--primary-pale);
+      border-color: rgba(11, 191, 146, 0.48);
+      color: #064e3b;
+      transform: none;
+    }
+
+    .advanced-tools .btn.btn-secondary:focus-visible,
+    .advanced-tools .toggle-btn:focus-visible,
+    .advanced-tools > summary:focus-visible,
+    .proof-export-grid .btn.btn-secondary:focus-visible {
+      outline: 3px solid rgba(11, 191, 146, 0.36);
+      outline-offset: 2px;
+    }
+
     .proof-export-tools {
+      display: none;
       margin-top: 0.35rem;
       padding-top: 0.85rem;
       border-top: 1px solid var(--border);
+    }
+
+    .public-wizard.is-ops-mode .proof-export-tools {
+      display: block;
     }
 
     .proof-export-tools h4 {
@@ -5531,6 +5614,11 @@
         grid-template-columns: 1fr;
       }
 
+      .public-wizard.wizard-state-upload .wizard-layout {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+      }
+
       .public-wizard .container {
         padding: 0 0.85rem 1.25rem;
       }
@@ -5558,7 +5646,7 @@
       .public-wizard.wizard-state-upload .canvas-viewport {
         width: 100%;
         max-width: 100%;
-        min-height: clamp(280px, 40vh, 330px);
+        min-height: clamp(275px, 38vh, 330px);
       }
 
       .public-wizard.wizard-state-upload .upload-overlay {
@@ -5587,6 +5675,15 @@
 
       .public-wizard.wizard-state-upload .photo-category-picker p {
         display: none;
+      }
+
+      .wizard-tips-grid {
+        grid-template-columns: 1fr;
+        gap: 0.55rem;
+      }
+
+      .wizard-help-card {
+        padding: 0.85rem;
       }
 
       .public-wizard .crop-editor.active {
@@ -5921,29 +6018,33 @@
   </div>
       </div>
       <aside class="wizard-side-stack" aria-label="Photo proof guidance">
-        <section class="wizard-help-card">
-          <h3>Best results</h3>
-          <ul>
-            <li>Good lighting</li>
-            <li>Close-up</li>
-            <li>One main subject</li>
-            <li>Clear and in focus</li>
-          </ul>
+        <section class="wizard-help-card is-compact">
+          <h3>Photo tips</h3>
+          <div class="wizard-tips-grid">
+            <div class="wizard-tip-group">
+              <div class="wizard-tip-label">Best</div>
+              <ul>
+                <li>Good lighting</li>
+                <li>Close-up</li>
+                <li>One main subject</li>
+              </ul>
+            </div>
+            <div class="wizard-tip-group">
+              <div class="wizard-tip-label">Avoid</div>
+              <ul>
+                <li>Tiny or distant subjects</li>
+                <li>Blurry photos</li>
+                <li>Very dark photos</li>
+              </ul>
+            </div>
+          </div>
         </section>
-        <section class="wizard-help-card">
-          <h3>Avoid</h3>
-          <ul>
-            <li>Tiny or distant subjects</li>
-            <li>Blurry photos</li>
-            <li>Very dark photos</li>
-          </ul>
-        </section>
-        <section class="wizard-help-card">
+        <section class="wizard-help-card is-next">
           <h3>What happens next</h3>
           <ol>
-            <li>We review your design</li>
-            <li>We prepare your proof</li>
-            <li>We follow up by email</li>
+            <li>We review your design.</li>
+            <li>We prepare your proof.</li>
+            <li>We follow up by email.</li>
           </ol>
         </section>
         <details class="advanced-tools" id="advancedTools">
@@ -8142,6 +8243,12 @@
       }
     }
 
+    function applyOperatorMode() {
+      const isOpsMode = new URLSearchParams(window.location.search).get('ops') === '1';
+      document.body.classList.toggle('is-ops-mode', isOpsMode);
+      document.body.dataset.opsMode = isOpsMode ? 'true' : 'false';
+    }
+
     function updateWizardState(state, options = {}) {
       const config = WIZARD_STEPS[state] || WIZARD_STEPS.upload;
       currentWizardState = state;
@@ -8204,6 +8311,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       applyGroupState();
       document.body.classList.add('public-wizard');
+      applyOperatorMode();
       updateWizardState(processedData ? 'preview' : 'upload');
       const stickyButton = document.getElementById('wizardStickyButton');
       if (stickyButton && !stickyButton.dataset.bound) {
