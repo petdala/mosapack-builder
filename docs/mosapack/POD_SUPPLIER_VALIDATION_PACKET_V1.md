@@ -7,7 +7,7 @@ Status: supplier validation packet; production deploy not approved.
 
 Create a supplier-facing packet for POD and short-run sticker vendors to evaluate whether MosaPack's buildable proof output can become a real sticker/magnet production workflow.
 
-Derek does not currently have local label stock, so local label-stock Gate A cannot be completed now. The next practical validation step is to ask suppliers whether they can produce and test the geometry, material, cut, and packaging requirements using the current synthetic First Hello packet.
+Derek does not currently have local label stock, so local label-stock Gate A cannot be completed now. The next practical validation step is to ask suppliers whether they can produce and test the geometry, material, cut, and packaging requirements using the synthetic First Hello validation packet and the 12 inch Pixel Portrait commercial-MVP sample.
 
 ## What Is Being Validated
 
@@ -40,7 +40,7 @@ Derek does not currently have local label stock, so local label-stock Gate A can
 - Commercial MVP target: `24x24` / `12in`
 - Premium proof option: `32x32` / `16in`
 - Made-to-order beta: `48x48` / `24in`
-- Sample vehicle: First Hello black-base validation packet
+- Sample vehicles: First Hello black-base validation packet and Pixel Portrait 12 commercial-MVP fixture
 - Default fulfillment mode: `printed_mixed_sheets`
 - Stock and hybrid modes: manifest math / supplier questions only
 
@@ -60,18 +60,25 @@ ZIP:
 
 The packet is synthetic/sample-only. It is not a customer order and does not include private customer images.
 
-## Included Sample Files
+## Outbound Supplier Packet Contents
 
-- Gate A PDF if available
-- Gate A sidecar manifest if available
-- production constants JSON
-- design schema JSON
-- First Hello sample design JSON
-- supplier-facing technical spec
-- RFQ email template
-- supplier questionnaire
-- comparison tracker
-- fulfillment mode documentation
+The supplier ZIP contains exactly these sendable first-contact files:
+
+- `README.md`
+- `PACKET_CONTENTS.md`
+- `FULFILLMENT_MATH_SUMMARY.md`
+- `docs/POD_SUPPLIER_TECHNICAL_SPEC.md`
+- `docs/POD_SUPPLIER_RFQ_EMAIL_TEMPLATE.md`
+- `files/first-hello-gate-a.pdf`
+- `files/production-constants.json`
+- `manifests/first-hello-mixed.pdf`
+- `manifests/first-hello-mixed.manifest.json`
+- `manifests/first-hello-stock.manifest.json`
+- `manifests/first-hello-hybrid.manifest.json`
+- `pixel-portrait/pixel-portrait-mixed.pdf`
+- `pixel-portrait/pixel-portrait-mixed.manifest.json`
+- `pixel-portrait/pixel-portrait-stock.manifest.json`
+- `pixel-portrait/pixel-portrait-hybrid.manifest.json`
 
 ## Generated Local Sample Files
 
@@ -80,10 +87,12 @@ Generated files are local QA artifacts and are not committed.
 ```text
 /tmp/mosapack-pod-supplier-validation-packet-v1/manifests/first-hello-mixed.pdf
 /tmp/mosapack-pod-supplier-validation-packet-v1/manifests/first-hello-mixed.manifest.json
-/tmp/mosapack-pod-supplier-validation-packet-v1/manifests/first-hello-stock.pdf
 /tmp/mosapack-pod-supplier-validation-packet-v1/manifests/first-hello-stock.manifest.json
-/tmp/mosapack-pod-supplier-validation-packet-v1/manifests/first-hello-hybrid.pdf
 /tmp/mosapack-pod-supplier-validation-packet-v1/manifests/first-hello-hybrid.manifest.json
+/tmp/mosapack-pod-supplier-validation-packet-v1/pixel-portrait/pixel-portrait-mixed.pdf
+/tmp/mosapack-pod-supplier-validation-packet-v1/pixel-portrait/pixel-portrait-mixed.manifest.json
+/tmp/mosapack-pod-supplier-validation-packet-v1/pixel-portrait/pixel-portrait-stock.manifest.json
+/tmp/mosapack-pod-supplier-validation-packet-v1/pixel-portrait/pixel-portrait-hybrid.manifest.json
 ```
 
 First Hello manifest summary:
@@ -94,10 +103,29 @@ First Hello manifest summary:
 | `stock_color_sheets` | 6 | 1326 | 919 | inefficient for this 6-color sparse design |
 | `hybrid_stock_plus_topoff` | 2 | top-off math only | n/a | all colors fell below stock threshold |
 
+Pixel Portrait 12 manifest summary is generated in:
+
+```text
+/tmp/mosapack-pod-supplier-validation-packet-v1/FULFILLMENT_MATH_SUMMARY.md
+```
+
 The stock and hybrid warnings are expected and useful for supplier conversations:
 
 - active design uses 6 colors while launch stock hint is 4
 - average placed per color is below the stock efficiency threshold
+
+## Stock / Hybrid PDF Rule
+
+Stock and hybrid are manifest math only. They are not print-layout modes.
+
+The supplier packet intentionally excludes:
+
+- `first-hello-stock.pdf`
+- `first-hello-hybrid.pdf`
+- `pixel-portrait-stock.pdf`
+- `pixel-portrait-hybrid.pdf`
+
+The mixed PDF is the only visual print artifact in the outbound supplier packet.
 
 ## Supplier Review Questions
 

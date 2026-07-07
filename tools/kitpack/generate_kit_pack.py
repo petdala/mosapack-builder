@@ -342,6 +342,10 @@ def compute_fulfillment_plan(design: dict[str, Any], constants: dict[str, Any], 
         "customer_extra_note",
         "Includes spare stickers in every color for mistakes, repairs, and finishing touches.",
     ))
+    hybrid_customer_note = str(hybrid_config.get(
+        "customer_extra_note",
+        "Includes spare stickers for repairs, swaps, and finishing touches where applicable. Hybrid fulfillment may combine stock sheets with a mixed top-off sheet.",
+    ))
     stock_plan = [
         stock_sheet_row(color, int(plan["placed_counts"].get(color["index"], 0)), spare_rate, per_sheet)
         for color in active_colors
@@ -363,6 +367,10 @@ def compute_fulfillment_plan(design: dict[str, Any], constants: dict[str, Any], 
     hybrid_topoff_sheets = math.ceil(hybrid_topoff_needed / per_sheet) if hybrid_topoff_needed > 0 else 0
     hybrid_stock_sheets = sum(row["sheets"] for row in hybrid_stock_plan)
     hybrid_total_sheets = hybrid_stock_sheets + hybrid_topoff_sheets
+    hybrid_stock_included = sum(row["included"] for row in hybrid_stock_plan)
+    hybrid_included = hybrid_stock_included + hybrid_topoff_sheets * per_sheet
+    hybrid_needed = sum(row["needed"] for row in hybrid_stock_plan) + hybrid_topoff_needed
+    hybrid_extras = hybrid_included - hybrid_needed
 
     return {
         "mode": canonical_mode,
@@ -382,8 +390,32 @@ def compute_fulfillment_plan(design: dict[str, Any], constants: dict[str, Any], 
         "hybrid_topoff_needed": hybrid_topoff_needed if canonical_mode == "hybrid_stock_plus_topoff" else 0,
         "hybrid_topoff_sheets": hybrid_topoff_sheets if canonical_mode == "hybrid_stock_plus_topoff" else 0,
         "hybrid_total_sheets": hybrid_total_sheets if canonical_mode == "hybrid_stock_plus_topoff" else 0,
-        "customer_extra_note": customer_note if canonical_mode == "stock_color_sheets" else "",
+        "hybrid_included_stickers": hybrid_included if canonical_mode == "hybrid_stock_plus_topoff" else 0,
+        "hybrid_extras": hybrid_extras if canonical_mode == "hybrid_stock_plus_topoff" else 0,
+        "customer_extra_note": customer_note if canonical_mode == "stock_color_sheets" else hybrid_customer_note if canonical_mode == "hybrid_stock_plus_topoff" else "",
         "warnings": warnings if canonical_mode in ("stock_color_sheets", "hybrid_stock_plus_topoff") else [],
+    }
+
+
+def active_fulfillment_summary(plan: dict[str, Any], fulfillment: dict[str, Any]) -> dict[str, Any]:
+    mode = fulfillment["mode"]
+    if mode == "stock_color_sheets":
+        sheet_count = int(fulfillment.get("stock_total_sheets", 0))
+        included = int(fulfillment.get("stock_included_stickers", 0))
+        extras = int(fulfillment.get("stock_extras", 0))
+    elif mode == "hybrid_stock_plus_topoff":
+        sheet_count = int(fulfillment.get("hybrid_total_sheets", 0))
+        included = int(fulfillment.get("hybrid_included_stickers", 0))
+        extras = int(fulfillment.get("hybrid_extras", 0))
+    else:
+        sheet_count = int(plan["printed_mixed_sheets"])
+        included = int(plan["total_stickers"])
+        extras = 0
+    return {
+        "active_fulfillment_mode": mode,
+        "active_fulfillment_sheet_count": sheet_count,
+        "active_fulfillment_total_included_stickers": included,
+        "active_fulfillment_total_extras": extras,
     }
 
 
@@ -431,6 +463,7 @@ def build_manifest(
     sections = []
     for index, (start, end) in enumerate(plan["section_ranges"], start=1):
         sections.append({"section": index, "start_sequence_index": start, "end_sequence_index": end, "placed_count": end - start})
+    active_summary = active_fulfillment_summary(plan, fulfillment)
     return {
         "manifest_version": "gate-a-pdf-mode-v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -453,6 +486,18 @@ def build_manifest(
         "total_spares": plan["total_spares"],
         "total_stickers": plan["total_stickers"],
         "sheet_count": plan["printed_mixed_sheets"],
+        "printed_mixed_baseline": {
+            "sheet_count": plan["printed_mixed_sheets"],
+            "total_stickers": plan["total_stickers"],
+            "placed": plan["total_placed"],
+            "spares": plan["total_spares"],
+        },
+        "active_fulfillment_mode": active_summary["active_fulfillment_mode"],
+        "active_fulfillment_sheet_count": active_summary["active_fulfillment_sheet_count"],
+        "active_fulfillment_total_included_stickers": active_summary["active_fulfillment_total_included_stickers"],
+        "active_fulfillment_total_extras": active_summary["active_fulfillment_total_extras"],
+        "pdf_layout_mode": "printed_mixed_sheets",
+        "pdf_layout_note": "PDF layout remains printed_mixed_sheets unless a future stock/hybrid print mode is implemented.",
         "gate_a_mode": gate_a,
         "bleed_values_used": bleed_values_used,
         "fulfillment": fulfillment,

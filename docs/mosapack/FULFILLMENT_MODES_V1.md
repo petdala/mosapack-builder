@@ -124,9 +124,22 @@ Stock color sheets destroy peel-in-order sequencing. A stock kit needs:
 
 Printed mixed sheets preserve sequence order and remain better for current Gate A.
 
+## Supplier Packet Rule
+
+Stock and hybrid PDFs are not print-layout artifacts. Current stock and hybrid modes affect manifest math only.
+
+The supplier packet should receive:
+
+- mixed visual PDF
+- mixed manifest
+- stock manifest/math summary
+- hybrid manifest/math summary
+
+The supplier packet should not include stock/hybrid PDFs unless a future print-layout mode is implemented or the files are explicitly stamped as mixed-layout/math-only.
+
 ## POD Supplier Validation Status
 
-Plain-paper Gate A alignment was approved by Derek, but local label-stock testing is blocked because label stock is not available. `OL2050` remains pending measurement record until exact scale, crosshair, drift, and skew values are recorded.
+Plain-paper Gate A alignment was approved by Derek, but local label-stock testing is blocked because label stock is not available. `OL2050` remains `pending_measurement_record` until exact scale, crosshair, drift, and skew values are recorded.
 
 Next validation packet:
 

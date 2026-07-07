@@ -7,7 +7,7 @@
       "$comment": "OnlineLabels OL2050-class pre-die-cut stock: 0.5in squares, 221-up on US Letter. Derived from published specs \u2014 RE-VERIFY against vendor template before first production print.",
       "profile_id": "OL2050",
       "verified": false,
-      "verification_status": "pending_alignment_test",
+      "verification_status": "pending_measurement_record",
       "page": "letter",
       "page_w_in": 8.5,
       "page_h_in": 11.0,

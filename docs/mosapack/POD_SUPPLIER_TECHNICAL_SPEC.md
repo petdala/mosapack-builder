@@ -13,10 +13,11 @@ Starter target:
 24x24 cells / 12in finished kit
 ```
 
-Sample vehicle:
+Sample vehicles:
 
 ```text
 First Hello black-base validation PDF
+Pixel Portrait 12 commercial-MVP sample
 ```
 
 ## Product Format
@@ -27,7 +28,28 @@ First Hello black-base validation PDF
 - Premium grid: `32x32`
 - Made-to-order beta grid: `48x48`
 - Current fulfillment default: custom printed mixed sheets
-- Alternative fulfillment questions: stock solid-color sheets and hybrid top-off sheets
+- Alternative fulfillment questions: stock solid-color sheets and hybrid top-off sheets, manifest math only
+
+## Current OL2050-Class Die Geometry
+
+Current internal validation profile:
+
+- 13 columns x 17 rows
+- 221-up sheet
+- `0.5in` die
+- `0.625in` pitch
+- `0.125in` gap
+- `0.25in` left/top margins
+- US Letter page
+- `0.03in` and `0.05in` bleed comparison
+
+Status:
+
+```text
+pending_measurement_record
+```
+
+Plain-paper alignment was visually approved, but exact scale/crosshair/drift/skew values were not recorded and local label stock is not available.
 
 ## Material Questions
 
@@ -59,8 +81,8 @@ Current packet can include:
 - PDF
 - manifest JSON
 - production constants JSON
-- design schema JSON
-- sample design JSON
+
+Current outbound packet sends mixed-layout PDFs only. Stock and hybrid are provided as manifest math summaries, not print-layout pages.
 
 Future supplier formats may include:
 

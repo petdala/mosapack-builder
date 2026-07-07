@@ -188,7 +188,7 @@ Verified:
 
 ## Warnings
 
-- `OL2050` is still marked unverified: `pending_alignment_test`.
+- `OL2050` is still marked unverified: `pending_measurement_record`.
 - The generated PDF is not production-approved.
 - Gate A alignment and 100-150 sticker physical sample validation are still required.
 

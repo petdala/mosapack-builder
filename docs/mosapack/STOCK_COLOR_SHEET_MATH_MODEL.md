@@ -100,4 +100,6 @@ The POD supplier packet must ask whether full solid-color sheets are:
 
 Stock and hybrid remain math/manifest modes only. They are not current print pages and are not customer-facing fulfillment options.
 
+Stock and hybrid PDFs are not supplier print-layout artifacts. Suppliers should receive the mixed visual PDF plus stock/hybrid manifest math summaries.
+
 Fine-cell profiles should be treated as future vendor-only questions until physical peel/place evidence exists.

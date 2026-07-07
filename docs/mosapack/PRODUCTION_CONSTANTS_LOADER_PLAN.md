@@ -94,7 +94,7 @@ It is currently marked:
 
 ```text
 verified: false
-verification_status: pending_alignment_test
+verification_status: pending_measurement_record
 ```
 
 Gate A must validate OL2050 alignment before it becomes production-ready.

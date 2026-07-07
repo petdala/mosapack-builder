@@ -8,6 +8,7 @@ README="$ROOT/tools/kitpack/README.md"
 CONSTANTS="$ROOT/config/production-constants.json"
 SCHEMA="$ROOT/config/design-schema.v1.json"
 SAMPLE="$ROOT/fixtures/designs/sample-design-first-hello.v1_1.json"
+PIXEL_SAMPLE="$ROOT/fixtures/designs/sample-design-pixel-portrait-12.v1_1.json"
 OUT_DIR="/tmp/mosapack-generate-kit-pack-verify"
 OUT_PDF="$OUT_DIR/first-hello-kit.pdf"
 OUT_MANIFEST="$OUT_DIR/first-hello-kit.manifest.json"
@@ -19,6 +20,12 @@ STOCK_PDF="$OUT_DIR/first-hello-stock.pdf"
 STOCK_MANIFEST="$OUT_DIR/first-hello-stock.manifest.json"
 HYBRID_PDF="$OUT_DIR/first-hello-hybrid.pdf"
 HYBRID_MANIFEST="$OUT_DIR/first-hello-hybrid.manifest.json"
+PIXEL_MIXED_PDF="$OUT_DIR/pixel-portrait-mixed.pdf"
+PIXEL_MIXED_MANIFEST="$OUT_DIR/pixel-portrait-mixed.manifest.json"
+PIXEL_STOCK_PDF="$OUT_DIR/pixel-portrait-stock.pdf"
+PIXEL_STOCK_MANIFEST="$OUT_DIR/pixel-portrait-stock.manifest.json"
+PIXEL_HYBRID_PDF="$OUT_DIR/pixel-portrait-hybrid.pdf"
+PIXEL_HYBRID_MANIFEST="$OUT_DIR/pixel-portrait-hybrid.manifest.json"
 FAIL=0
 
 require_file() {
@@ -36,6 +43,7 @@ require_file "$README" "tools/kitpack/README.md"
 require_file "$CONSTANTS" "config/production-constants.json"
 require_file "$SCHEMA" "config/design-schema.v1.json"
 require_file "$SAMPLE" "fixtures/designs/sample-design-first-hello.v1_1.json"
+require_file "$PIXEL_SAMPLE" "fixtures/designs/sample-design-pixel-portrait-12.v1_1.json"
 
 if [ "$FAIL" -ne 0 ]; then
   echo "Kit pack generator verification failed."
@@ -54,21 +62,24 @@ then
 fi
 
 mkdir -p "$OUT_DIR"
-rm -f "$OUT_PDF" "$OUT_MANIFEST" "$GATE_A_PDF" "$GATE_A_MANIFEST" "$MIXED_PDF" "$MIXED_MANIFEST" "$STOCK_PDF" "$STOCK_MANIFEST" "$HYBRID_PDF" "$HYBRID_MANIFEST"
+rm -f "$OUT_PDF" "$OUT_MANIFEST" "$GATE_A_PDF" "$GATE_A_MANIFEST" "$MIXED_PDF" "$MIXED_MANIFEST" "$STOCK_PDF" "$STOCK_MANIFEST" "$HYBRID_PDF" "$HYBRID_MANIFEST" "$PIXEL_MIXED_PDF" "$PIXEL_MIXED_MANIFEST" "$PIXEL_STOCK_PDF" "$PIXEL_STOCK_MANIFEST" "$PIXEL_HYBRID_PDF" "$PIXEL_HYBRID_MANIFEST"
 python3 "$GENERATOR" "$SAMPLE" "$OUT_PDF" --constants "$CONSTANTS"
 python3 "$GENERATOR" "$SAMPLE" "$MIXED_PDF" --constants "$CONSTANTS" --fulfillment printed_mixed
 python3 "$GENERATOR" "$SAMPLE" "$STOCK_PDF" --constants "$CONSTANTS" --fulfillment stock
 python3 "$GENERATOR" "$SAMPLE" "$HYBRID_PDF" --constants "$CONSTANTS" --fulfillment hybrid
 python3 "$GENERATOR" "$SAMPLE" "$GATE_A_PDF" --constants "$CONSTANTS" --gate-a
+python3 "$GENERATOR" "$PIXEL_SAMPLE" "$PIXEL_MIXED_PDF" --constants "$CONSTANTS" --fulfillment printed_mixed
+python3 "$GENERATOR" "$PIXEL_SAMPLE" "$PIXEL_STOCK_PDF" --constants "$CONSTANTS" --fulfillment stock
+python3 "$GENERATOR" "$PIXEL_SAMPLE" "$PIXEL_HYBRID_PDF" --constants "$CONSTANTS" --fulfillment hybrid
 
-for generated in "$OUT_PDF" "$MIXED_PDF" "$STOCK_PDF" "$HYBRID_PDF" "$GATE_A_PDF" "$OUT_MANIFEST" "$MIXED_MANIFEST" "$STOCK_MANIFEST" "$HYBRID_MANIFEST" "$GATE_A_MANIFEST"; do
+for generated in "$OUT_PDF" "$MIXED_PDF" "$STOCK_PDF" "$HYBRID_PDF" "$GATE_A_PDF" "$OUT_MANIFEST" "$MIXED_MANIFEST" "$STOCK_MANIFEST" "$HYBRID_MANIFEST" "$GATE_A_MANIFEST" "$PIXEL_MIXED_PDF" "$PIXEL_MIXED_MANIFEST" "$PIXEL_STOCK_PDF" "$PIXEL_STOCK_MANIFEST" "$PIXEL_HYBRID_PDF" "$PIXEL_HYBRID_MANIFEST"; do
   if [ ! -s "$generated" ]; then
     echo "MISSING: generated file is empty or absent: $generated"
     exit 1
   fi
 done
 
-python3 - "$OUT_MANIFEST" "$GATE_A_MANIFEST" "$MIXED_MANIFEST" "$STOCK_MANIFEST" "$HYBRID_MANIFEST" <<'PY'
+python3 - "$OUT_MANIFEST" "$GATE_A_MANIFEST" "$MIXED_MANIFEST" "$STOCK_MANIFEST" "$HYBRID_MANIFEST" "$PIXEL_MIXED_MANIFEST" "$PIXEL_STOCK_MANIFEST" "$PIXEL_HYBRID_MANIFEST" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -78,20 +89,31 @@ gate_path = Path(sys.argv[2])
 mixed_path = Path(sys.argv[3])
 stock_path = Path(sys.argv[4])
 hybrid_path = Path(sys.argv[5])
+pixel_mixed_path = Path(sys.argv[6])
+pixel_stock_path = Path(sys.argv[7])
+pixel_hybrid_path = Path(sys.argv[8])
 normal = json.loads(normal_path.read_text())
 gate = json.loads(gate_path.read_text())
 mixed = json.loads(mixed_path.read_text())
 stock = json.loads(stock_path.read_text())
 hybrid = json.loads(hybrid_path.read_text())
+pixel_mixed = json.loads(pixel_mixed_path.read_text())
+pixel_stock = json.loads(pixel_stock_path.read_text())
+pixel_hybrid = json.loads(pixel_hybrid_path.read_text())
 
-for label, manifest in (("normal", normal), ("gate_a", gate), ("mixed", mixed), ("stock", stock), ("hybrid", hybrid)):
+for label, manifest in (("normal", normal), ("gate_a", gate), ("mixed", mixed), ("stock", stock), ("hybrid", hybrid), ("pixel_mixed", pixel_mixed), ("pixel_stock", pixel_stock), ("pixel_hybrid", pixel_hybrid)):
     for key in ("proof_ref", "project_id", "sheet_profile", "total_placed_stickers", "total_spares", "total_stickers"):
         if key not in manifest:
             raise SystemExit(f"{label} manifest missing {key}")
-    if manifest["proof_ref"] != "MP-FH24A":
+    expected_ref = "MP-PP12A" if label.startswith("pixel_") else "MP-FH24A"
+    if manifest["proof_ref"] != expected_ref:
         raise SystemExit(f"{label} manifest proof_ref mismatch")
     if manifest["sheet_profile"] != "OL2050":
         raise SystemExit(f"{label} manifest sheet_profile mismatch")
+    if manifest.get("pdf_layout_mode") != "printed_mixed_sheets":
+        raise SystemExit(f"{label} manifest must disclose printed_mixed_sheets PDF layout")
+    if "PDF layout remains printed_mixed_sheets" not in manifest.get("pdf_layout_note", ""):
+        raise SystemExit(f"{label} manifest missing math-only PDF layout note")
 
 if normal.get("gate_a_mode") is not False:
     raise SystemExit("normal manifest gate_a_mode should be false")
@@ -132,17 +154,44 @@ if "customer_extra_note" not in stock.get("fulfillment", {}):
     raise SystemExit("stock manifest missing customer_extra_note")
 if "warnings" not in stock.get("fulfillment", {}):
     raise SystemExit("stock manifest missing warnings")
+if stock.get("active_fulfillment_mode") != "stock_color_sheets":
+    raise SystemExit("stock manifest missing active_fulfillment_mode")
+if stock.get("active_fulfillment_sheet_count") != stock.get("fulfillment", {}).get("stock_total_sheets"):
+    raise SystemExit("stock active sheet count must match stock_total_sheets")
+if stock.get("active_fulfillment_total_included_stickers") != stock.get("fulfillment", {}).get("stock_included_stickers"):
+    raise SystemExit("stock active included stickers must match stock_included_stickers")
+if stock.get("active_fulfillment_total_extras") != stock.get("fulfillment", {}).get("stock_extras"):
+    raise SystemExit("stock active extras must match stock_extras")
+if stock.get("sheet_count") != stock.get("printed_mixed_baseline", {}).get("sheet_count"):
+    raise SystemExit("stock top-level sheet_count should remain printed mixed baseline")
 if "hybrid_stock_sheet_plan" not in hybrid.get("fulfillment", {}):
     raise SystemExit("hybrid manifest missing hybrid_stock_sheet_plan")
 if "hybrid_topoff_sheets" not in hybrid.get("fulfillment", {}):
     raise SystemExit("hybrid manifest missing hybrid_topoff_sheets")
 if "hybrid_total_sheets" not in hybrid.get("fulfillment", {}):
     raise SystemExit("hybrid manifest missing hybrid_total_sheets")
+if hybrid.get("active_fulfillment_mode") != "hybrid_stock_plus_topoff":
+    raise SystemExit("hybrid manifest missing active_fulfillment_mode")
+if hybrid.get("active_fulfillment_sheet_count") != hybrid.get("fulfillment", {}).get("hybrid_total_sheets"):
+    raise SystemExit("hybrid active sheet count must match hybrid_total_sheets")
+if "Hybrid fulfillment may combine stock sheets with a mixed top-off sheet" not in hybrid.get("fulfillment", {}).get("customer_extra_note", ""):
+    raise SystemExit("hybrid manifest missing hybrid customer_extra_note")
+
+if pixel_mixed.get("proof_ref") != "MP-PP12A":
+    raise SystemExit("Pixel Portrait proof_ref mismatch")
+if pixel_mixed.get("grid") != 24 or pixel_mixed.get("size_in") != 12:
+    raise SystemExit("Pixel Portrait grid/size mismatch")
+if pixel_mixed.get("fulfillment", {}).get("mode") != "printed_mixed_sheets":
+    raise SystemExit("Pixel Portrait mixed mode mismatch")
+if pixel_stock.get("active_fulfillment_mode") != "stock_color_sheets":
+    raise SystemExit("Pixel Portrait stock active mode mismatch")
+if pixel_hybrid.get("active_fulfillment_mode") != "hybrid_stock_plus_topoff":
+    raise SystemExit("Pixel Portrait hybrid active mode mismatch")
 
 print("Manifest checks passed.")
 PY
 
-python3 - "$OUT_PDF" "$GATE_A_PDF" "$MIXED_PDF" "$STOCK_PDF" "$HYBRID_PDF" <<'PY'
+python3 - "$OUT_PDF" "$GATE_A_PDF" "$MIXED_PDF" "$STOCK_PDF" "$HYBRID_PDF" "$PIXEL_MIXED_PDF" <<'PY'
 import sys
 from pathlib import Path
 
@@ -162,17 +211,20 @@ for pdf_path in pdf_paths:
     if pdf_path.name in ("first-hello-mixed.pdf", "first-hello-stock.pdf", "first-hello-hybrid.pdf") and len(reader.pages) != 5:
         raise SystemExit(f"{pdf_path} should remain the normal 5-page PDF; fulfillment mode must not add pages")
     text = "\n".join((page.extract_text() or "") for page in reader.pages[:5])
-    for needle in (
+    proof_ref = "MP-PP12A" if pdf_path.name.startswith("pixel-portrait") else "MP-FH24A"
+    common_needles = (
         "MosaPack",
-        "MP-FH24A",
+        proof_ref,
         "Actual Size",
         "Measure me: 1.000 in",
         "Vertical check: 1.000 in",
         "feed/skew fiducials",
-        "Some sections may continue across sticker sheets",
-    ):
+    )
+    for needle in common_needles:
         if needle not in text:
             raise SystemExit(f"{pdf_path} text missing {needle}")
+    if not pdf_path.name.startswith("pixel-portrait") and "Some sections may continue across sticker sheets" not in text:
+        raise SystemExit(f"{pdf_path} text missing section continuation note")
     page = reader.pages[0]
     width = float(page.mediabox.width)
     height = float(page.mediabox.height)
