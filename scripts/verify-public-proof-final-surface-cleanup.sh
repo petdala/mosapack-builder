@@ -70,7 +70,7 @@ check_text_leaks "/" "$ROOT_TEXT"
 check_text_leaks "/builder/" "$BUILDER_TEXT"
 
 grep -q "Start Proof Builder" "$ROOT_PAGE" || fail "root proof-builder CTA missing"
-grep -q "Start With a Free Mosaic Proof" "$ROOT_PAGE" || fail "root proof-first CTA section missing"
+grep -q "Create your custom mosaic proof" "$ROOT_PAGE" || fail "root proof-first hero title missing"
 grep -q "Free buildable mosaic preview" "$BUILDER" || fail "builder product label not converted to proof language"
 grep -q "product_interest\" id=\"saveProductInterest\" value=\"sticker_proof\"" "$BUILDER" || fail "product_interest default is not sticker_proof"
 grep -q "name=\"format_interest\" id=\"saveFormatInterest\" value=\"sticker_ready\"" "$BUILDER" || fail "format_interest default is not sticker_ready"

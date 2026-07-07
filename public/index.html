@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MosaPack - Custom Mosaic Proofs</title>
   <meta name="description" content="Upload a photo, preview a buildable mosaic, and request a free custom proof. No payment today.">
-  
+
   <!-- Inter Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -48,13 +48,13 @@
        MOSAPACK ULTIMATE PREMIUM DESIGN V4
        Split-screen hero, streamlined design
        ============================================ */
-    
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     :root {
       /* Primary Brand Colors - High Contrast */
       --primary: #0bbf92;
@@ -62,26 +62,26 @@
       --primary-dark: #089b76;
       --primary-pale: #e8faf5;
       --primary-glow: rgba(11, 191, 146, 0.25);
-      
+
       /* Pop Color - Hot Pink */
       --pop: #e91e8c;
       --pop-light: #ff5da2;
       --pop-pale: #fff1f7;
       --pop-glow: rgba(233, 30, 140, 0.25);
-      
+
       /* Accent button */
       --gold: #f59e0b;
       --gold-light: #fbbf24;
       --gold-dark: #d97706;
       --gold-pale: #fef3c7;
-      
+
       /* Supporting Accents - Accessible */
       --accent-teal: #0bbf92;
       --accent-purple: #7c3aed;
       --accent-amber: #d97706;
       --accent-blue: #2563eb;
       --accent-orange: #ea580c;
-      
+
       /* Neutrals - Enhanced Contrast */
       --white: #ffffff;
       --gray-50: #fafafa;
@@ -94,7 +94,7 @@
       --gray-700: #404040;
       --gray-800: #262626;
       --gray-900: #171717;
-      
+
       /* Semantic Colors */
       --text: #171717;
       --text-primary: #171717;
@@ -107,7 +107,7 @@
       --bg-primary: #ffffff;
       --bg-alt: #fafafa;
       --bg-secondary: #fafafa;
-      
+
       /* Premium Shadows */
       --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
@@ -119,25 +119,25 @@
       --shadow-teal: 0 10px 40px -8px rgba(11, 191, 146, 0.3);
       --shadow-pop: 0 10px 40px -8px rgba(233, 30, 140, 0.3);
       --shadow-gold: 0 10px 40px -8px rgba(245, 158, 11, 0.4);
-      
+
       /* Gradients */
       --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       --gradient-pop: linear-gradient(135deg, var(--pop) 0%, #c61670 100%);
       --gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
       --gradient-hero: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--gray-50) 100%);
-      
+
       /* Border Radius */
       --radius-sm: 6px;
       --radius: 12px;
       --radius-lg: 16px;
       --radius-xl: 24px;
       --radius-2xl: 32px;
-      
+
       /* Transitions */
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--white);
@@ -147,7 +147,7 @@
       -moz-osx-font-smoothing: grayscale;
       overflow-x: hidden;
     }
-    
+
     /* Animated Background */
     .bg-gradient {
       position: fixed;
@@ -192,13 +192,13 @@
       background: radial-gradient(circle, rgba(233, 30, 140, 0.12) 0%, transparent 70%);
       animation-delay: -15s;
     }
-    
+
     @keyframes float-slow {
       0%, 100% { transform: translate(0, 0) scale(1); }
       33% { transform: translate(50px, -50px) scale(1.1); }
       66% { transform: translate(-30px, 30px) scale(0.9); }
     }
-    
+
     /* Container */
     .container {
       max-width: 1280px;
@@ -207,7 +207,7 @@
       position: relative;
       z-index: 1;
     }
-    
+
     /* Navigation */
     .nav {
       background: rgba(255, 255, 255, 0.95);
@@ -219,13 +219,13 @@
       z-index: 1000;
       transition: var(--transition);
     }
-    
+
     .nav.scrolled {
       background: rgba(255, 255, 255, 0.98);
       box-shadow: var(--shadow-sm);
       border-bottom-color: var(--border);
     }
-    
+
     .nav-content {
       display: flex;
       justify-content: space-between;
@@ -297,7 +297,7 @@
       gap: 24px;
       margin-left: auto;
     }
-    
+
     .nav-link {
       color: var(--text-light);
       text-decoration: none;
@@ -346,7 +346,7 @@
       transform: translateY(-2px) scale(1.02);
       box-shadow: 0 20px 50px -10px rgba(245, 158, 11, 0.5);
     }
-    
+
     /* Mobile Menu Toggle */
     .mobile-menu-toggle {
       display: none;
@@ -357,7 +357,7 @@
       cursor: pointer;
       padding: 8px;
     }
-    
+
     .mobile-menu-toggle span {
       width: 24px;
       height: 2.5px;
@@ -365,50 +365,60 @@
       transition: var(--transition-fast);
       border-radius: 2px;
     }
-    
-    /* SPLIT-SCREEN HERO SECTION */
+
+    /* Proof-first homepage hero */
     .hero-split {
       position: relative;
-      min-height: calc(100vh - 70px);
-      padding: 80px 0 100px;
-      max-width: 1400px;
+      min-height: auto;
+      padding: 48px 0 52px;
+      max-width: 1280px;
       margin: 0 auto;
     }
 
     .hero-split::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 200px;
-      background: var(--gradient-hero);
-      pointer-events: none;
-      z-index: 0;
+      display: none;
     }
 
-    /* Full-width header at top */
-    .hero-header {
-      text-align: center;
-      margin-bottom: 60px;
+    .hero-proof-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 44px;
+      align-items: center;
       position: relative;
       z-index: 1;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
+    }
+
+    .hero-header {
+      text-align: left;
+      margin-bottom: 0;
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin-left: 0;
+      margin-right: 0;
     }
 
     .hero-header h1 {
-      font-size: clamp(2.75rem, 5vw, 4rem);
-      margin-bottom: 24px;
+      font-size: clamp(2.65rem, 4vw, 3.5rem);
+      line-height: 1.02;
+      margin-bottom: 16px;
+      letter-spacing: -1.4px;
     }
 
     .hero-header .hero-subtitle {
-      font-size: 1.25rem;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-      margin-bottom: 0;
+      font-size: clamp(1.05rem, 1.5vw, 1.22rem);
+      max-width: 660px;
+      margin-left: 0;
+      margin-right: 0;
+      margin-bottom: 12px;
+    }
+
+    .hero-support-line {
+      color: var(--text-light);
+      font-size: 1rem;
+      line-height: 1.55;
+      max-width: 640px;
+      margin: 0 0 22px;
     }
 
     /* 50/50 Grid for cards + slider below */
@@ -425,7 +435,7 @@
       position: relative;
       z-index: 1;
     }
-    
+
     /* Lead Gen Badge */
     .lead-badge {
       display: inline-block;
@@ -437,7 +447,7 @@
       font-size: 0.875rem;
       font-weight: 700;
       margin-bottom: 20px;
-      animation: pulse-badge 2s ease-in-out infinite;
+      animation: none;
     }
 
     @keyframes pulse-badge {
@@ -585,7 +595,7 @@
     .hero-actions {
       display: flex;
       gap: 16px;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
       flex-wrap: wrap;
     }
 
@@ -604,18 +614,18 @@
       position: relative;
       overflow: hidden;
     }
-    
+
     .btn-primary {
       background: var(--gradient-pop);
       color: white;
       box-shadow: var(--shadow-pop);
     }
-    
+
     .btn-primary:hover {
       transform: translateY(-3px) scale(1.02);
       box-shadow: 0 20px 50px -10px rgba(233, 30, 140, 0.4);
     }
-    
+
     /* Refined accent button */
     .btn-gold {
       background: var(--gradient-gold);
@@ -623,57 +633,60 @@
       box-shadow: var(--shadow-gold);
       font-weight: 700;
     }
-    
+
     .btn-gold:hover {
       transform: translateY(-3px) scale(1.02);
       box-shadow: 0 20px 50px -10px rgba(245, 158, 11, 0.5);
       filter: brightness(1.05);
     }
-    
+
     .btn-secondary {
       background: white;
       color: var(--text);
       border: 2px solid var(--border);
       box-shadow: var(--shadow);
     }
-    
+
     .btn-secondary:hover {
       border-color: var(--primary);
       color: var(--primary);
       transform: translateY(-3px);
       box-shadow: var(--shadow-lg);
     }
-    
+
     .btn-icon {
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       font-size: 1.25rem;
     }
-    
+
     .btn:hover .btn-icon {
       transform: translateX(4px);
     }
-    
-    /* Value Props */
-    .value-props {
+
+    .hero-trust-row {
       display: flex;
-      gap: 32px;
+      gap: 14px;
       flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 40px;
+      align-items: center;
+      margin-top: 0;
     }
 
-    .value-item {
+    .hero-trust-item {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       font-size: 0.9375rem;
       color: var(--text-light);
       font-weight: 500;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(221, 226, 232, 0.9);
+      border-radius: 999px;
+      padding: 8px 12px;
     }
 
-    .value-icon {
-      width: 36px;
-      height: 36px;
+    .hero-trust-icon {
+      width: 22px;
+      height: 22px;
       background: var(--primary-pale);
       border-radius: 50%;
       display: flex;
@@ -684,7 +697,85 @@
       font-weight: bold;
       flex-shrink: 0;
     }
-    
+
+    .hero-proof-panel {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(221, 226, 232, 0.9);
+      border-radius: 28px;
+      box-shadow: 0 28px 70px -42px rgba(16, 24, 40, 0.34);
+      padding: 28px;
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-proof-panel h2 {
+      font-size: 1.35rem;
+      line-height: 1.2;
+      margin: 0 0 8px;
+      letter-spacing: -0.2px;
+    }
+
+    .hero-proof-panel > p {
+      color: var(--text-light);
+      margin: 0 0 18px;
+      line-height: 1.5;
+    }
+
+    .proof-path-cards {
+      display: grid;
+      gap: 12px;
+    }
+
+    .proof-path-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: white;
+      padding: 16px;
+      box-shadow: 0 10px 28px -24px rgba(17, 24, 39, 0.4);
+    }
+
+    .proof-path-card.is-primary {
+      border-color: rgba(11, 191, 146, 0.42);
+      background: linear-gradient(135deg, rgba(11, 191, 146, 0.08) 0%, #fff 74%);
+    }
+
+    .proof-path-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: var(--primary-pale);
+      color: var(--primary-dark);
+      font-weight: 800;
+    }
+
+    .proof-path-card:nth-child(2) .proof-path-icon {
+      background: rgba(233, 30, 140, 0.1);
+      color: var(--pop);
+    }
+
+    .proof-path-card:nth-child(3) .proof-path-icon {
+      background: rgba(245, 158, 11, 0.14);
+      color: #a16207;
+    }
+
+    .proof-path-card h3 {
+      font-size: 1rem;
+      margin: 0 0 4px;
+      color: var(--text);
+    }
+
+    .proof-path-card p {
+      margin: 0;
+      color: var(--text-light);
+      font-size: 0.9375rem;
+      line-height: 1.42;
+    }
+
     /* Hero Slider */
     .hero-slider {
       position: relative;
@@ -718,7 +809,7 @@
         0 50px 100px -25px rgba(0, 0, 0, 0.2);
       transform: translateY(-8px) scale(1.01);
     }
-    
+
     .slider-image {
       width: 100%;
       height: 100%;
@@ -728,7 +819,7 @@
       background-size: cover;
       background-position: center;
     }
-    
+
     .slider-image.before {
       background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
       z-index: 2;
@@ -739,7 +830,7 @@
       color: var(--text-muted);
       font-weight: 600;
     }
-    
+
     .slider-image.after {
       background: linear-gradient(135deg, var(--primary-pale), var(--pop-pale));
       z-index: 1;
@@ -749,19 +840,19 @@
       gap: 1px;
       padding: 20px;
     }
-    
+
     .mosaic-cell {
       background: var(--primary-light);
       opacity: 0.7;
       border-radius: 2px;
       transition: opacity 0.3s;
     }
-    
+
     .mosaic-cell:nth-child(3n) { background: var(--primary); opacity: 0.8; }
     .mosaic-cell:nth-child(5n) { background: var(--primary-dark); opacity: 0.6; }
     .mosaic-cell:nth-child(7n) { background: var(--pop); opacity: 0.5; }
     .mosaic-cell:nth-child(11n) { background: var(--accent-purple); opacity: 0.4; }
-    
+
     .slider-divider {
       position: absolute;
       top: 0;
@@ -774,7 +865,7 @@
       cursor: ew-resize;
       box-shadow: 0 0 30px rgba(0,0,0,0.3);
     }
-    
+
     .slider-handle {
       position: absolute;
       top: 50%;
@@ -791,12 +882,12 @@
       box-shadow: var(--shadow-xl);
       transition: var(--transition);
     }
-    
+
     .slider-handle:hover {
       transform: translate(-50%, -50%) scale(1.15);
       box-shadow: var(--shadow-pop);
     }
-    
+
     .slider-handle::before,
     .slider-handle::after {
       content: '';
@@ -806,17 +897,17 @@
       border-style: solid;
       border-width: 7px;
     }
-    
+
     .slider-handle::before {
       left: 12px;
       border-color: transparent var(--pop) transparent transparent;
     }
-    
+
     .slider-handle::after {
       right: 12px;
       border-color: transparent transparent transparent var(--pop);
     }
-    
+
     .slider-labels {
       position: absolute;
       top: 20px;
@@ -827,7 +918,7 @@
       z-index: 4;
       pointer-events: none;
     }
-    
+
     .slider-label {
       padding: 8px 16px;
       background: rgba(0, 0, 0, 0.75);
@@ -838,7 +929,7 @@
       backdrop-filter: blur(12px);
       box-shadow: var(--shadow);
     }
-    
+
     /* Builder Preview - Professional Polish */
     .builder-preview {
       padding: 80px 0 100px;
@@ -1451,7 +1542,7 @@
       transform: scale(1.15) rotate(5deg);
       box-shadow: 0 4px 12px rgba(11, 191, 146, 0.3);
     }
-    
+
     /* Process Section */
     .process {
       padding: 120px 0;
@@ -1672,13 +1763,13 @@
       padding: 120px 0;
       background: var(--gray-50);
     }
-    
+
     .products-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 40px;
     }
-    
+
     .product-card {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
@@ -1691,7 +1782,7 @@
       overflow: hidden;
       box-shadow: var(--shadow-md);
     }
-    
+
     .product-card::before {
       content: '';
       position: absolute;
@@ -1704,23 +1795,23 @@
       transform-origin: left;
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     .product-card:hover::before {
       transform: scaleX(1);
     }
-    
+
     .product-card:hover {
       transform: translateY(-12px);
       box-shadow: var(--shadow-2xl);
       border-color: transparent;
     }
-    
+
     .product-card.featured {
       border-color: var(--primary);
       background: linear-gradient(to bottom, var(--primary-pale) 0%, white 30%);
       box-shadow: var(--shadow-lg);
     }
-    
+
     .product-badge {
       position: absolute;
       top: 24px;
@@ -1735,18 +1826,18 @@
       letter-spacing: 0.5px;
       box-shadow: 0 10px 40px -8px rgba(233, 30, 140, 0.3);
     }
-    
+
     .product-badge.budget {
       background: var(--primary);
       box-shadow: var(--shadow-teal);
     }
-    
+
     .product-badge.premium {
       background: var(--gradient-gold);
       color: #78350f;
       box-shadow: var(--shadow-gold);
     }
-    
+
     .product-icon {
       width: 80px;
       height: 80px;
@@ -1760,20 +1851,20 @@
       transition: var(--transition);
       box-shadow: var(--shadow-sm);
     }
-    
+
     .product-card:hover .product-icon {
       transform: scale(1.1) rotate(-5deg);
       box-shadow: var(--shadow-teal);
     }
-    
+
     .product-card:nth-child(2) .product-icon {
       background: rgba(124, 58, 237, 0.1);
     }
-    
+
     .product-card:nth-child(3) .product-icon {
       background: var(--gold-pale);
     }
-    
+
     .product-name {
       font-size: 2rem;
       font-weight: 800;
@@ -1781,7 +1872,7 @@
       color: var(--text);
       letter-spacing: -0.5px;
     }
-    
+
     .product-tagline {
       font-size: 0.875rem;
       color: var(--text-muted);
@@ -1790,7 +1881,7 @@
       margin-bottom: 24px;
       font-weight: 600;
     }
-    
+
     .product-price {
       font-size: 3rem;
       font-weight: 900;
@@ -1802,19 +1893,19 @@
       line-height: 1;
       letter-spacing: -1px;
     }
-    
+
     .product-price .from {
       font-size: 1.125rem;
       font-weight: 500;
       color: var(--text-muted);
       -webkit-text-fill-color: var(--text-muted);
     }
-    
+
     .product-features {
       list-style: none;
       margin-bottom: 36px;
     }
-    
+
     .product-features li {
       padding: 14px 0;
       display: flex;
@@ -1825,12 +1916,12 @@
       border-bottom: 1px solid var(--gray-100);
       transition: var(--transition-fast);
     }
-    
+
     .product-features li:hover {
       padding-left: 10px;
       color: var(--text);
     }
-    
+
     .product-features li::before {
       content: '✓';
       color: var(--primary);
@@ -1845,7 +1936,7 @@
       background: var(--primary-pale);
       border-radius: 50%;
     }
-    
+
     /* Comparison Table */
     .comparison {
       padding: 60px 0;
@@ -2213,14 +2304,14 @@
       padding: 120px 0;
       background: var(--gray-50);
     }
-    
+
     .testimonials-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 40px;
       margin-top: 64px;
     }
-    
+
     .testimonial-card {
       padding: 40px;
       background: rgba(255, 255, 255, 0.95);
@@ -2232,19 +2323,19 @@
       transition: var(--transition);
       box-shadow: var(--shadow-md);
     }
-    
+
     .testimonial-card:hover {
       box-shadow: var(--shadow-lg);
       transform: translateY(-8px);
       border-color: var(--primary);
     }
-    
+
     .testimonial-stars {
       color: var(--accent-amber);
       font-size: 1.25rem;
       margin-bottom: 20px;
     }
-    
+
     .testimonial-text {
       font-size: 1.0625rem;
       line-height: 1.6;
@@ -2252,13 +2343,13 @@
       margin-bottom: 24px;
       font-weight: 500;
     }
-    
+
     .testimonial-author {
       display: flex;
       align-items: center;
       gap: 16px;
     }
-    
+
     .testimonial-avatar {
       width: 52px;
       height: 52px;
@@ -2272,18 +2363,18 @@
       font-size: 1.25rem;
       box-shadow: var(--shadow-teal);
     }
-    
+
     .testimonial-name {
       font-weight: 700;
       color: var(--text);
       font-size: 1rem;
     }
-    
+
     .testimonial-role {
       font-size: 0.875rem;
       color: var(--text-muted);
     }
-    
+
     /* Gallery Section */
     .gallery-section {
       padding: 120px 0;
@@ -2670,7 +2761,7 @@
       position: relative;
       overflow: hidden;
     }
-    
+
     .cta::before {
       content: '';
       position: absolute;
@@ -2681,41 +2772,41 @@
       background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
       animation: rotate-slow 25s linear infinite;
     }
-    
+
     @keyframes rotate-slow {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
-    
+
     .cta > * {
       position: relative;
       z-index: 1;
     }
-    
+
     .cta h2 {
       color: white;
       margin-bottom: 20px;
     }
-    
+
     .cta-subtitle {
       font-size: 1.375rem;
       opacity: 0.95;
       margin-bottom: 40px;
       font-weight: 400;
     }
-    
+
     .btn-white {
       background: white;
       color: var(--pop);
       box-shadow: var(--shadow-xl);
     }
-    
+
     .btn-white:hover {
       background: var(--gray-50);
       transform: translateY(-4px) scale(1.05);
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
-    
+
     /* Footer */
     .footer {
       padding: 80px 0 48px;
@@ -2723,7 +2814,7 @@
       color: white;
       position: relative;
     }
-    
+
     .footer::before {
       content: '';
       position: absolute;
@@ -2733,14 +2824,14 @@
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--gray-700), transparent);
     }
-    
+
     .footer-grid {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 1fr;
       gap: 60px;
       margin-bottom: 60px;
     }
-    
+
     .footer-brand {
       display: flex;
       align-items: center;
@@ -2749,7 +2840,7 @@
       font-weight: 800;
       margin-bottom: 20px;
     }
-    
+
     .footer-description {
       color: var(--gray-300); /* Lighter for better contrast on dark background */
       line-height: 1.6;
@@ -2786,7 +2877,7 @@
       color: var(--gray-400); /* Slightly lighter for better readability */
       font-size: 0.875rem;
     }
-    
+
     /* Scroll to Top */
     .scroll-top {
       position: fixed;
@@ -2810,34 +2901,42 @@
       font-size: 1.5rem;
       font-weight: bold;
     }
-    
+
     .scroll-top.visible {
       opacity: 1;
       visibility: visible;
     }
-    
+
     .scroll-top:hover {
       background: #c61670;
       transform: translateY(-6px) scale(1.1);
       box-shadow: 0 20px 50px -10px rgba(233, 30, 140, 0.5);
     }
-    
+
     /* Responsive Design */
     @media (max-width: 1024px) {
       .hero-split {
-        grid-template-columns: 1fr;
-        gap: 60px;
+        padding: 48px 0 56px;
       }
-      
+
+      .hero-proof-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+
+      .hero-header {
+        max-width: 760px;
+      }
+
       .products-grid,
       .testimonials-grid {
         grid-template-columns: 1fr;
       }
-      
+
       .process-grid {
         grid-template-columns: repeat(2, 1fr);
       }
-      
+
       .footer-grid {
         grid-template-columns: 1fr 1fr;
       }
@@ -2850,7 +2949,7 @@
         padding: 50px 30px;
       }
     }
-    
+
     @media (max-width: 1024px) {
       .nav-menu {
         gap: 16px;
@@ -2866,8 +2965,6 @@
       }
 
       .hero-split {
-        grid-template-columns: 1fr;
-        gap: 48px;
         padding: 48px 0 60px;
         min-height: auto;
       }
@@ -2904,42 +3001,65 @@
       }
 
       .hero-split {
-        padding: 40px 0 60px;
-        gap: 32px;
+        padding: 32px 0 40px;
       }
 
-      .hero-content {
-        padding: 28px;
+      .hero-proof-grid {
+        gap: 22px;
       }
 
       .hero-subtitle {
         font-size: 1rem;
       }
 
+      .hero-header h1 {
+        font-size: clamp(2.2rem, 10vw, 3rem);
+        margin-bottom: 14px;
+      }
+
+      .hero-support-line {
+        font-size: 0.95rem;
+        margin-bottom: 22px;
+      }
+
       .lead-badge {
         font-size: 0.8125rem;
-        padding: 8px 20px;
+        padding: 8px 16px;
+        margin-bottom: 14px;
       }
-      
+
       .hero-actions {
         flex-direction: column;
         width: 100%;
       }
-      
+
       .btn {
         width: 100%;
         justify-content: center;
       }
-      
-      .value-props {
-        flex-direction: column;
-        gap: 20px;
+
+      .hero-trust-row {
+        gap: 8px;
       }
-      
+
+      .hero-trust-item {
+        font-size: 0.875rem;
+        padding: 7px 10px;
+      }
+
+      .hero-proof-panel {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .proof-path-card {
+        padding: 14px;
+      }
+
       .process-grid {
         grid-template-columns: 1fr;
       }
-      
+
       .comparison-table {
         overflow-x: auto;
       }
@@ -2979,12 +3099,12 @@
         padding: 60px 32px;
         margin: 80px 16px;
       }
-      
+
       .footer-grid {
         grid-template-columns: 1fr;
         gap: 40px;
       }
-      
+
       .scroll-top {
         bottom: 24px;
         right: 24px;
@@ -3140,7 +3260,7 @@
 
     <!-- CTA Hover Pixels (orbit around buttons) - Added dynamically by JS -->
   </div>
-  
+
   <!-- Navigation -->
   <nav class="nav" id="nav">
     <div class="container">
@@ -3176,107 +3296,81 @@
     </div>
   </nav>
 
-  <!-- SPLIT-SCREEN HERO SECTION -->
-  <section class="hero">
+  <!-- Proof-first homepage hero -->
+  <section class="hero" data-testid="root-hero">
     <div class="container">
       <div class="hero-split">
-        <!-- Full-Width Header -->
-        <div class="hero-header">
-          <div class="lead-badge">
-            Free Preview · Custom Proof · No Payment Today
-          </div>
-
-          <h1>Turn Any Meaningful Photo Into a <span class="text-accent">Custom Mosaic Proof</span></h1>
-
-          <p class="hero-subtitle">
-            Upload a favorite photo, preview a buildable mosaic, and request a free custom proof for review.
-          </p>
-
-          <p class="hero-subtitle" style="font-size: 1rem; opacity: 0.9; margin-top: -0.75rem;">
-            Popular first use case: pet portraits and memorial gifts. Also works for couples, family memories, baby photos, logos, and holiday gifts.
-          </p>
-
-          <div class="value-props">
-            <div class="value-item">
-              <div class="value-icon">✓</div>
-              <span><strong>Custom proof</strong> before production</span>
-            </div>
-            <div class="value-item">
-              <div class="value-icon">✓</div>
-              <span><strong>Change photos</strong> whenever you want</span>
-            </div>
-            <div class="value-item">
-              <div class="value-icon">✓</div>
-              <span><strong>No signup</strong> to preview</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 50/50 Grid: Cards + Slider -->
-        <div class="hero-content-row">
-          <!-- Left: Path Cards & Actions -->
-          <div class="hero-content">
-            <!-- Dual-Path Option Cards -->
-            <div class="path-options">
-            <div class="path-card path-pod">
-              <div class="path-badge">Most Popular</div>
-              <h3>Custom Proof Paths</h3>
-              <p class="path-desc">Start with a sticker-ready proof request. Physical formats are reviewed only after proof approval.</p>
-              <ul class="path-features">
-                <li>✓ Free preview</li>
-                <li>✓ Custom proof review</li>
-                <li>✓ No payment today</li>
-              </ul>
-              <div class="path-price">Preview free</div>
+        <div class="hero-proof-grid">
+          <div class="hero-header">
+            <div class="lead-badge">
+              Free Preview · Custom Proof · No Payment Today
             </div>
 
-            <div class="path-card path-diy">
-              <h3>Format Review Later</h3>
-              <p class="path-desc">Magnetic and premium display options can be discussed after the proof is reviewed.</p>
-              <ul class="path-features">
-                <li>✓ Proof-first path</li>
-                <li>✓ Feasibility review</li>
-                <li>✓ Follow-up by email</li>
-              </ul>
-              <div class="path-price">After proof</div>
+            <h1 data-testid="root-hero-title">Create your custom mosaic proof</h1>
+
+            <p class="hero-subtitle">
+              Upload a favorite photo, preview a buildable mosaic, and request a free custom proof for review.
+            </p>
+
+            <p class="hero-support-line">
+              Start with a sticker-ready proof. Magnetic and premium display options can be reviewed after proof approval.
+            </p>
+
+            <div class="hero-actions">
+              <a href="./builder/" class="btn btn-gold" data-testid="root-hero-primary-cta">
+                <span>Start Proof Builder</span>
+                <span class="btn-icon">→</span>
+              </a>
+              <a href="#how-it-works" class="btn btn-secondary">
+                <span>See How It Works</span>
+              </a>
+            </div>
+
+            <div class="hero-trust-row">
+              <div class="hero-trust-item">
+                <span class="hero-trust-icon">✓</span>
+                <span>Free preview</span>
+              </div>
+              <div class="hero-trust-item">
+                <span class="hero-trust-icon">✓</span>
+                <span>No payment today</span>
+              </div>
+              <div class="hero-trust-item">
+                <span class="hero-trust-icon">✓</span>
+                <span>Reviewed before any next step</span>
+              </div>
             </div>
           </div>
 
-          <div class="hero-actions">
-            <a href="./builder/" class="btn btn-gold">
-              <span>Start Proof Builder</span>
-              <span class="btn-icon">→</span>
-            </a>
-            <a href="#comparison" class="btn btn-secondary">
-              <span>See Proof Path</span>
-            </a>
-          </div>
-        </div>
-        
-        <!-- Right: Slider -->
-        <div class="hero-slider">
-          <div class="slider-container-hero" id="comparison-slider">
-            <div class="slider-labels">
-              <span class="slider-label">Your Photo</span>
-              <span class="slider-label">Mosaic Result</span>
-            </div>
-            <div class="slider-image before" style="clip-path: inset(0 50% 0 0);">
-              Original
-            </div>
-            <div class="slider-image after">
-              <script>
-                for(let i = 0; i < 1200; i++) {
-                  document.write('<div class="mosaic-cell"></div>');
-                }
-                document.currentScript?.remove();
-              </script>
-            </div>
-            <div class="slider-divider" id="slider-divider">
-              <div class="slider-handle"></div>
+          <div class="hero-proof-panel" data-testid="root-proof-path-cards">
+            <h2>Proof paths</h2>
+            <p>Start with a free mosaic preview, then request a custom proof for review.</p>
+
+            <div class="proof-path-cards">
+              <div class="proof-path-card is-primary">
+                <div class="proof-path-icon">1</div>
+                <div>
+                  <h3>Sticker-ready proof</h3>
+                  <p>Recommended first proof path.</p>
+                </div>
+              </div>
+              <div class="proof-path-card">
+                <div class="proof-path-icon">2</div>
+                <div>
+                  <h3>Magnetic proof interest</h3>
+                  <p>Reviewed after proof.</p>
+                </div>
+              </div>
+              <div class="proof-path-card">
+                <div class="proof-path-icon">3</div>
+                <div>
+                  <h3>Premium display quote</h3>
+                  <p>Optional review path.</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        </div><!-- End hero-content-row -->
+        </div><!-- End hero-proof-grid -->
       </div>
     </div>
   </section>
@@ -3839,7 +3933,7 @@
           </div>
           <p class="footer-description">Transform meaningful photos into custom mosaic proofs with professional-grade color matching. Start with a sticker-ready preview, then review physical formats after proof approval.</p>
         </div>
-        
+
         <div class="footer-section">
           <h4>Products</h4>
           <a href="#products" class="footer-link">Sticker Proof Path</a>
@@ -3866,13 +3960,13 @@
           <a href="/legal/terms.html" class="footer-link">Terms of Service</a>
         </div>
       </div>
-      
+
       <div class="footer-bottom">
         <p>© 2025 MosaPack. All rights reserved.</p>
       </div>
     </div>
   </footer>
-  
+
   <!-- Scroll to Top Button -->
   <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">
     ↑
@@ -3888,50 +3982,56 @@
         nav.classList.remove('scrolled');
       }
     });
-    
+
     // Before/After Slider
     const slider = document.getElementById('comparison-slider');
     const divider = document.getElementById('slider-divider');
-    const beforeImage = slider.querySelector('.before');
-    let isDown = false;
-    
-    function updateSlider(x) {
-      const rect = slider.getBoundingClientRect();
-      const percent = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100));
-      divider.style.left = percent + '%';
-      beforeImage.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
+    if (slider && divider) {
+      const beforeImage = slider.querySelector('.before');
+      let isDown = false;
+
+      function updateSlider(x) {
+        const rect = slider.getBoundingClientRect();
+        const percent = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100));
+        divider.style.left = percent + '%';
+        if (beforeImage) {
+          beforeImage.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
+        }
+      }
+
+      divider.addEventListener('mousedown', () => isDown = true);
+      document.addEventListener('mouseup', () => isDown = false);
+      document.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        updateSlider(e.clientX);
+      });
+
+      divider.addEventListener('touchstart', (e) => {
+        isDown = true;
+        e.preventDefault();
+      });
+      document.addEventListener('touchend', () => isDown = false);
+      document.addEventListener('touchmove', (e) => {
+        if (!isDown) return;
+        updateSlider(e.touches[0].clientX);
+      });
+
+      // Auto-animate slider
+      let autoProgress = 50;
+      const autoSlide = setInterval(() => {
+        autoProgress += 0.4;
+        if (autoProgress > 70) autoProgress = 30;
+        divider.style.left = autoProgress + '%';
+        if (beforeImage) {
+          beforeImage.style.clipPath = `inset(0 ${100 - autoProgress}% 0 0)`;
+        }
+      }, 50);
+
+      slider.addEventListener('mouseenter', () => clearInterval(autoSlide));
+      slider.addEventListener('touchstart', () => clearInterval(autoSlide));
     }
-    
-    divider.addEventListener('mousedown', () => isDown = true);
-    document.addEventListener('mouseup', () => isDown = false);
-    document.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      updateSlider(e.clientX);
-    });
-    
-    divider.addEventListener('touchstart', (e) => {
-      isDown = true;
-      e.preventDefault();
-    });
-    document.addEventListener('touchend', () => isDown = false);
-    document.addEventListener('touchmove', (e) => {
-      if (!isDown) return;
-      updateSlider(e.touches[0].clientX);
-    });
-    
-    // Auto-animate slider
-    let autoProgress = 50;
-    const autoSlide = setInterval(() => {
-      autoProgress += 0.4;
-      if (autoProgress > 70) autoProgress = 30;
-      divider.style.left = autoProgress + '%';
-      beforeImage.style.clipPath = `inset(0 ${100 - autoProgress}% 0 0)`;
-    }, 50);
-    
-    slider.addEventListener('mouseenter', () => clearInterval(autoSlide));
-    slider.addEventListener('touchstart', () => clearInterval(autoSlide));
-    
+
     // Scroll to top
     const scrollTopBtn = document.getElementById('scrollTop');
     window.addEventListener('scroll', () => {
@@ -3941,11 +4041,11 @@
         scrollTopBtn.classList.remove('visible');
       }
     });
-    
+
     scrollTopBtn.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    
+
     // Smooth anchor scrolling
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
@@ -3959,13 +4059,13 @@
         }
       });
     });
-    
+
     // Intersection observer for scroll animations
     const observerOptions = {
       threshold: 0.1,
       rootMargin: '0px 0px -80px 0px'
     };
-    
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -3978,7 +4078,7 @@
         }
       });
     }, observerOptions);
-    
+
     // Add animation to cards with staggered delays for process steps
     document.querySelectorAll('.product-card, .testimonial-card').forEach(el => {
       el.style.opacity = '0';
