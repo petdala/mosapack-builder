@@ -40,7 +40,7 @@ if grep -q "<h3>Avoid</h3>" "$BUILDER"; then
   fail "separate Avoid card heading still present"
 fi
 
-grep -q "grid-template-columns: minmax(620px, 1fr) minmax(330px, 380px)" "$BUILDER" || fail "desktop upload two-column layout missing"
+grep -q "grid-template-columns: minmax(680px, 1fr) minmax(330px, 380px)" "$BUILDER" || fail "desktop upload two-column layout missing"
 grep -q "advanced-tools .btn.btn-secondary:focus-visible" "$BUILDER" || fail "advanced-tools focus-visible style missing"
 grep -q "background: var(--primary-pale)" "$BUILDER" || fail "advanced-tools neutral/teal hover background missing"
 

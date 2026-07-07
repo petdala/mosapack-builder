@@ -111,6 +111,16 @@
       --radius: 8px;
       --radius-lg: 12px;
       --transition: all 0.2s ease;
+
+      /* Public proof wizard polish */
+      --mp-teal: #08b894;
+      --mp-teal-dark: #007f72;
+      --mp-pink: #f72573;
+      --mp-ink: #111318;
+      --mp-muted: #5c6470;
+      --mp-bg: #f7f8fa;
+      --mp-card: #ffffff;
+      --mp-border: #dde3ea;
     }
 
     body {
@@ -4941,25 +4951,45 @@
 
     /* Public guided proof wizard (Hybrid C) */
     body.public-wizard {
-      background: #fafafa;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(8, 184, 148, 0.10), transparent 34rem),
+        radial-gradient(circle at 100% 12%, rgba(247, 37, 115, 0.07), transparent 30rem),
+        var(--mp-bg);
+      color: var(--mp-ink);
       padding-bottom: 92px;
     }
 
     .public-wizard .header {
       box-shadow: none;
-      border-bottom: 1px solid rgba(229, 229, 229, 0.85);
+      border-bottom: 1px solid rgba(221, 227, 234, 0.82);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(14px);
+      padding: 0.5rem 1rem;
     }
 
     .public-wizard .header-content {
-      max-width: 1240px;
+      max-width: 1320px;
+      min-height: 44px;
+      gap: 0.75rem;
+    }
+
+    .public-wizard .logo {
+      gap: 0.55rem;
+      font-size: 1.15rem;
+    }
+
+    .public-wizard .logo svg {
+      width: 30px;
+      height: 30px;
     }
 
     .public-wizard .logo-subtitle {
       display: block;
-      color: var(--text-muted);
-      font-size: 0.78rem;
+      color: var(--mp-muted);
+      font-size: 0.68rem;
       font-weight: 600;
       letter-spacing: 0;
+      text-transform: none;
     }
 
     .public-wizard .version-badge,
@@ -4983,23 +5013,25 @@
     }
 
     .public-wizard-shell {
-      max-width: 1240px;
+      max-width: 1320px;
       margin: 0 auto;
-      padding: 1.4rem 1rem 0;
+      padding: 0.75rem 1.25rem 0;
       overflow-x: clip;
     }
 
     .wizard-hero {
       display: grid;
-      gap: 1rem;
-      margin: 0 auto 1rem;
+      gap: 0.5rem;
+      margin: 0 auto 0.65rem;
+      text-align: center;
+      justify-items: center;
     }
 
     .wizard-hero h1 {
       margin: 0;
-      color: var(--text);
-      font-size: clamp(2rem, 6vw, 4.4rem);
-      line-height: 0.98;
+      color: var(--mp-ink);
+      font-size: clamp(2.25rem, 3.8vw, 3.25rem);
+      line-height: 1.01;
       letter-spacing: 0;
       max-width: 860px;
       overflow-wrap: anywhere;
@@ -5007,101 +5039,149 @@
 
     .wizard-hero p {
       margin: 0;
-      color: var(--text-muted);
-      max-width: 720px;
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      line-height: 1.55;
+      color: var(--mp-muted);
+      max-width: 620px;
+      font-size: clamp(0.98rem, 1.5vw, 1.12rem);
+      line-height: 1.45;
     }
 
     .wizard-trust-chips {
       display: flex;
-      gap: 0.55rem;
+      gap: 0.45rem;
       flex-wrap: wrap;
       align-items: center;
+      justify-content: center;
       max-width: 100%;
     }
 
     .wizard-chip {
       display: inline-flex;
       align-items: center;
-      min-height: 34px;
-      padding: 0.4rem 0.72rem;
-      border: 1px solid rgba(11, 191, 146, 0.24);
+      min-height: 30px;
+      padding: 0.32rem 0.66rem;
+      border: 1px solid rgba(8, 184, 148, 0.24);
       border-radius: 999px;
       background: #fff;
-      color: #075f4b;
-      font-size: 0.82rem;
+      color: var(--mp-teal-dark);
+      font-size: 0.78rem;
       font-weight: 800;
     }
 
     .wizard-chip.is-pink {
-      border-color: rgba(233, 30, 140, 0.24);
-      color: #a01663;
+      border-color: rgba(247, 37, 115, 0.24);
+      color: #a31350;
       background: #fff7fb;
     }
 
     .wizard-stepper {
-      display: grid;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 0.5rem;
-      margin: 1rem 0;
+      gap: 0;
+      margin: 0.55rem auto 0.75rem;
+      max-width: 760px;
+      padding: 0.2rem 0;
+    }
+
+    .wizard-stepper::before {
+      content: '';
+      position: absolute;
+      left: 9%;
+      right: 9%;
+      top: 17px;
+      height: 2px;
+      background: var(--mp-border);
+      z-index: 0;
     }
 
     .wizard-step {
+      position: relative;
+      z-index: 1;
       display: grid;
-      gap: 0.25rem;
-      align-content: start;
-      padding: 0.8rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--text-muted);
-      min-height: 76px;
+      justify-items: center;
+      gap: 0.35rem;
+      flex: 1 1 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--mp-muted);
+      min-height: 0;
     }
 
     .wizard-step-number {
-      width: 26px;
-      height: 26px;
+      width: 34px;
+      height: 34px;
       display: inline-grid;
       place-items: center;
       border-radius: 999px;
-      background: var(--panel-soft);
-      color: var(--text-muted);
+      background: #fff;
+      border: 2px solid var(--mp-border);
+      color: var(--mp-muted);
       font-weight: 900;
-      font-size: 0.78rem;
+      font-size: 0.84rem;
+      box-shadow: 0 7px 20px rgba(17, 19, 24, 0.06);
     }
 
     .wizard-step-label {
       color: inherit;
       font-weight: 800;
-      font-size: 0.9rem;
+      font-size: 0.78rem;
       line-height: 1.15;
+      text-align: center;
     }
 
     .wizard-step.is-active {
-      border-color: rgba(11, 191, 146, 0.52);
-      background: var(--primary-pale);
-      color: #064e3b;
-      box-shadow: 0 10px 28px rgba(11, 191, 146, 0.12);
+      border-color: transparent;
+      background: transparent;
+      color: var(--mp-teal-dark);
+      box-shadow: none;
     }
 
     .wizard-step.is-active .wizard-step-number,
     .wizard-step.is-complete .wizard-step-number {
-      background: var(--primary);
+      background: var(--mp-teal);
+      border-color: var(--mp-teal);
       color: #fff;
+    }
+
+    .wizard-step.is-complete {
+      color: var(--mp-teal-dark);
     }
 
     .wizard-mobile-progress {
       display: none;
-      margin: 0.75rem 0;
-      color: var(--text-muted);
-      font-size: 0.9rem;
+      margin: 0.45rem 0 0;
+      color: var(--mp-muted);
+      font-size: 0.82rem;
       font-weight: 800;
+      text-align: center;
+    }
+
+    .wizard-mobile-dots {
+      display: none;
+      justify-content: center;
+      gap: 0.35rem;
+      margin: 0.45rem 0 0.55rem;
+    }
+
+    .wizard-mobile-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #cbd5e1;
+    }
+
+    .wizard-mobile-dot.is-active,
+    .wizard-mobile-dot.is-complete {
+      background: var(--mp-teal);
     }
 
     .public-wizard .container {
-      max-width: 1240px;
-      padding: 0 1rem 2rem;
+      max-width: 1320px;
+      padding: 0 1.25rem 2rem;
       margin: 0 auto;
       overflow-x: clip;
     }
@@ -5112,6 +5192,17 @@
     .public-wizard .workspace-main {
       display: block;
       max-width: 100%;
+      min-width: 0;
+    }
+
+    .public-wizard .wizard-main-card,
+    .public-wizard .main-grid,
+    .public-wizard #designer-tab,
+    .public-wizard .designer-tab-content {
+      display: contents;
+    }
+
+    .public-wizard .canvas-column {
       min-width: 0;
     }
 
@@ -5126,26 +5217,26 @@
 
     .wizard-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 320px;
-      gap: 1rem;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+      gap: 1.15rem;
       align-items: start;
     }
 
     .public-wizard.wizard-state-upload .wizard-layout {
-      grid-template-columns: minmax(620px, 1fr) minmax(330px, 380px);
-      gap: 1.25rem;
+      grid-template-columns: minmax(680px, 1fr) minmax(330px, 380px);
+      gap: 1.35rem;
     }
 
     .public-wizard .canvas-container {
-      border: 1px solid rgba(229, 229, 229, 0.95);
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(221, 227, 234, 0.92);
+      border-radius: 20px;
+      background: var(--mp-card);
+      box-shadow: 0 24px 70px rgba(17, 19, 24, 0.10);
       overflow: hidden;
     }
 
     .public-wizard .canvas-viewport {
-      min-height: 560px;
+      min-height: 545px;
       height: auto;
       background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
       border: 0;
@@ -5154,7 +5245,7 @@
 
     .public-wizard.wizard-state-upload .canvas-container {
       min-height: auto;
-      padding: 1.1rem;
+      padding: 1rem;
       flex: none;
       align-items: stretch;
       justify-content: flex-start;
@@ -5163,62 +5254,124 @@
     .public-wizard.wizard-state-upload .canvas-viewport {
       width: 100%;
       max-width: none;
-      min-height: clamp(340px, 38vh, 430px);
+      min-height: clamp(390px, 48vh, 500px);
       margin: 0 auto;
     }
 
     .wizard-card-heading {
       display: grid;
       gap: 0.25rem;
-      padding: 1.15rem 1.15rem 0;
+      padding: 1rem 1.15rem 0;
       background: #fff;
     }
 
     .wizard-card-heading h2 {
       margin: 0;
-      color: var(--text);
-      font-size: clamp(1.35rem, 4vw, 2rem);
+      color: var(--mp-ink);
+      font-size: clamp(1.28rem, 2.8vw, 1.85rem);
       line-height: 1.12;
       letter-spacing: 0;
     }
 
     .wizard-card-heading p {
       margin: 0;
-      color: var(--text-muted);
+      color: var(--mp-muted);
       font-size: 0.98rem;
     }
 
     .public-wizard .upload-overlay {
-      inset: 1.15rem;
-      border: 2px dashed rgba(11, 191, 146, 0.35);
-      border-radius: 12px;
-      background: linear-gradient(180deg, #ffffff 0%, var(--primary-pale) 100%);
-      color: var(--text);
-      padding: 1.25rem;
-      gap: 0.35rem;
+      inset: 1rem;
+      border: 2px dashed rgba(8, 184, 148, 0.38);
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(232, 250, 245, 0.96) 100%),
+        radial-gradient(circle at 80% 20%, rgba(247, 37, 115, 0.10), transparent 16rem);
+      color: var(--mp-ink);
+      padding: 1.5rem;
+      gap: 0.55rem;
       text-align: center;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
     }
 
     .public-wizard .upload-icon {
-      color: var(--primary-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      background: #fff;
+      color: var(--mp-teal-dark);
       font-weight: 900;
-      font-size: 0.86rem;
+      font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
+      box-shadow: 0 12px 28px rgba(8, 184, 148, 0.18);
     }
 
     .public-wizard .upload-text {
-      font-size: clamp(1.35rem, 4vw, 2rem);
+      font-size: clamp(1.6rem, 3vw, 2.35rem);
       font-weight: 900;
       line-height: 1.05;
-      color: var(--text);
-      max-width: 360px;
+      color: var(--mp-ink);
+      max-width: 430px;
     }
 
     .public-wizard .upload-hint {
-      color: var(--text-muted);
-      font-size: 1rem;
-      max-width: 360px;
+      color: var(--mp-muted);
+      font-size: 0.98rem;
+      max-width: 430px;
+    }
+
+    .upload-primary-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      margin-top: 0.25rem;
+      padding: 0.75rem 1.15rem;
+      border-radius: 999px;
+      background: var(--mp-teal);
+      color: #fff;
+      font-weight: 900;
+      box-shadow: 0 13px 30px rgba(8, 184, 148, 0.26);
+    }
+
+    .public-wizard .photo-category-picker {
+      margin-top: 0.45rem;
+      width: min(100%, 390px);
+      padding: 0.75rem;
+      border: 1px solid rgba(8, 184, 148, 0.22);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 10px 25px rgba(17, 19, 24, 0.05);
+    }
+
+    .public-wizard .photo-category-picker label {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: var(--mp-ink);
+      font-size: 0.82rem;
+      font-weight: 900;
+      text-align: left;
+    }
+
+    .public-wizard .photo-category-picker select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--mp-border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--mp-ink);
+      font-weight: 700;
+      padding: 0 0.75rem;
+    }
+
+    .public-wizard .photo-category-picker p {
+      margin: 0.4rem 0 0;
+      color: var(--mp-muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
     }
 
     .public-wizard .crop-editor.active {
@@ -5226,16 +5379,16 @@
       inset: auto;
       display: grid;
       place-items: center;
-      min-height: 560px;
+      min-height: 545px;
       padding: 1rem;
       background: #fff;
     }
 
     .public-wizard .crop-card {
       width: min(100%, 560px);
-      box-shadow: none;
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      box-shadow: 0 18px 42px rgba(17, 19, 24, 0.08);
+      border: 1px solid var(--mp-border);
+      border-radius: 18px;
     }
 
     .public-wizard .crop-heading {
@@ -5288,12 +5441,22 @@
     .public-wizard .proof-actions .btn,
     .public-wizard .crop-actions .btn {
       min-height: 48px;
-      border-radius: 8px;
+      border-radius: 999px;
+      font-weight: 900;
+    }
+
+    .public-wizard.wizard-state-preview .proof-actions .btn-primary,
+    .public-wizard.wizard-state-proof .proof-actions .btn-primary,
+    .public-wizard.wizard-state-saved .proof-actions .btn-primary {
+      background: var(--mp-pink);
+      border-color: var(--mp-pink);
+      box-shadow: 0 14px 32px rgba(247, 37, 115, 0.22);
     }
 
     .wizard-side-stack {
       display: grid;
       gap: 0.85rem;
+      align-self: stretch;
     }
 
     .public-wizard.wizard-state-upload .wizard-side-stack {
@@ -5304,25 +5467,38 @@
       display: grid;
       gap: 0.65rem;
       padding: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+      border: 1px solid rgba(221, 227, 234, 0.9);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 16px 38px rgba(17, 19, 24, 0.06);
+    }
+
+    .wizard-help-card.is-proof-promise {
+      background:
+        linear-gradient(135deg, #ffffff 0%, rgba(232, 250, 245, 0.94) 100%);
+      border-color: rgba(8, 184, 148, 0.20);
     }
 
     .wizard-help-card h3 {
       margin: 0;
-      color: var(--text);
+      color: var(--mp-ink);
       font-size: 1rem;
       line-height: 1.2;
+    }
+
+    .wizard-help-card p {
+      margin: 0;
+      color: var(--mp-muted);
+      font-size: 0.9rem;
+      line-height: 1.42;
     }
 
     .wizard-help-card ul,
     .wizard-help-card ol {
       margin: 0;
       padding-left: 1.2rem;
-      color: var(--text-muted);
-      font-size: 0.9rem;
+      color: var(--mp-muted);
+      font-size: 0.88rem;
     }
 
     .wizard-help-card li + li {
@@ -5330,18 +5506,23 @@
     }
 
     .wizard-help-card.is-compact {
-      gap: 0.75rem;
+      gap: 0.65rem;
     }
 
     .wizard-tips-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.8rem;
+      gap: 0.75rem;
     }
 
     .wizard-tip-group {
       display: grid;
-      gap: 0.4rem;
+      gap: 0.35rem;
+    }
+
+    .wizard-tip-group.is-avoid {
+      padding-left: 0.75rem;
+      border-left: 1px solid rgba(221, 227, 234, 0.8);
     }
 
     .wizard-tip-label {
@@ -5352,12 +5533,13 @@
 
     .wizard-tip-group ul {
       padding-left: 1rem;
-      font-size: 0.86rem;
+      font-size: 0.85rem;
+      line-height: 1.35;
     }
 
     .wizard-help-card.is-next ol {
       display: grid;
-      gap: 0.35rem;
+      gap: 0.3rem;
       padding-left: 1.1rem;
     }
 
@@ -5541,17 +5723,24 @@
 
     .wizard-sticky-cta button {
       width: 100%;
-      min-height: 50px;
+      min-height: 48px;
       border-radius: 8px;
       border: 0;
-      background: var(--primary);
+      background: var(--mp-teal);
       color: #fff;
       font-weight: 900;
       font-size: 1rem;
       cursor: pointer;
+      box-shadow: 0 12px 24px rgba(8, 184, 148, 0.22);
     }
 
-    .public-wizard.wizard-state-saved .wizard-sticky-cta {
+    .public-wizard.wizard-state-preview .wizard-sticky-cta button,
+    .public-wizard.wizard-state-proof .wizard-sticky-cta button {
+      background: var(--mp-pink);
+      box-shadow: 0 12px 24px rgba(247, 37, 115, 0.22);
+    }
+
+    .public-wizard.email-gate-open .wizard-sticky-cta {
       display: none !important;
     }
 
@@ -5576,30 +5765,62 @@
 
     @media (max-width: 900px) {
       body.public-wizard {
-        padding-bottom: 88px;
+        padding-bottom: 76px;
+      }
+
+      .public-wizard .header {
+        padding: 0.42rem 0.72rem;
+      }
+
+      .public-wizard .header-content {
+        min-height: 36px;
+      }
+
+      .public-wizard .logo {
+        gap: 0.46rem;
+        font-size: 1rem;
+      }
+
+      .public-wizard .logo svg {
+        width: 26px;
+        height: 26px;
+      }
+
+      .public-wizard .logo-subtitle {
+        display: none;
       }
 
       .public-wizard-shell {
-        padding: 1rem 0.85rem 0;
+        padding: 0.55rem 0.85rem 0;
       }
 
       .wizard-hero {
-        gap: 0.8rem;
+        gap: 0.42rem;
+        margin-bottom: 0.4rem;
       }
 
       .wizard-hero h1 {
-        font-size: clamp(2rem, 11vw, 3rem);
-        line-height: 1.02;
+        font-size: clamp(2rem, 9vw, 2.45rem);
+        line-height: 1.03;
+        max-width: 360px;
+      }
+
+      .wizard-hero p {
+        max-width: 335px;
+        font-size: 0.9rem;
+        line-height: 1.34;
       }
 
       .wizard-trust-chips {
         gap: 0.45rem;
+        max-height: 30px;
+        overflow: hidden;
       }
 
       .wizard-chip {
-        min-height: 32px;
-        padding: 0.35rem 0.6rem;
-        font-size: 0.78rem;
+        min-height: 26px;
+        padding: 0.26rem 0.52rem;
+        font-size: 0.72rem;
       }
 
       .wizard-stepper {
@@ -5608,6 +5829,10 @@
 
       .wizard-mobile-progress {
         display: block;
+      }
+
+      .wizard-mobile-dots {
+        display: flex;
       }
 
       .wizard-layout {
@@ -5620,7 +5845,7 @@
       }
 
       .public-wizard .container {
-        padding: 0 0.85rem 1.25rem;
+        padding: 0 0.85rem 1.1rem;
       }
 
       .wizard-side-stack {
@@ -5628,7 +5853,7 @@
       }
 
       .public-wizard .canvas-container {
-        border-radius: 12px;
+        border-radius: 18px;
         max-width: 100%;
         overflow-x: clip;
       }
@@ -5636,58 +5861,116 @@
       .public-wizard .canvas-viewport {
         width: 100%;
         max-width: 100%;
-        min-height: min(63vh, 520px);
+        min-height: min(58vh, 500px);
       }
 
       .public-wizard.wizard-state-upload .canvas-container {
-        padding: 0.75rem;
+        padding: 0.62rem;
       }
 
       .public-wizard.wizard-state-upload .canvas-viewport {
         width: 100%;
         max-width: 100%;
-        min-height: clamp(275px, 38vh, 330px);
+        min-height: clamp(295px, 42vh, 360px);
       }
 
       .public-wizard.wizard-state-upload .upload-overlay {
-        inset: 0.75rem;
-        padding: 0.9rem;
+        inset: 0.62rem;
+        padding: 0.82rem;
+        gap: 0.38rem;
       }
 
       .public-wizard.wizard-state-upload .upload-icon {
-        display: none;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        font-size: 0.62rem;
       }
 
       .public-wizard.wizard-state-upload .upload-text {
-        font-size: clamp(1.18rem, 6vw, 1.55rem);
+        font-size: clamp(1.25rem, 6vw, 1.7rem);
       }
 
       .public-wizard.wizard-state-upload .upload-hint {
+        font-size: 0.82rem;
+        line-height: 1.25;
+      }
+
+      .public-wizard.wizard-state-upload .upload-primary-action {
+        min-height: 42px;
+        padding: 0.62rem 0.95rem;
         font-size: 0.9rem;
-        line-height: 1.3;
       }
 
       .public-wizard.wizard-state-upload .photo-category-picker {
         width: 100%;
         max-width: 320px;
-        margin-top: 0.5rem;
+        margin-top: 0.3rem;
+        padding: 0.58rem;
       }
 
       .public-wizard.wizard-state-upload .photo-category-picker p {
         display: none;
       }
 
+      .public-wizard.wizard-state-upload .photo-category-picker label {
+        margin-bottom: 0.25rem;
+        font-size: 0.76rem;
+      }
+
+      .public-wizard.wizard-state-upload .photo-category-picker select {
+        min-height: 38px;
+      }
+
       .wizard-tips-grid {
         grid-template-columns: 1fr;
-        gap: 0.55rem;
+        gap: 0.35rem;
+      }
+
+      .wizard-tip-group.is-avoid {
+        padding-left: 0;
+        padding-top: 0.35rem;
+        border-left: 0;
+        border-top: 1px solid rgba(221, 227, 234, 0.8);
       }
 
       .wizard-help-card {
-        padding: 0.85rem;
+        padding: 0.72rem;
+        border-radius: 14px;
+        gap: 0.42rem;
+      }
+
+      .wizard-help-card h3 {
+        font-size: 0.9rem;
+      }
+
+      .wizard-help-card p,
+      .wizard-help-card ul,
+      .wizard-help-card ol {
+        font-size: 0.8rem;
+        line-height: 1.32;
+      }
+
+      .wizard-help-card.is-proof-promise ul {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.18rem 0.55rem;
+        padding-left: 1rem;
+      }
+
+      .wizard-help-card.is-next ol {
+        display: none;
+      }
+
+      .wizard-help-card.is-next::after {
+        content: 'We review your saved proof and follow up by email.';
+        color: var(--mp-muted);
+        font-size: 0.8rem;
+        line-height: 1.3;
       }
 
       .public-wizard .crop-editor.active {
-        min-height: min(64vh, 560px);
+        min-height: min(56vh, 520px);
         padding: 0.75rem;
       }
 
@@ -5701,10 +5984,7 @@
 
       .wizard-sticky-cta {
         display: block;
-      }
-
-      .public-wizard.wizard-state-saved .wizard-sticky-cta {
-        display: none;
+        padding: 0.58rem max(0.85rem, env(safe-area-inset-left)) calc(0.58rem + env(safe-area-inset-bottom));
       }
 
       .public-wizard .email-gate-card {
@@ -5769,7 +6049,7 @@
 
   <main class="public-wizard-shell" id="publicWizardShell">
     <section class="wizard-hero" aria-labelledby="wizardHeroTitle">
-      <h1 id="wizardHeroTitle">Create your custom mosaic proof</h1>
+      <h1 id="wizardHeroTitle">Create your mosaic proof</h1>
       <p>Upload a photo, preview your mosaic, and request a free custom proof. No payment required right now.</p>
       <div class="wizard-trust-chips" aria-label="MosaPack trust notes">
         <span class="wizard-chip">Free preview</span>
@@ -5785,6 +6065,13 @@
       <div class="wizard-step" data-wizard-step="saved"><span class="wizard-step-number">5</span><span class="wizard-step-label">Proof Saved</span></div>
     </nav>
     <div class="wizard-mobile-progress" id="wizardMobileProgress">Step 1 of 5 — Upload Photo</div>
+    <div class="wizard-mobile-dots" id="wizardMobileDots" aria-hidden="true">
+      <span class="wizard-mobile-dot is-active" data-wizard-dot="upload"></span>
+      <span class="wizard-mobile-dot" data-wizard-dot="crop"></span>
+      <span class="wizard-mobile-dot" data-wizard-dot="preview"></span>
+      <span class="wizard-mobile-dot" data-wizard-dot="proof"></span>
+      <span class="wizard-mobile-dot" data-wizard-dot="saved"></span>
+    </div>
   </main>
 
   <div class="workspace-tabs">
@@ -5929,8 +6216,9 @@
             <div class="upload-overlay" id="uploadOverlay" onclick="document.getElementById('fileInput').click()">
               <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(this)" aria-label="Upload photo">
               <div class="upload-icon" aria-hidden="true">Upload</div>
-              <div class="upload-text">Drag a photo here or click to browse</div>
-              <div class="upload-hint">Choose a category below so we can tune the proof.</div>
+              <div class="upload-text">Drag a photo here or choose a photo</div>
+              <div class="upload-hint">JPG or PNG. Clear faces, pets, and portraits work best.</div>
+              <span class="upload-primary-action" aria-hidden="true">Choose a photo</span>
               <div class="photo-category-picker" onclick="event.stopPropagation()">
                 <label for="photoCategorySelect">What kind of photo is this?</label>
                 <select id="photoCategorySelect" aria-label="What kind of photo is this?" onchange="updatePhotoCategorySelection(this.value)">
@@ -6001,10 +6289,10 @@
               </div>
               <div class="proof-next-step-card" id="proofNextStepCard" hidden aria-live="polite">
                 <span class="proof-next-step-eyebrow">Proof request saved</span>
-                <h3>Proof request saved!</h3>
+                <h3>Proof request saved.</h3>
                 <p class="proof-next-step-body">We saved your custom mosaic details. We'll review the design and follow up with the next step.</p>
                 <p class="proof-next-step-reference" id="proofNextStepProjectRef"></p>
-                <p class="proof-next-step-status" id="proofNextStepStatus">If your photo is not suitable for a production proof, we'll let you know before anything is made.</p>
+                <p class="proof-next-step-status" id="proofNextStepStatus">If your photo needs adjustments for a proof, we'll let you know before the next step.</p>
                 <div class="proof-actions">
                   <button class="btn btn-primary" id="proofReturnToBuilderButton" type="button">Create another preview</button>
                   <a class="btn btn-secondary" id="proofContactLink" href="/contact/">Contact MosaPack</a>
@@ -6018,6 +6306,14 @@
   </div>
       </div>
       <aside class="wizard-side-stack" aria-label="Photo proof guidance">
+        <section class="wizard-help-card is-proof-promise">
+          <h3>We review every proof</h3>
+          <p>A real review before anything is made.</p>
+          <ul>
+            <li>No payment today</li>
+            <li>Your photo stays private</li>
+          </ul>
+        </section>
         <section class="wizard-help-card is-compact">
           <h3>Photo tips</h3>
           <div class="wizard-tips-grid">
@@ -6029,7 +6325,7 @@
                 <li>One main subject</li>
               </ul>
             </div>
-            <div class="wizard-tip-group">
+            <div class="wizard-tip-group is-avoid">
               <div class="wizard-tip-label">Avoid</div>
               <ul>
                 <li>Tiny or distant subjects</li>
@@ -6176,7 +6472,7 @@
             <div class="product-type popular active" onclick="setProductType('bricks')" id="product-bricks">
               <span class="product-icon" aria-hidden="true">Display</span>
               <div class="product-name">Premium Display Quote</div>
-              <div class="product-desc">Premium custom quote with proof approval before production</div>
+              <div class="product-desc">Premium custom quote path after proof approval</div>
               <div class="product-price"><strong>Custom quote</strong></div>
             </div>
             <div class="product-type" onclick="setProductType('stickers')" id="product-stickers">
@@ -6233,13 +6529,13 @@
           <div class="material-value-props" id="materialValueProps">
             <div class="value-prop-card active" data-material="magnetic">
               <h4><span class="icon" aria-hidden="true">Magnetic</span> Magnetic Reveal Kit</h4>
-              <p>Made-to-order premium magnetic option with a custom proof before production.</p>
+              <p>Made-to-order premium magnetic option with a custom proof before the next step.</p>
               <div class="best-for">Best for: gift givers and home decor</div>
             </div>
 
             <div class="value-prop-card" data-material="transparent-bricks">
               <h4><span class="icon" aria-hidden="true">Display</span> Premium Display Quote</h4>
-              <p>Premium display quote path for approved mosaic proofs. Proof approval happens before production.</p>
+              <p>Premium display quote path for approved mosaic proofs. Proof approval happens before any next step.</p>
               <div class="best-for">Best for: collectors and premium gifts</div>
             </div>
 
@@ -6370,7 +6666,7 @@
           <div class="trust-item">
             <span class="trust-icon" aria-hidden="true">Proof</span>
             <div class="trust-copy">
-              <strong>Custom proof before production</strong>
+              <strong>Custom proof before any next step</strong>
               <span>Made-to-order products start only after proof approval.</span>
             </div>
           </div>
@@ -8097,6 +8393,7 @@
       overlay.hidden = false;
       overlay.classList.add("active");
       overlay.setAttribute("aria-hidden", "false");
+      document.body.classList.add('email-gate-open');
       updateFunnelProgress(requestType === 'custom_proof' ? 4 : 3);
       const firstField = document.getElementById("emailInput");
       if (firstField) firstField.focus();
@@ -8116,6 +8413,7 @@
         overlay.setAttribute("aria-hidden", "true");
         overlay.hidden = true;
       }
+      document.body.classList.remove('email-gate-open');
       hasSeenEmailGate = true;
       if (lastProofTrigger && typeof lastProofTrigger.focus === "function") {
         lastProofTrigger.focus();
@@ -8184,7 +8482,7 @@
       lastSavedProofProjectId = projectId || lastSavedProofProjectId;
       card.hidden = false;
       if (reference) reference.textContent = lastSavedProofProjectId ? `Saved design: ${lastSavedProofProjectId}` : '';
-      if (status) status.textContent = "If your photo is not suitable for a production proof, we'll let you know before anything is made.";
+      if (status) status.textContent = "If your photo needs adjustments for a proof, we'll let you know before the next step.";
       updateWizardState('saved', { status: 'Proof request saved.', focusCard: true });
       updateBuildableProofExportState();
       trackBuilderEvent('builder_proof_saved');
@@ -8195,7 +8493,7 @@
       crop: { index: 2, title: 'Crop & Position', cardTitle: 'Crop & Position', helper: 'Center the face or main subject.', cta: 'Looks good — create my preview' },
       preview: { index: 3, title: 'Preview Mosaic', cardTitle: "Here's your mosaic preview", helper: "This is an instant preview. We'll review the saved design before anything is made.", cta: 'Request my free proof' },
       proof: { index: 4, title: 'Request Proof', cardTitle: 'Request your free custom proof', helper: "We'll follow up with the next step after reviewing your saved design.", cta: 'Save my proof request' },
-      saved: { index: 5, title: 'Proof Saved', cardTitle: 'Proof request saved!', helper: "We saved your custom mosaic details. We'll review the design and follow up with the next step.", cta: '' }
+      saved: { index: 5, title: 'Proof Saved', cardTitle: 'Proof request saved.', helper: "We'll review your design and follow up with the next step.", cta: 'Create another preview' }
     };
 
     let currentWizardState = 'upload';
@@ -8341,6 +8639,14 @@
         step.setAttribute('aria-current', isActive ? 'step' : 'false');
       });
 
+      document.querySelectorAll('.wizard-mobile-dot').forEach((dot) => {
+        const dotConfig = WIZARD_STEPS[dot.dataset.wizardDot];
+        const isActive = dot.dataset.wizardDot === state;
+        const isComplete = dotConfig && dotConfig.index < config.index;
+        dot.classList.toggle('is-active', isActive);
+        dot.classList.toggle('is-complete', Boolean(isComplete));
+      });
+
       const mobileProgress = document.getElementById('wizardMobileProgress');
       if (mobileProgress) mobileProgress.textContent = `Step ${config.index} of 5 — ${config.title}`;
 
@@ -8352,7 +8658,7 @@
       const sticky = document.getElementById('wizardStickyCta');
       const stickyButton = document.getElementById('wizardStickyButton');
       if (sticky && stickyButton) {
-        sticky.hidden = state === 'saved';
+        sticky.hidden = !config.cta;
         stickyButton.textContent = config.cta || '';
         stickyButton.setAttribute('aria-label', config.cta || config.title);
       }
@@ -8375,6 +8681,8 @@
         requestCustomProof();
       } else if (currentWizardState === 'proof') {
         document.getElementById('emailGateSubmit')?.click();
+      } else if (currentWizardState === 'saved') {
+        document.getElementById('proofReturnToBuilderButton')?.click();
       }
     }
 

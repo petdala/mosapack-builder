@@ -27,7 +27,7 @@ require_no_rg() {
   rm -f /tmp/mosapack-wizard-hit.txt
 }
 
-require_rg 'Create your custom mosaic proof' "$BUILDER" 'public wizard headline'
+require_rg 'Create your mosaic proof' "$BUILDER" 'public wizard headline'
 for step_label in 'Upload Photo' 'Crop & Position' 'Preview Mosaic' 'Request Proof' 'Proof Saved'; do
   require_rg "$step_label" "$BUILDER" "5-step visual flow label: $step_label"
 done

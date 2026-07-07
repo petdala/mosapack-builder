@@ -14,11 +14,12 @@ test -f "$BUILDER" || fail "public/builder/index.html missing"
 grep -q "wizard-state-upload .canvas-container" "$BUILDER" || fail "upload-state canvas-container override missing"
 grep -q "wizard-state-upload .canvas-viewport" "$BUILDER" || fail "upload-state canvas-viewport override missing"
 grep -q "max-width: none" "$BUILDER" || fail "desktop upload viewport full-width override missing"
-grep -q "min-height: clamp(340px, 38vh, 430px)" "$BUILDER" || fail "desktop upload min-height clamp missing"
-grep -q "min-height: clamp(275px, 38vh, 330px)" "$BUILDER" || fail "mobile upload min-height clamp missing"
+grep -q "min-height: clamp(390px, 48vh, 500px)" "$BUILDER" || fail "desktop upload min-height clamp missing"
+grep -q "min-height: clamp(295px, 42vh, 360px)" "$BUILDER" || fail "mobile upload min-height clamp missing"
 grep -q "overflow-x: clip" "$BUILDER" || fail "overflow-x guard missing"
 
-grep -q "Drag a photo here or click to browse" "$BUILDER" || fail "dropzone browse copy missing"
+grep -q "Drag a photo here or choose a photo" "$BUILDER" || fail "dropzone choose-photo copy missing"
+grep -q "JPG or PNG. Clear faces, pets, and portraits work best." "$BUILDER" || fail "upload helper copy missing"
 if grep -q '<div class="upload-text">Upload your photo</div>' "$BUILDER"; then
   fail "old duplicate dropzone upload title still present"
 fi
