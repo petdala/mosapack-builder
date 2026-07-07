@@ -113,6 +113,21 @@ Kit-pack generator QA generated operator PDFs under:
 
 Generated PDFs are not committed and are not production-approved.
 
+Gate A PDF mode now generates:
+
+- corrected die-grid bounding-box crosshairs
+- 1.000 inch calibration bar
+- feed/skew fiducials
+- sheet 1 at `0.03in` bleed
+- sheet 1 at `0.05in` bleed
+- sidecar manifest JSON
+
+Gate A QA outputs:
+
+```text
+/tmp/mosapack-gate-a-pdf-qa/
+```
+
 ## Schema/Constants Reconciliation
 
 Draft production constants and canonical design schema now live at:
@@ -144,3 +159,26 @@ Architecture rule:
 - 16-inch Gallery is a premium proof option.
 - 24-inch Signature remains made-to-order beta.
 - Magnets remain waitlist until material validation.
+
+## Gate A Print Order
+
+1. Print the alignment page on plain paper at `100% / Actual Size`.
+2. Measure the `1.000in` calibration bar.
+3. Overlay plain paper onto a blank OL2050 label sheet.
+4. If geometry aligns, print sheet 1 at `0.03in` bleed on actual label stock.
+5. Print sheet 1 at `0.05in` bleed.
+6. Place 100-150 stickers from section 1.
+
+## Gate A Pass/Fail Table
+
+| Check | Pass rule | Stop rule |
+| --- | --- | --- |
+| scale | 1.000in calibration bar measures correctly | auto-scale / Fit to Page detected |
+| x/y drift | die-grid crosshairs align to stock | repeated offset exceeds tolerance |
+| skew | feed ticks remain parallel | corner differential indicates skew |
+| white slivers | no visible slivers at selected bleed | visible slivers after 0.05in bleed |
+| peelability | labels peel cleanly | tearing, curl, or adhesive issues |
+| sec/sticker | placement rate recorded | build rate not measured |
+| placement errors | errors counted and recoverable | repeated misplacement |
+| sheet feed | consistent feed | jams or repeatable drift |
+| color separation | tones remain distinguishable | key colors collapse |

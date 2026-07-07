@@ -24,6 +24,26 @@ python3 tools/kitpack/generate_kit_pack.py \
 
 If `--constants` is omitted, the generator defaults to `config/production-constants.json` relative to the repo root.
 
+Gate A validation mode:
+
+```bash
+python3 tools/kitpack/generate_kit_pack.py \
+  fixtures/designs/sample-design-first-hello.v1_1.json \
+  /tmp/mosapack-gate-a-pdf-qa/first-hello-gate-a.pdf \
+  --constants config/production-constants.json \
+  --gate-a
+```
+
+Bleed override for normal full-sheet output:
+
+```bash
+python3 tools/kitpack/generate_kit_pack.py \
+  fixtures/designs/sample-design-first-hello.v1_1.json \
+  /tmp/mosapack-gate-a-pdf-qa/first-hello-bleed-005.pdf \
+  --constants config/production-constants.json \
+  --bleed 0.05
+```
+
 ## Dependency
 
 ```bash
@@ -40,8 +60,11 @@ The PDF includes:
 - alignment / registration page
 - sticker sheet pages
 - build guide / section map pages
+- sidecar `.manifest.json` unless `--no-manifest` is passed
 
 The PDF is an operator proof pack, not a customer order, checkout artifact, or production approval.
+
+Gate A mode emits only sheet 1 at `0.03in` and `0.05in` bleed so Derek can validate scale, registration, bleed, and partial build feasibility before committing label stock.
 
 ## Gate
 

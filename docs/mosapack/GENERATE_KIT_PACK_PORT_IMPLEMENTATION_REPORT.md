@@ -93,6 +93,38 @@ Generated PDF includes:
 
 The output is intentionally operator-focused and not a customer order document.
 
+## Gate A PDF Mode
+
+Gate A mode was added after the initial port.
+
+CLI:
+
+```bash
+python3 tools/kitpack/generate_kit_pack.py \
+  fixtures/designs/sample-design-first-hello.v1_1.json \
+  /tmp/mosapack-gate-a-pdf-qa/first-hello-gate-a.pdf \
+  --constants config/production-constants.json \
+  --gate-a
+```
+
+Gate A mode includes:
+
+- die-grid bounding-box crosshairs
+- 1.000 inch calibration bar
+- feed/skew fiducials
+- sheet 1 at `0.03in` bleed
+- sheet 1 at `0.05in` bleed
+- sidecar production manifest JSON
+- palette drift warnings against `constants.palettes[palette_id]`
+
+Normal output also supports:
+
+```text
+--bleed 0.03
+--bleed 0.05
+--no-manifest
+```
+
 ## QA Outputs
 
 Fixture PDF:
@@ -109,6 +141,16 @@ Builder-export PDF, generated when the prior canonical export QA file is present
 
 Generated PDFs are QA artifacts and were not committed.
 
+Gate A QA outputs:
+
+```text
+/tmp/mosapack-gate-a-pdf-qa/first-hello-gate-a.pdf
+/tmp/mosapack-gate-a-pdf-qa/first-hello-gate-a.manifest.json
+/tmp/mosapack-gate-a-pdf-qa/page-02-alignment.png
+/tmp/mosapack-gate-a-pdf-qa/page-03-sheet1-bleed-003.png
+/tmp/mosapack-gate-a-pdf-qa/page-04-sheet1-bleed-005.png
+```
+
 ## QA Result
 
 `scripts/verify-generate-kit-pack.sh` passed.
@@ -123,6 +165,10 @@ Verified:
 - sample PDF is generated and non-empty
 - `pypdf` text/page check passes when available
 - output PDF text includes `MosaPack` and `MP-FH24A`
+- Gate A PDF is generated
+- Gate A manifest includes `0.03` and `0.05` bleed values
+- output PDF text includes `Actual Size`
+- output PDF text includes `Measure me: 1.000 in`
 
 `pdftoppm` is not available in this environment, so raster page rendering was not performed.
 

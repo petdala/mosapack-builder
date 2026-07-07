@@ -17,6 +17,7 @@ import math
 import re
 import sys
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +28,7 @@ from reportlab.pdfgen import canvas
 IN = 72.0
 TEAL = HexColor("#089E79")
 INK = HexColor("#1A1C1F")
+BLACK = HexColor("#000000")
 GRAY = HexColor("#9B9FA6")
 LIGHT = HexColor("#F3F6F6")
 WARN = HexColor("#B45309")
@@ -50,6 +52,10 @@ def load_constants(path: str | Path | None = None) -> dict[str, Any]:
     if "sheet_profiles" not in constants:
         raise ValueError("constants missing sheet_profiles")
     return constants
+
+
+def default_constants_path() -> Path:
+    return repo_root() / "config" / "production-constants.json"
 
 
 def normalize_palette(palette: list[Any]) -> list[dict[str, Any]]:
@@ -151,6 +157,30 @@ def validate_design(design: dict[str, Any], constants: dict[str, Any]) -> list[s
     return warnings
 
 
+def palette_drift_warnings(design: dict[str, Any], constants: dict[str, Any]) -> list[str]:
+    warnings: list[str] = []
+    palette_id = design.get("palette_id")
+    if not palette_id:
+        return ["palette_id missing; embedded palette could not be checked against production constants"]
+    constants_palette = constants.get("palettes", {}).get(str(palette_id))
+    if not constants_palette:
+        return [f"palette_id {palette_id} is not defined in production constants"]
+
+    constants_by_id = {str(color.get("id")): str(color.get("hex", "")).lower() for color in constants_palette}
+    design_by_id = {str(color["id"]): str(color["hex"]).lower() for color in design["palette"]}
+    for color_id, hex_value in design_by_id.items():
+        if re.match(r"^color_[0-9]{2}$", color_id):
+            warnings.append(f"design palette uses generated id {color_id} while palette_id={palette_id}")
+        if color_id not in constants_by_id:
+            warnings.append(f"design palette color {color_id} missing from constants palette {palette_id}")
+        elif constants_by_id[color_id] != hex_value:
+            warnings.append(f"palette drift for {color_id}: design {hex_value} != constants {constants_by_id[color_id]}")
+    for color_id in constants_by_id:
+        if color_id not in design_by_id:
+            warnings.append(f"constants palette color {color_id} not present in design palette {palette_id}")
+    return warnings
+
+
 def proof_ref_for(design: dict[str, Any]) -> str:
     proof_ref = design.get("proof_ref")
     if isinstance(proof_ref, str) and re.match(r"^MP-[A-Z0-9]{4,8}$", proof_ref):
@@ -170,6 +200,18 @@ def die_origin(index: int, profile: dict[str, Any], page_h: float) -> tuple[floa
     x = float(profile["margin_left_in"]) * IN + col * float(profile["pitch_in"]) * IN
     y_top = page_h - float(profile["margin_top_in"]) * IN - row * float(profile["pitch_in"]) * IN
     return x, y_top
+
+
+def die_grid_bbox(profile: dict[str, Any], page_h: float) -> dict[str, float]:
+    x_left = float(profile["margin_left_in"]) * IN
+    x_right = x_left + (int(profile["cols"]) - 1) * float(profile["pitch_in"]) * IN + float(profile["die_in"]) * IN
+    y_top = page_h - float(profile["margin_top_in"]) * IN
+    y_bot = y_top - (int(profile["rows"]) - 1) * float(profile["pitch_in"]) * IN - float(profile["die_in"]) * IN
+    return {"x_left": x_left, "x_right": x_right, "y_top": y_top, "y_bot": y_bot}
+
+
+def bleed_value(constants: dict[str, Any], override: float | None = None) -> float:
+    return float(override if override is not None else constants["print"]["bleed_in"])
 
 
 def compute_sections(grid: int, constants: dict[str, Any]) -> tuple[int, list[tuple[int, int, int, int]]]:
@@ -252,6 +294,78 @@ def warn_on_production_mismatch(design: dict[str, Any], plan: dict[str, Any]) ->
     return warnings
 
 
+def manifest_path_for(output_path: str | Path) -> Path:
+    out = Path(output_path)
+    return out.with_suffix(".manifest.json")
+
+
+def build_manifest(
+    design: dict[str, Any],
+    constants: dict[str, Any],
+    plan: dict[str, Any],
+    output_path: str | Path,
+    source_design_path: str | Path,
+    constants_path: str | Path,
+    page_w: float,
+    page_h: float,
+    gate_a: bool,
+    bleed_values_used: list[float],
+    warnings: list[str],
+    palette_warnings: list[str],
+    mismatch_warnings: list[str],
+) -> dict[str, Any]:
+    base_index = plan["base_index"]
+    total_base_cells = sum(1 for value in design["cell_map"] if value == base_index) if base_index is not None else 0
+    per_color_counts = {}
+    spares_per_color = Counter(color_index for _, _, color_index in plan["spares"])
+    spares_counts = {}
+    for color in design["palette"]:
+        index = color["index"]
+        key = color["id"]
+        per_color_counts[key] = int(plan["placed_counts"].get(index, 0))
+        spares_counts[key] = int(spares_per_color.get(index, 0))
+    section_size = int(plan["section_size"])
+    sections = []
+    for index, (start, end) in enumerate(plan["section_ranges"], start=1):
+        sections.append({"section": index, "start_sequence_index": start, "end_sequence_index": end, "placed_count": end - start})
+    return {
+        "manifest_version": "gate-a-pdf-mode-v1",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "proof_ref": proof_ref_for(design),
+        "project_id": design["project_id"],
+        "source_design_path": str(Path(source_design_path)),
+        "output_pdf_path": str(Path(output_path)),
+        "constants_path": str(Path(constants_path)),
+        "sheet_profile": design["sheet_profile"],
+        "page_size": {"width_in": round(page_w / IN, 4), "height_in": round(page_h / IN, 4)},
+        "grid": design["grid"],
+        "size_in": design["size_in"],
+        "palette_id": design.get("palette_id"),
+        "black_base": bool(design.get("black_base")),
+        "base_index": base_index,
+        "total_base_cells": total_base_cells,
+        "per_color_placed_counts": per_color_counts,
+        "spares_per_color": spares_counts,
+        "total_placed_stickers": plan["total_placed"],
+        "total_spares": plan["total_spares"],
+        "total_stickers": plan["total_stickers"],
+        "sheet_count": plan["printed_mixed_sheets"],
+        "gate_a_mode": gate_a,
+        "bleed_values_used": bleed_values_used,
+        "sections": sections,
+        "section_rule_used": f"{section_size}x{section_size} section-major, row-major within section",
+        "warnings": warnings,
+        "palette_drift_warnings": palette_warnings,
+        "mismatch_warnings": mismatch_warnings,
+    }
+
+
+def write_manifest(manifest: dict[str, Any], output_path: str | Path) -> Path:
+    path = manifest_path_for(output_path)
+    path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return path
+
+
 def footer(cv: canvas.Canvas, page_w: float, text: str) -> None:
     cv.setFillColor(GRAY)
     cv.setFont("Helvetica", 6.5)
@@ -263,18 +377,49 @@ def header(cv: canvas.Canvas, page_w: float, page_h: float, title: str, sub: str
     cv.setFont("Helvetica-Bold", 11)
     cv.drawString(margin, page_h - 0.22 * IN, "MosaPack")
     cv.setFillColor(TEAL)
-    cv.drawString(margin + 64, page_h - 0.22 * IN, title)
+    cv.drawString(margin + 1.12 * IN, page_h - 0.22 * IN, title)
     cv.setFillColor(GRAY)
     cv.setFont("Helvetica", 7)
     cv.drawRightString(page_w - margin, page_h - 0.22 * IN, sub)
 
 
-def draw_crosshair(cv: canvas.Canvas, x: float, y: float, size: float = 0.18 * IN) -> None:
-    cv.setStrokeColor(TEAL)
-    cv.setLineWidth(0.7)
-    cv.line(x - size, y, x + size, y)
-    cv.line(x, y - size, x, y + size)
-    cv.circle(x, y, size / 3, stroke=1, fill=0)
+def draw_crosshair(cv: canvas.Canvas, x: float, y: float) -> None:
+    arm = 0.15 * IN
+    gap = 0.04 * IN
+    cv.setStrokeColor(BLACK)
+    cv.setLineWidth(0.5)
+    cv.line(x - arm, y, x - gap, y)
+    cv.line(x + gap, y, x + arm, y)
+    cv.line(x, y - arm, x, y - gap)
+    cv.line(x, y + gap, x, y + arm)
+
+
+def draw_crosshair_label(cv: canvas.Canvas, x: float, y: float, dx: float, dy: float) -> None:
+    cv.setFillColor(BLACK)
+    cv.setFont("Helvetica", 5)
+    cv.drawString(x + dx, y + dy, f"{x / IN:.2f}, {y / IN:.2f} in")
+
+
+def draw_calibration_bar(cv: canvas.Canvas, x: float, y: float) -> None:
+    cv.setStrokeColor(BLACK)
+    cv.setFillColor(BLACK)
+    cv.setLineWidth(0.75)
+    cv.line(x, y, x + IN, y)
+    cv.line(x, y - 0.045 * IN, x, y + 0.045 * IN)
+    cv.line(x + IN, y - 0.045 * IN, x + IN, y + 0.045 * IN)
+    cv.setFont("Helvetica", 6)
+    cv.drawString(x, y + 0.08 * IN, "Measure me: 1.000 in / 25.4 mm")
+
+
+def draw_feed_fiducials(cv: canvas.Canvas, page_w: float, page_h: float) -> None:
+    y = page_h - 0.125 * IN
+    cv.setStrokeColor(BLACK)
+    cv.setFillColor(BLACK)
+    cv.setLineWidth(0.5)
+    for x in (0.75 * IN, page_w / 2, page_w - 0.75 * IN):
+        cv.line(x, y, x, y - 0.12 * IN)
+    cv.setFont("Helvetica", 5)
+    cv.drawString(page_w / 2 + 0.04 * IN, y - 0.08 * IN, "feed/skew ticks")
 
 
 def page_cover(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, Any], plan: dict[str, Any], warnings: list[str], page_w: float, page_h: float) -> None:
@@ -345,7 +490,7 @@ def page_cover(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, A
 def page_alignment(cv: canvas.Canvas, design: dict[str, Any], profile: dict[str, Any], page_w: float, page_h: float) -> None:
     proof_ref = proof_ref_for(design)
     margin = float(profile["margin_left_in"]) * IN
-    header(cv, page_w, page_h, "alignment / registration", f"{proof_ref} - print at 100% / actual size", margin)
+    header(cv, page_w, page_h, "alignment / registration", f"{proof_ref} - Print at 100% / Actual Size", margin)
     cv.setStrokeColor(GRAY)
     cv.setLineWidth(0.35)
     die = float(profile["die_in"]) * IN
@@ -353,33 +498,58 @@ def page_alignment(cv: canvas.Canvas, design: dict[str, Any], profile: dict[str,
         x, y_top = die_origin(i, profile, page_h)
         cv.roundRect(x, y_top - die, die, die, 2.5, stroke=1, fill=0)
 
-    inset = 0.5 * IN
-    draw_crosshair(cv, inset, inset)
-    draw_crosshair(cv, page_w - inset, inset)
-    draw_crosshair(cv, inset, page_h - inset)
-    draw_crosshair(cv, page_w - inset, page_h - inset)
+    bbox = die_grid_bbox(profile, page_h)
+    corners = (
+        (bbox["x_left"], bbox["y_bot"], 0.05 * IN, 0.06 * IN),
+        (bbox["x_right"], bbox["y_bot"], -0.72 * IN, 0.06 * IN),
+        (bbox["x_left"], bbox["y_top"], 0.05 * IN, -0.13 * IN),
+        (bbox["x_right"], bbox["y_top"], -0.72 * IN, -0.13 * IN),
+    )
+    for x, y, dx, dy in corners:
+        draw_crosshair(cv, x, y)
+        draw_crosshair_label(cv, x, y, dx, dy)
+
+    draw_feed_fiducials(cv, page_w, page_h)
+    draw_calibration_bar(cv, margin, 0.1 * IN)
 
     cv.setFillColor(INK)
-    cv.setFont("Helvetica-Bold", 9)
-    cv.drawString(margin, 0.48 * IN, "Print on plain paper first. Overlay the label sheet and hold to light.")
-    cv.setFont("Helvetica", 8)
-    cv.drawString(margin, 0.32 * IN, "Use the same print path as sticker sheets. Do not scale or fit to page.")
+    cv.setFont("Helvetica", 5.5)
+    cv.drawString(margin + 1.24 * IN, 0.16 * IN, "Print on plain paper first; overlay the label sheet and hold to light.")
+    cv.drawString(margin + 1.24 * IN, 0.08 * IN, "Print at 100% / Actual Size. Do not use Fit to Page.")
     footer(cv, page_w, f"{proof_ref} - alignment")
     cv.showPage()
 
 
-def page_sticker_sheets(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, Any], plan: dict[str, Any], profile: dict[str, Any], page_w: float, page_h: float) -> None:
+def page_sticker_sheets(
+    cv: canvas.Canvas,
+    design: dict[str, Any],
+    plan: dict[str, Any],
+    profile: dict[str, Any],
+    page_w: float,
+    page_h: float,
+    bleed_in: float,
+    sheet_limit: int | None = None,
+    title_prefix: str = "",
+) -> None:
     proof_ref = proof_ref_for(design)
     margin = float(profile["margin_left_in"]) * IN
     die = float(profile["die_in"]) * IN
-    bleed = float(constants["print"]["bleed_in"]) * IN
+    bleed = float(bleed_in) * IN
     per_sheet = int(profile["stickers_per_sheet"])
     items = plan["items"]
     section_starts = {start: index + 1 for index, (start, _) in enumerate(plan["section_ranges"]) if start > 0}
     spare_start = plan["total_placed"]
     sheet_count = max(1, math.ceil(len(items) / per_sheet))
-    for sheet in range(sheet_count):
-        header(cv, page_w, page_h, f"sticker sheet {sheet + 1} of {sheet_count}", f"{proof_ref} - {design['sheet_profile']} - print at 100%", margin)
+    render_count = min(sheet_count, sheet_limit) if sheet_limit else sheet_count
+    for sheet in range(render_count):
+        header(
+            cv,
+            page_w,
+            page_h,
+            f"{title_prefix}sticker sheet {sheet + 1} of {sheet_count}",
+            f"{proof_ref} - {design['sheet_profile']} - bleed {bleed_in:.2f} in - print at 100%",
+            margin,
+        )
         for pos in range(per_sheet):
             global_index = sheet * per_sheet + pos
             if global_index >= len(items):
@@ -394,6 +564,7 @@ def page_sticker_sheets(cv: canvas.Canvas, design: dict[str, Any], constants: di
                 cv.setFont("Helvetica-Bold", 5.8)
                 label = f"SECTION {section_starts.get(global_index)}" if global_index in section_starts else "SPARES"
                 cv.drawString(x, y_top + 0.06 * IN, label)
+        draw_calibration_bar(cv, margin, 0.1 * IN)
         footer(cv, page_w, f"{proof_ref} - sheet {sheet + 1}/{sheet_count}")
         cv.showPage()
 
@@ -465,22 +636,61 @@ def page_build_guide(cv: canvas.Canvas, design: dict[str, Any], constants: dict[
     cv.showPage()
 
 
-def render_pdf(design: dict[str, Any], constants: dict[str, Any], output_path: str | Path, warnings: list[str]) -> dict[str, Any]:
+def render_pdf(
+    design: dict[str, Any],
+    constants: dict[str, Any],
+    output_path: str | Path,
+    warnings: list[str],
+    *,
+    source_design_path: str | Path,
+    constants_path: str | Path,
+    bleed_override: float | None = None,
+    gate_a: bool = False,
+    write_manifest_file: bool = True,
+) -> dict[str, Any]:
     profile = constants["sheet_profiles"][design["sheet_profile"]]
     page_w, page_h = page_size_for(profile)
     plan = compute_sheet_plan(design, constants)
-    warnings = list(warnings) + warn_on_production_mismatch(design, plan)
+    mismatch_warnings = warn_on_production_mismatch(design, plan)
+    palette_warnings = palette_drift_warnings(design, constants)
+    warnings = list(warnings) + mismatch_warnings + palette_warnings
     out = Path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)
+    main_bleed = bleed_value(constants, bleed_override)
+    if gate_a:
+        bleed_values_used = [0.03, 0.05]
+    else:
+        bleed_values_used = [main_bleed]
     cv = canvas.Canvas(str(out), pagesize=(page_w, page_h))
     cv.setTitle(f"MosaPack {proof_ref_for(design)} ({design['project_id']}) kit pack")
     page_cover(cv, design, constants, plan, warnings, page_w, page_h)
     page_alignment(cv, design, profile, page_w, page_h)
-    page_sticker_sheets(cv, design, constants, plan, profile, page_w, page_h)
+    if gate_a:
+        page_sticker_sheets(cv, design, plan, profile, page_w, page_h, 0.03, sheet_limit=1, title_prefix="Gate A ")
+        page_sticker_sheets(cv, design, plan, profile, page_w, page_h, 0.05, sheet_limit=1, title_prefix="Gate A ")
+    else:
+        page_sticker_sheets(cv, design, plan, profile, page_w, page_h, main_bleed)
     page_build_guide(cv, design, constants, plan, page_w, page_h)
     cv.save()
+    manifest = build_manifest(
+        design,
+        constants,
+        plan,
+        out,
+        source_design_path,
+        constants_path,
+        page_w,
+        page_h,
+        gate_a,
+        bleed_values_used,
+        warnings,
+        palette_warnings,
+        mismatch_warnings,
+    )
+    manifest_path = write_manifest(manifest, out) if write_manifest_file else None
     return {
         "output": str(out),
+        "manifest": str(manifest_path) if manifest_path else None,
         "proof_ref": proof_ref_for(design),
         "project_id": design["project_id"],
         "grid": design["grid"],
@@ -489,15 +699,36 @@ def render_pdf(design: dict[str, Any], constants: dict[str, Any], output_path: s
         "placed": plan["total_placed"],
         "spares": plan["total_spares"],
         "sheets": plan["printed_mixed_sheets"],
+        "gate_a_mode": gate_a,
+        "bleed_values_used": bleed_values_used,
         "warnings": warnings,
     }
 
 
-def generate(design_path: str | Path, output_path: str | Path, constants_path: str | Path | None = None) -> dict[str, Any]:
-    constants = load_constants(constants_path)
+def generate(
+    design_path: str | Path,
+    output_path: str | Path,
+    constants_path: str | Path | None = None,
+    *,
+    bleed_override: float | None = None,
+    gate_a: bool = False,
+    write_manifest_file: bool = True,
+) -> dict[str, Any]:
+    resolved_constants_path = Path(constants_path) if constants_path else default_constants_path()
+    constants = load_constants(resolved_constants_path)
     design = load_design(design_path)
     warnings = validate_design(design, constants)
-    return render_pdf(design, constants, output_path, warnings)
+    return render_pdf(
+        design,
+        constants,
+        output_path,
+        warnings,
+        source_design_path=design_path,
+        constants_path=resolved_constants_path,
+        bleed_override=bleed_override,
+        gate_a=gate_a,
+        write_manifest_file=write_manifest_file,
+    )
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -505,13 +736,23 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("design_json", help="Canonical MosaPack design JSON")
     parser.add_argument("output_pdf", help="Output PDF path")
     parser.add_argument("--constants", default=None, help="Production constants JSON path")
+    parser.add_argument("--bleed", type=float, default=None, help="Override bleed in inches for normal output")
+    parser.add_argument("--gate-a", action="store_true", help="Generate Gate A validation PDF with sheet 1 at 0.03in and 0.05in bleed")
+    parser.add_argument("--no-manifest", action="store_true", help="Do not emit sidecar manifest JSON")
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     try:
-        summary = generate(args.design_json, args.output_pdf, args.constants)
+        summary = generate(
+            args.design_json,
+            args.output_pdf,
+            args.constants,
+            bleed_override=args.bleed,
+            gate_a=args.gate_a,
+            write_manifest_file=not args.no_manifest,
+        )
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

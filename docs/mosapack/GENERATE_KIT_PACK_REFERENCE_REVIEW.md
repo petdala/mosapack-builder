@@ -85,6 +85,7 @@ Input is canonical MosaPack design JSON. Output is a printable operator PDF kit 
 - Supports derived production mismatch warnings against the constants-driven production plan.
 - Checks black-base exclusion keyed only by `ink_black`.
 - Remains local/operator-only until physical samples are validated.
+- Adds Gate A PDF mode with die-grid crosshairs, a 1.000 inch calibration bar, feed/skew fiducials, sheet 1 at `0.03in` bleed, sheet 1 at `0.05in` bleed, and sidecar manifest JSON.
 
 ## License/Risk Note
 
