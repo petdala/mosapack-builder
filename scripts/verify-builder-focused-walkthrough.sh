@@ -21,7 +21,7 @@ grep -q "isOpsMode" "$BUILDER" || fail "ops-mode rail exception missing"
 grep -q "wizard-assurance-strip" "$BUILDER" || fail "focused-step assurance strip missing"
 
 grep -q "public-wizard.wizard-state-crop .crop-frame" "$BUILDER" || fail "crop frame focused override missing"
-grep -q "calc(100vh - 330px)" "$BUILDER" || fail "crop frame viewport clamp missing"
+grep -q "calc(100vh - 300px)" "$BUILDER" || fail "crop frame viewport clamp missing"
 grep -q "grid-template-columns: minmax(0, 860px)" "$BUILDER" || fail "desktop crop grid track missing"
 grep -q "public-wizard.wizard-state-crop .crop-actions .btn" "$BUILDER" || fail "desktop crop action sizing override missing"
 grep -q "public-wizard.wizard-state-crop .crop-heading" "$BUILDER" || fail "duplicate crop heading override missing"

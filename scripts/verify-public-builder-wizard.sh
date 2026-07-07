@@ -27,17 +27,17 @@ require_no_rg() {
   rm -f /tmp/mosapack-wizard-hit.txt
 }
 
-require_rg 'Create your mosaic proof' "$BUILDER" 'public wizard headline'
-for step_label in 'Upload Photo' 'Crop & Position' 'Preview Mosaic' 'Request Proof' 'Proof Saved'; do
+require_rg 'Create your custom mosaic proof' "$BUILDER" 'public wizard headline'
+for step_label in 'Upload Photo' 'Crop &amp; Position' 'Preview Mosaic' 'Request Proof' 'Proof Saved'; do
   require_rg "$step_label" "$BUILDER" "5-step visual flow label: $step_label"
 done
 require_rg 'wizardStickyCta|mobile-sticky-cta' "$BUILDER" 'mobile sticky CTA'
-require_rg 'Looks good — create my preview' "$BUILDER" 'crop CTA copy'
+require_rg 'Looks good — preview my mosaic' "$BUILDER" 'crop CTA copy'
 require_rg 'Request my free proof' "$BUILDER" 'preview proof CTA copy'
-require_rg 'Save my proof request' "$BUILDER" 'proof submit CTA copy'
-require_rg 'Proof request saved' "$BUILDER" 'saved proof copy'
-require_rg 'Sticker-Ready Proof' "$BUILDER" 'default recommended sticker-ready format'
-require_rg 'Start with a sticker-ready proof\. Magnetic and premium display options can be reviewed later\.' "$BUILDER" 'post-review other-format note'
+require_rg 'Request my proof' "$BUILDER" 'proof submit CTA copy'
+require_rg 'Proof request received' "$BUILDER" 'saved proof copy'
+require_rg 'Sticker-ready proof' "$BUILDER" 'default recommended sticker-ready format'
+require_rg 'Physical formats are reviewed after a feasibility review\. No payment today\.' "$BUILDER" 'post-review other-format note'
 require_rg 'operatorToolsMount' "$BUILDER" 'operator tools mount'
 require_rg 'function mountOperatorTools' "$BUILDER" 'ops-only operator tools renderer'
 require_rg "get\\('ops'\\) === '1'" "$BUILDER" 'ops=1 query gate'

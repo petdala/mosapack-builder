@@ -128,7 +128,7 @@ fi
 grep -q "/.netlify/functions/save-project" "$BUILDER" || fail "save-project reference missing"
 grep -q "project_id" "$BUILDER" || fail "project_id missing"
 grep -q "designStorageConsent" "$BUILDER" || fail "designStorageConsent missing"
-grep -q "width: min(100%, 520px, calc(100vh - 330px))" "$BUILDER" || fail "desktop crop 520px target missing"
+grep -q "width: min(100%, 560px, calc(100vh - 300px))" "$BUILDER" || fail "desktop crop 560px target missing"
 grep -q "grid-template-columns: minmax(0, 860px)" "$BUILDER" || fail "desktop crop focused grid track missing"
 
 if [[ ! -x "$PWCLI" ]]; then
