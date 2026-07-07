@@ -88,3 +88,16 @@ Stock color sheets may not be true print-on-demand. A supplier may treat them as
 - pick/pack fulfillment
 
 MosaPack must ask suppliers how each model affects cost, storage, MOQ, and lead time.
+
+## Supplier Validation Questions
+
+The POD supplier packet must ask whether full solid-color sheets are:
+
+- true print-on-demand per order
+- batched solid-color production
+- preprinted inventory
+- client-owned stock with pick/pack fees
+
+Stock and hybrid remain math/manifest modes only. They are not current print pages and are not customer-facing fulfillment options.
+
+Fine-cell profiles should be treated as future vendor-only questions until physical peel/place evidence exists.

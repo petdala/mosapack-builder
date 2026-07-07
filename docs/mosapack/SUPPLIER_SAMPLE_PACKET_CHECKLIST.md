@@ -94,3 +94,24 @@ Only after plain-paper and label-stock Gate A checks pass, prepare:
 - Do not send private raw photos unless Derek approves.
 - Do not claim production readiness from PDF generation alone.
 - Do not start paid fulfillment before physical sample validation.
+
+## POD Supplier Validation Packet v1
+
+Plain-paper Gate A alignment was approved by Derek, but exact measurement values were not recorded and label stock is not available locally. `OL2050` remains `pending_measurement_record`.
+
+Next packet path:
+
+```text
+/tmp/mosapack-pod-supplier-validation-packet-v1/
+```
+
+Supplier validation must distinguish:
+
+- true print-on-demand custom mixed sheets
+- solid-color sheet production
+- inventory/pick-pack stock-color fulfillment
+- hybrid stock plus mixed top-off support
+
+Printed mixed sheets remain the current default. Stock and hybrid are supplier questions and manifest math, not customer-facing commitments.
+
+Fine-cell profiles remain vendor-only future questions. Do not promise 0.375in or 0.25in customer-buildable kits until suppliers and physical tests prove peel/place feasibility.

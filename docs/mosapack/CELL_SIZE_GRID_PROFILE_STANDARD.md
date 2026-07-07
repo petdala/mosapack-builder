@@ -53,3 +53,14 @@ OL2050 / 0.5in stickers
 ```
 
 Smaller cells remain future vendor/POD-only profiles until peel/place evidence proves they are buildable.
+
+## POD Supplier Validation Status
+
+The current supplier packet keeps `0.5in` cells as the only active validation size.
+
+Fine-cell questions may be included in supplier outreach, but they are future/vendor-only:
+
+- `0.375in` cells require supplier peelability and placement validation.
+- `0.25in` cells are not considered customer-DIY for loose stickers.
+
+Do not expose fine-cell runtime output or public customer options until supplier samples and physical validation prove the format.

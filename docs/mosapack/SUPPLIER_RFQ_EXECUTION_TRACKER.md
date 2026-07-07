@@ -104,3 +104,26 @@ I can provide a test artwork file for quoting.
 
 Thanks,
 Derek
+
+## POD Supplier Validation Packet v1 Update
+
+Date: 2026-07-07
+
+Plain-paper Gate A alignment was approved by Derek, but label stock is not available locally and exact measurements were not recorded. `OL2050` remains pending measurement record.
+
+Use the POD supplier validation packet for the next supplier conversations:
+
+```text
+/tmp/mosapack-pod-supplier-validation-packet-v1/
+```
+
+Supplier RFQs should ask separately about:
+
+- custom printed mixed sheets per order
+- full solid-color sheets per color
+- whether solid-color sheets are true POD or inventory/pick-pack
+- hybrid stock plus mixed top-off sheets
+- 0.5in rounded-square sticker support
+- 0.375in and 0.25in cells as future vendor-only questions
+
+Do not make a public customer promise until supplier samples and physical validation pass.

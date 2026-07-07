@@ -108,3 +108,30 @@ Prototype formats under consideration:
 - 3/4 inch squares for easier assembly
 
 Thank you.
+
+## POD Sticker Supplier RFQ
+
+Subject: RFQ - 0.5in rounded-square sticker mosaic kit sample
+
+Hello,
+
+I am validating a sticker mosaic kit that uses 0.5in rounded-square sticker cells. The current sample packet is synthetic/demo-only and is not a customer order.
+
+Can you review a sample packet and advise on:
+
+- custom mixed sticker sheets per order
+- full solid-color sheets per approved color
+- whether solid-color sheets are true print-on-demand or inventory/pick-pack
+- hybrid stock color sheets plus a mixed top-off sheet
+- 0.5in rounded-square kiss-cut support
+- registration tolerance and skew tolerance
+- 0.03in vs 0.05in bleed requirements
+- matte label, weatherproof polyester, removable adhesive, and permanent adhesive options
+- sample cost, MOQ, lead time, and packaging
+- labeling sheets by color ID/name
+- numbered board/map inserts
+- 0.375in and 0.25in cells as future vendor-only formats
+
+Printed mixed sheets are the current default path. Stock and hybrid are feasibility questions only.
+
+Thank you.

@@ -123,3 +123,22 @@ Stock color sheets destroy peel-in-order sequencing. A stock kit needs:
 - operator QA to confirm all colors are included
 
 Printed mixed sheets preserve sequence order and remain better for current Gate A.
+
+## POD Supplier Validation Status
+
+Plain-paper Gate A alignment was approved by Derek, but local label-stock testing is blocked because label stock is not available. `OL2050` remains pending measurement record until exact scale, crosshair, drift, and skew values are recorded.
+
+Next validation packet:
+
+```text
+/tmp/mosapack-pod-supplier-validation-packet-v1/
+```
+
+Supplier conversations must explicitly separate:
+
+- true POD custom mixed sheets
+- solid-color sheets printed per order
+- inventory/pick-pack stock-color sheets
+- hybrid stock plus top-off support
+
+No customer-facing fulfillment mode should be promised until supplier sample evidence exists.
