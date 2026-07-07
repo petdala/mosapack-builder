@@ -7027,7 +7027,8 @@
     let currentPrice = 249;
     let currentPalette = 'professional';
     let currentPreset = 'original';
-    let currentProductType = 'bricks';
+    const MOSAPACK_BUILDER_SCRIPT_NODE = document.currentScript;
+    let currentProductType = 'stickers';
     let currentCartSummary = { items: [], total: 0 };
     let suppressPresetToasts = false;
     let activeGroupId = 'core';
@@ -8622,6 +8623,41 @@
       document.body.classList.toggle('is-ops-mode', isOpsMode);
       document.body.dataset.opsMode = isOpsMode ? 'true' : 'false';
       mountOperatorTools(isOpsMode);
+      return isOpsMode;
+    }
+
+    function getSubmittedProductInterest() {
+      const isOpsMode = document.body?.dataset?.opsMode === 'true' || new URLSearchParams(window.location.search).get('ops') === '1';
+      if (isOpsMode) return currentProductType || 'custom_mosaic_proof';
+      if (currentProductType === 'magnetic') return 'magnetic_proof_path';
+      return 'sticker_proof';
+    }
+
+    function hardenPublicBuilderDom(isOpsMode) {
+      if (isOpsMode) return;
+
+      const selectorsToRemove = [
+        '.canvas-tools-rail',
+        '.canvas-header',
+        '#workspaceMega',
+        '#workspacePanelTemplates',
+        '#builder-tab',
+        '#insightsPanel',
+        '#insightsOverlay',
+        '#scenePreviewModal'
+      ];
+
+      selectorsToRemove.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((node) => node.remove());
+      });
+
+      const mount = document.getElementById('operatorToolsMount');
+      if (mount) {
+        mount.replaceChildren();
+        delete mount.dataset.mounted;
+      }
+
+      document.body.classList.add('public-proof-wizard-only');
     }
 
     function updateWizardState(state, options = {}) {
@@ -8696,7 +8732,8 @@
     document.addEventListener('DOMContentLoaded', function() {
       applyGroupState();
       document.body.classList.add('public-wizard');
-      applyOperatorMode();
+      const isOpsMode = applyOperatorMode();
+      hardenPublicBuilderDom(isOpsMode);
       updateWizardState(processedData ? 'preview' : 'upload');
       const stickyButton = document.getElementById('wizardStickyButton');
       if (stickyButton && !stickyButton.dataset.bound) {
@@ -9093,7 +9130,7 @@
             mosaic_clean_cleanup_mode: preprocessSnapshot.cleanup_mode,
             recommended_format: recommendedFormat,
             selected_format: recommendedFormat,
-            product_interest: currentProductType || "custom_mosaic",
+            product_interest: getSubmittedProductInterest(),
             request_type: requestType,
             crop_state: cropSnapshot,
             render_settings: renderSnapshot,
@@ -9199,7 +9236,7 @@
           setGateField("saveProjectSaved", "false");
           setGateField("saveSaveVersion", "");
           setGateField("saveDesignStorage", "");
-          setGateField("saveProductInterest", currentProductType || "unknown");
+          setGateField("saveProductInterest", getSubmittedProductInterest());
           setGateField("saveGridSize", String(currentSize || ""));
           setGateField("savePreviewShape", currentMaterialType || "mosaic");
           setGateField("savePhotoCategory", photoCategory);
@@ -13047,7 +13084,8 @@
       if (wrapper) {
         wrapper.style.transform = `translate(0px, 0px) scale(${zoomLevel})`;
       }
-      document.getElementById('zoomLevel').textContent = `${Math.round(zoomLevel * 100)}%`;
+      const zoomLabel = document.getElementById('zoomLevel');
+      if (zoomLabel) zoomLabel.textContent = `${Math.round(zoomLevel * 100)}%`;
     }
 
     function zoomIn() {
@@ -13084,6 +13122,12 @@
     // STATISTICS & COST
     // =====================================================
 
+    function setTextForAllById(id, value) {
+      document.querySelectorAll(`[id="${id}"]`).forEach((node) => {
+        node.textContent = value;
+      });
+    }
+
     function updateStatistics() {
       const config = PRODUCTS[currentProductType];
       const sizeOption = config.sizes.find(s => s.size === currentSize);
@@ -13098,10 +13142,12 @@
         ? Math.ceil(totalPieces / 50)
         : Math.ceil(totalPieces / 200);
       
-      document.getElementById('totalPieces').textContent = totalPieces.toLocaleString();
-      document.getElementById('uniqueColors').textContent = uniqueColors;
-      document.getElementById('buildTime').textContent = 
-        buildTime < 60 ? `${buildTime}m` : `${Math.floor(buildTime/60)}-${Math.ceil(buildTime/60)}h`;
+      setTextForAllById('totalPieces', totalPieces.toLocaleString());
+      setTextForAllById('uniqueColors', uniqueColors);
+      setTextForAllById(
+        'buildTime',
+        buildTime < 60 ? `${buildTime}m` : `${Math.floor(buildTime/60)}-${Math.ceil(buildTime/60)}h`
+      );
       
       if (processedData) {
         const packSizes = [100, 50, 25, 10];
@@ -13115,7 +13161,7 @@
         });
         
         const efficiency = Math.round((1 - totalOverage / totalPieces) * 100);
-        document.getElementById('efficiency').textContent = `${efficiency}%`;
+        setTextForAllById('efficiency', `${efficiency}%`);
       }
     }
 
@@ -13149,6 +13195,7 @@
       if (!processedData) return;
       
       const container = document.getElementById('colorDistribution');
+      if (!container) return;
       container.innerHTML = '';
       
       const sortedColors = processedData.palette
@@ -13201,6 +13248,10 @@
 
     function updateCostBreakdown() {
       const container = document.getElementById('costBreakdown');
+      if (!container) {
+        currentCartSummary = { items: [], total: 0 };
+        return;
+      }
 
       if (!processedData) {
         container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.875rem;">Generate a mosaic to see materials breakdown</p>';
@@ -13378,6 +13429,7 @@
       if (!processedData) return;
       
       const banner = document.getElementById('upsellBanner');
+      if (!banner) return;
       
       if (currentProductType === 'bricks') {
         // Upsell stickers
@@ -15003,6 +15055,7 @@
         return result;
       };
     }
+    MOSAPACK_BUILDER_SCRIPT_NODE?.remove();
   </script>
 
   <!-- Scene Preview Modal -->

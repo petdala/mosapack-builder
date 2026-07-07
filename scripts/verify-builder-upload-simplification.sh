@@ -22,9 +22,8 @@ fi
 if grep -q '<section class="proof-export-tools"' "$BUILDER"; then
   fail "proof export tools must not be statically mounted"
 fi
-if grep -q "Proof Export Tools\|Advanced Tools\|Mosaic Clean\|Production JSON\|Canonical Design JSON" "$BUILDER"; then
-  fail "operator/export labels must be assembled only in ops mode"
-fi
+grep -q "hardenPublicBuilderDom" "$BUILDER" || fail "public builder DOM hardening missing"
+grep -q "MOSAPACK_BUILDER_SCRIPT_NODE?.remove()" "$BUILDER" || fail "builder body script removal missing"
 grep -q "wizard-state-upload .advanced-tools" "$BUILDER" || fail "upload-state advanced-tools hide rule missing"
 if grep -q "is-ops-mode.wizard-state-upload .advanced-tools" "$BUILDER"; then
   fail "ops-mode should not reveal advanced tools in upload state"

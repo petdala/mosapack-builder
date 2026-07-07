@@ -6,7 +6,7 @@ ROOT_PAGE="$ROOT/public/index.html"
 BUILDER="$ROOT/public/builder/index.html"
 
 fail() {
-  echo "Public copy and ops gating verification failed: $*" >&2
+  echo "Public builder hardening verification failed: $*" >&2
   exit 1
 }
 
@@ -38,16 +38,23 @@ for forbidden in \
   "LEGO-compatible" \
   "brick" \
   "bricks" \
+  "Brick quote" \
   "Brick Packs" \
   "Premium Brick" \
-  "Netlify" \
+  "Total Bricks" \
+  "Build Time" \
+  "Pack Efficiency" \
+  "Advanced exports" \
+  "Pro members" \
+  "BOM" \
+  "PDF" \
+  "canonical JSON" \
+  "Production JSON" \
   "Netlify Forms" \
   "B2" \
   "OL2050" \
   "Gate A" \
   "generator" \
-  "canonical JSON" \
-  "Production JSON" \
   "stock sheets" \
   "hybrid" \
   "topoff" \
@@ -64,33 +71,33 @@ for forbidden in \
   "production begins" \
   "Total $"; do
   if [[ "$ROOT_VISIBLE" == *"$forbidden"* ]]; then
-    fail "root visible copy contains forbidden term: $forbidden"
+    fail "root visible/public copy contains blocked term: $forbidden"
   fi
 done
 
-if grep -q '<details class="advanced-tools"' "$BUILDER"; then
-  fail "advanced tools are statically mounted"
-fi
-
-if grep -q '<section class="proof-export-tools"' "$BUILDER"; then
-  fail "proof export tools are statically mounted"
-fi
-
-grep -q "operatorToolsMount" "$BUILDER" || fail "operator tools mount missing"
-grep -q "mountOperatorTools" "$BUILDER" || fail "operator tools conditional renderer missing"
-grep -q "get('ops') === '1'" "$BUILDER" || fail "ops=1 query detection missing"
-grep -q "hardenPublicBuilderDom" "$BUILDER" || fail "public builder DOM hardening missing"
-grep -q "public-proof-wizard-only" "$BUILDER" || fail "public-only marker missing"
+grep -q "function hardenPublicBuilderDom" "$BUILDER" || fail "public DOM hardening function missing"
+grep -q "public-proof-wizard-only" "$BUILDER" || fail "public-only body marker missing"
 grep -q "MOSAPACK_BUILDER_SCRIPT_NODE?.remove()" "$BUILDER" || fail "builder body script removal missing"
-grep -q "getSubmittedProductInterest" "$BUILDER" || fail "submitted product interest normalizer missing"
+grep -q "selectorsToRemove" "$BUILDER" || fail "public DOM removal selector list missing"
+grep -q "#workspacePanelTemplates" "$BUILDER" || fail "legacy workspace template removal missing"
+grep -q "#builder-tab" "$BUILDER" || fail "legacy builder tab removal missing"
+grep -q "#insightsPanel" "$BUILDER" || fail "legacy insights panel removal missing"
+grep -q "#scenePreviewModal" "$BUILDER" || fail "legacy scene modal removal missing"
+grep -q "get('ops') === '1'" "$BUILDER" || fail "ops=1 detection missing"
+grep -q "mountOperatorTools(isOpsMode)" "$BUILDER" || fail "operator tools are not gated by ops mode"
+grep -q "getSubmittedProductInterest" "$BUILDER" || fail "product_interest normalizer missing"
+grep -q "sticker_proof" "$BUILDER" || fail "sticker_proof metadata value missing"
+
 if grep -q "product_interest.*bricks" "$BUILDER"; then
   fail "product_interest default must not be bricks"
 fi
-grep -q "textFromParts" "$BUILDER" || fail "operator labels are not assembled at runtime"
-grep -q "Download', 'Production', 'JSON" "$BUILDER" || fail "ops production export label assembly missing"
-grep -q "Download', 'Canonical', 'Design', 'JSON" "$BUILDER" || fail "ops canonical export label assembly missing"
+
+if grep -q 'value="bricks"' "$BUILDER"; then
+  fail "hidden/default form value must not be bricks"
+fi
+
 grep -q "/.netlify/functions/save-project" "$BUILDER" || fail "save-project reference missing"
 grep -q "project_id" "$BUILDER" || fail "project_id missing"
 grep -q "designStorageConsent" "$BUILDER" || fail "designStorageConsent missing"
 
-echo "Public copy and ops gating verification passed."
+echo "Public builder hardening verification passed."

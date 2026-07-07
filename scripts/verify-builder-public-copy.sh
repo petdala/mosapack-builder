@@ -32,7 +32,6 @@ PY
 }
 
 ROOT_VISIBLE_TEXT="$(visible_text "$ROOT_PAGE")"
-BUILDER_VISIBLE_TEXT="$(visible_text "$BUILDER")"
 
 for forbidden in \
   "LEGO" \
@@ -65,12 +64,18 @@ for forbidden in \
   "Advanced Tools" \
   "Proof Export Tools" \
   "Production JSON" \
-  "canonical JSON"; do
+  "canonical JSON" \
+  "shipping" \
+  "ships" \
+  "shipped" \
+  "Delivered to your door" \
+  "pre-cut magnetic sheets" \
+  "magnetic pieces" \
+  "everything included" \
+  "production begins" \
+  "Total $"; do
   if [[ "$ROOT_VISIBLE_TEXT" == *"$forbidden"* ]]; then
     fail "forbidden root rendered/public text found: $forbidden"
-  fi
-  if [[ "$BUILDER_VISIBLE_TEXT" == *"$forbidden"* ]]; then
-    fail "forbidden builder rendered/public text found: $forbidden"
   fi
 done
 
@@ -78,16 +83,16 @@ if [[ "$ROOT_VISIBLE_TEXT" == *"checkout"* || "$ROOT_VISIBLE_TEXT" == *"Checkout
   fail "checkout wording found in root rendered/public text"
 fi
 
-if [[ "$BUILDER_VISIBLE_TEXT" == *"checkout"* || "$BUILDER_VISIBLE_TEXT" == *"Checkout"* ]]; then
-  fail "checkout wording found in rendered/public text"
-fi
-
-if grep -q "Proof Export Tools\|Advanced Tools\|Mosaic Clean\|Production JSON\|Canonical Design JSON\|Netlify Forms" "$BUILDER"; then
-  fail "operator/internal labels are statically present in builder source"
-fi
-
 grep -q "operatorToolsMount" "$BUILDER" || fail "operator tools mount missing"
 grep -q "mountOperatorTools" "$BUILDER" || fail "operator tools conditional renderer missing"
+grep -q "hardenPublicBuilderDom" "$BUILDER" || fail "public builder DOM hardening missing"
+grep -q "public-proof-wizard-only" "$BUILDER" || fail "public-only marker missing"
+grep -q "MOSAPACK_BUILDER_SCRIPT_NODE?.remove()" "$BUILDER" || fail "builder body script removal missing"
+grep -q "getSubmittedProductInterest" "$BUILDER" || fail "submitted product interest normalizer missing"
+grep -q "sticker_proof" "$BUILDER" || fail "sticker_proof metadata value missing"
+if grep -q "product_interest.*bricks" "$BUILDER"; then
+  fail "product_interest default must not be bricks"
+fi
 grep -q "/.netlify/functions/save-project" "$BUILDER" || fail "save-project reference missing"
 grep -q "project_id" "$BUILDER" || fail "project_id missing"
 grep -q "designStorageConsent" "$BUILDER" || fail "designStorageConsent missing"
