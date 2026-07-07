@@ -112,3 +112,36 @@ It must not contain raw original photo data submitted through Netlify Forms.
 - Current grid is exported as-is.
 - Fixed 24x24 and 32x32 output resampling is deferred to v1.1.
 - Export files are local downloads and are not submitted through Netlify Forms.
+
+## Canonical Schema And Constants
+
+Draft runtime specs now exist:
+
+- constants: `config/production-constants.json`
+- design schema: `config/design-schema.v1.json`
+
+Production doctrine:
+
+- saved production JSON is design truth
+- shared production constants are production physics truth
+- generator output is downstream rendering only
+
+Current Buildable Proof Output v1 `production.json` is an operator proof-export format. It does not yet match schema v1.1. See:
+
+- `docs/mosapack/PRODUCTION_JSON_SCHEMA_DIFF_REPORT.md`
+- `docs/mosapack/PRODUCTION_JSON_ADAPTER_PLAN.md`
+- `docs/mosapack/PRODUCTION_CONSTANTS_LOADER_PLAN.md`
+
+## Physical Validation Gates
+
+- OL2050 is a sheet profile, not universal truth.
+- OL2050 remains unverified until alignment testing passes.
+- Material and printer combinations must be validated together.
+- Gate A: 100-150 sticker instrumented build and alignment test.
+- Gate B: full First Hello sample.
+- 12-inch Pixel Portrait is the commercial MVP.
+- 32x32 / 16-inch is a premium proof option.
+- 48x48 / 24-inch is made-to-order beta.
+- Magnets remain waitlist until material and supplier validation.
+
+Do not port the kit-pack generator until the schema adapter and Gate A evidence exist.

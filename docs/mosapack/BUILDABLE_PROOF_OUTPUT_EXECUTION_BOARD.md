@@ -59,3 +59,22 @@ No production deploy, no paid fulfillment, and no checkout until Buildable Stick
 ## v1 Remaining Gate
 
 Run hosted proof-save/export QA, then send SVG/legend/production JSON samples to sticker/magnet suppliers or a local shop.
+
+## F. Schema And Constants
+
+| Task | Owner | Status | Stop Rule | Definition Of Done |
+| --- | --- | --- | --- | --- |
+| Land draft constants | Codex/Derek | Implemented draft | Constants imply unverified production readiness | `config/production-constants.json` contains sheet profiles, palettes, spares, sections, board tokens, launch SKUs |
+| Land canonical design schema | Codex/Derek | Implemented draft | Schema replaces project UUID with customer code | `config/design-schema.v1.json` preserves `project_id` and supports optional `proof_ref` |
+| Diff current export JSON | Codex/Derek | Implemented draft | Current output is assumed generator-ready | Diff report identifies missing fields, naming/type mismatches, and adapter plan |
+| JS schema adapter | Codex/Derek | Pending | Adapter changes public wizard UX | Adapter emits schema-valid design JSON from current proof state |
+| Python generator port | Codex/Derek | Deferred | Generator hard-codes OL2050 or consumes noncanonical JSON | Generator consumes schema v1.1 + production constants only |
+
+## Updated Gate Order
+
+1. Resolve production JSON adapter.
+2. Generate canonical design JSON from current proof state.
+3. Validate constants/schema.
+4. Run Gate A 100-150 sticker instrumented build and alignment test.
+5. Run Gate B full First Hello sample.
+6. Only then consider generator-backed supplier/sample packets.

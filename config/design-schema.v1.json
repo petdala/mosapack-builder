@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mosapack-design-schema-v1.1",
+  "title": "MosaPack Canonical Design JSON v1.1",
+  "$comment": "Supersedes v1. Changes: (a) project_id is the storage UUID as-is, customer-facing proof_ref added; (b) palette entries are objects with STABLE ids (production keys on id, never name); (c) grid 32 / size 16 admitted (Gallery tier, half-inch stock compatible). Repo home: config/design-schema.v1.json — validated at save time. Generator-required subset: grid, size_in, project_id, palette, cell_map, black_base. production block is DERIVED: generator always recomputes from cell_map + constants and warns on mismatch with any stored copy.",
+  "type": "object",
+  "required": ["schema_version", "project_id", "grid", "size_in", "palette_id", "palette", "cell_map", "black_base"],
+  "oneOf": [
+    {
+      "properties": {
+        "grid": { "const": 24 },
+        "size_in": { "const": 12 }
+      }
+    },
+    {
+      "properties": {
+        "grid": { "const": 32 },
+        "size_in": { "const": 16 }
+      }
+    },
+    {
+      "properties": {
+        "grid": { "const": 48 },
+        "size_in": { "const": 24 }
+      }
+    }
+  ],
+  "properties": {
+    "schema_version": { "const": 1.1 },
+
+    "project_id": {
+      "type": "string", "minLength": 8, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,}$",
+      "$comment": "Storage identity — the existing Blobs UUID, unchanged. Never shown to customers."
+    },
+    "proof_ref": {
+      "type": "string", "pattern": "^MP-[A-Z0-9]{4,8}$",
+      "$comment": "Customer-facing short code for emails, support, and PDF footers. Generated at save; recommended always present. PDFs fall back to a project_id prefix if absent."
+    },
+
+    "grid": { "type": "integer", "enum": [24, 32, 48] },
+    "size_in": {
+      "type": "integer", "enum": [12, 16, 24],
+      "$comment": "One size per grid at launch, all on half-inch stock: 24->12, 32->16, 48->24. Loader MUST enforce size_in == grid/2. 18in shelved (no 3/8in die)."
+    },
+    "sheet_profile": { "type": "string", "default": "OL2050" },
+
+    "palette_id": { "type": "string", "enum": ["standard_v1", "heirloom_v1"] },
+    "palette": {
+      "type": "array", "minItems": 2, "maxItems": 32,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "hex"],
+        "properties": {
+          "id":   { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "name": { "type": "string" },
+          "hex":  { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+        }
+      },
+      "$comment": "ALWAYS embedded (self-contained designs survive palette evolution). Array order significant: cell_map values index this array. Legacy [name,hex] pair arrays are accepted by the generator adapter but invalid under this schema — normalize on save."
+    },
+    "cell_map": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 },
+      "$comment": "Length MUST equal grid*grid. Row-major from mosaic TOP-LEFT (R1C1 = index 0). Complete grid always — black-base cells INCLUDED."
+    },
+
+    "black_base": {
+      "type": "boolean",
+      "$comment": "true => cells whose palette entry id == constants.black_base.excluded_color_id ('ink_black') are pre-finished board; excluded from the sticker sequence only."
+    },
+
+    "kit": { "type": "string" },
+    "kit_format": { "type": "string", "enum": ["sticker", "magnet", "brick_quote"], "$comment": "magnet = waitlist-only until a production model exists." },
+    "render_style": { "type": "string", "enum": ["photo_mosaic", "pixel_portrait", "heirloom_keepsake"] },
+    "pipeline_variant": { "type": "string", "enum": ["enhanced", "classic", "n/a"] },
+    "photo_category": { "type": "string" },
+    "gift_mode": { "type": "string", "enum": ["standard", "surprise_announcement"], "default": "standard" },
+    "proof_status": { "type": "string", "enum": ["preview", "requested", "approved", "cancelled"] },
+
+    "production": {
+      "type": "object",
+      "$comment": "DERIVED cache only. Generator recomputes from cell_map + config/production-constants.json, emits a non-fatal WARNING listing every mismatched field, and stamps its own computed values into PDF footers. Field definitions unchanged from v1.",
+      "additionalProperties": true
+    },
+
+    "source": {
+      "type": "object", "additionalProperties": true,
+      "$comment": "Repo-owned proof-ops metadata (upload hash, crop params, artifact filenames). Unconstrained in v1.1 — surface actual fields via the schema diff."
+    }
+  }
+}

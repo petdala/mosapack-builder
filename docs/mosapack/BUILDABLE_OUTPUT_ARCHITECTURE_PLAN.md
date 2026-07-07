@@ -102,3 +102,34 @@ Tradeoffs:
 Synthetic local QA generated and validated one full export package under `/tmp/mosapack-buildable-proof-output-qa/`.
 
 Hosted QA and supplier validation remain required before production approval.
+
+## Schema/Constants Reconciliation
+
+Draft production constants and canonical design schema now live at:
+
+- `config/production-constants.json`
+- `config/design-schema.v1.json`
+
+The current browser export JSON does not yet feed the future kit-pack generator directly. Required reconciliation is documented in:
+
+- `docs/mosapack/PRODUCTION_JSON_SCHEMA_DIFF_REPORT.md`
+- `docs/mosapack/PRODUCTION_JSON_ADAPTER_PLAN.md`
+- `docs/mosapack/PRODUCTION_CONSTANTS_LOADER_PLAN.md`
+
+Architecture rule:
+
+- Buildable Proof Output v1 remains the operator proof-export layer.
+- A JS adapter should emit canonical schema v1.1 design JSON next.
+- The Python generator should be ported only after schema-valid design JSON exists.
+- The generator must load shared constants instead of hard-coding OL2050 values.
+
+## Physical Sample Gate
+
+- Gate A: 100-150 sticker instrumented build with OL2050 alignment verification.
+- Gate B: full First Hello sample.
+- Material/printer combinations are validated as pairs.
+- OL2050 is a draft sheet profile until Gate A passes.
+- 12-inch Pixel Portrait remains the commercial MVP.
+- 16-inch Gallery is a premium proof option.
+- 24-inch Signature remains made-to-order beta.
+- Magnets remain waitlist until material validation.
