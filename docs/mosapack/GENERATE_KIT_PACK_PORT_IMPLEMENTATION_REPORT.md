@@ -110,8 +110,10 @@ python3 tools/kitpack/generate_kit_pack.py \
 Gate A mode includes:
 
 - die-grid bounding-box crosshairs
-- 1.000 inch calibration bar
-- feed/skew fiducials
+- horizontal 1.000 inch calibration bar on the alignment page
+- vertical 1.000 inch calibration bar on the alignment page
+- top-edge feed/skew fiducials moved away from the trim edge
+- section labels that avoid the header safety zone
 - sheet 1 at `0.03in` bleed
 - sheet 1 at `0.05in` bleed
 - sidecar production manifest JSON
@@ -144,11 +146,11 @@ Generated PDFs are QA artifacts and were not committed.
 Gate A QA outputs:
 
 ```text
-/tmp/mosapack-gate-a-pdf-qa/first-hello-gate-a.pdf
-/tmp/mosapack-gate-a-pdf-qa/first-hello-gate-a.manifest.json
-/tmp/mosapack-gate-a-pdf-qa/page-02-alignment.png
-/tmp/mosapack-gate-a-pdf-qa/page-03-sheet1-bleed-003.png
-/tmp/mosapack-gate-a-pdf-qa/page-04-sheet1-bleed-005.png
+/tmp/mosapack-gate-a-pdf-qa-v2/first-hello-gate-a.pdf
+/tmp/mosapack-gate-a-pdf-qa-v2/first-hello-gate-a.manifest.json
+/tmp/mosapack-gate-a-pdf-qa-v2/page-02-alignment.png
+/tmp/mosapack-gate-a-pdf-qa-v2/page-03-sheet1-bleed-003.png
+/tmp/mosapack-gate-a-pdf-qa-v2/page-04-sheet1-bleed-005.png
 ```
 
 ## QA Result
@@ -166,11 +168,14 @@ Verified:
 - `pypdf` text/page check passes when available
 - output PDF text includes `MosaPack` and `MP-FH24A`
 - Gate A PDF is generated
+- Gate A PDF has exactly 5 pages
 - Gate A manifest includes `0.03` and `0.05` bleed values
 - output PDF text includes `Actual Size`
 - output PDF text includes `Measure me: 1.000 in`
+- output PDF text includes `Vertical check: 1.000 in`
+- output PDF text includes `feed/skew fiducials`
 
-`pdftoppm` is not available in this environment, so raster page rendering was not performed.
+`pdftoppm` is not available in this environment. Gate A page previews were rendered with macOS Quick Look after splitting the relevant PDF pages.
 
 ## Warnings
 
@@ -193,4 +198,4 @@ No production deploy.
 
 ## Next Gate
 
-Gate A alignment test page plus 100-150 sticker physical sample protocol execution.
+Plain-paper Gate A alignment dry-run first. Label-stock Gate A remains blocked until the horizontal/vertical 1.000in bars, 8.000in x-span, 10.500in y-span, and OL2050 overlay pass.

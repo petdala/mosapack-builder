@@ -35,6 +35,8 @@ WARN = HexColor("#B45309")
 
 SUPPORTED_GRIDS = {24, 32, 48}
 COMMERCE_RE = re.compile(r"stripe|shopify|checkout|payment|order placed|payment received", re.I)
+CALIBRATION_Y_IN = 0.40
+FEED_FIDUCIAL_TOP_OFFSET_IN = 0.22
 
 
 def repo_root() -> Path:
@@ -352,6 +354,19 @@ def build_manifest(
         "sheet_count": plan["printed_mixed_sheets"],
         "gate_a_mode": gate_a,
         "bleed_values_used": bleed_values_used,
+        "calibration": {
+            "horizontal_bar": True,
+            "horizontal_bar_length_in": 1.0,
+            "horizontal_bar_y_in": CALIBRATION_Y_IN,
+            "vertical_bar": True,
+            "vertical_bar_length_in": 1.0,
+            "instruction": "Print at 100% / Actual Size. Do not use Fit to Page.",
+        },
+        "feed_fiducials": {
+            "edge": "top",
+            "y_from_top_in": FEED_FIDUCIAL_TOP_OFFSET_IN,
+            "note": "top-edge feed/skew fiducials; die-grid crosshair spans remain the primary registration measurement",
+        },
         "sections": sections,
         "section_rule_used": f"{section_size}x{section_size} section-major, row-major within section",
         "warnings": warnings,
@@ -411,15 +426,26 @@ def draw_calibration_bar(cv: canvas.Canvas, x: float, y: float) -> None:
     cv.drawString(x, y + 0.08 * IN, "Measure me: 1.000 in / 25.4 mm")
 
 
+def draw_vertical_calibration_bar(cv: canvas.Canvas, x: float, y: float) -> None:
+    cv.setStrokeColor(BLACK)
+    cv.setFillColor(BLACK)
+    cv.setLineWidth(0.75)
+    cv.line(x, y, x, y + IN)
+    cv.line(x - 0.045 * IN, y, x + 0.045 * IN, y)
+    cv.line(x - 0.045 * IN, y + IN, x + 0.045 * IN, y + IN)
+    cv.setFont("Helvetica", 6)
+    cv.drawString(x + 0.08 * IN, y + 0.42 * IN, "Vertical check: 1.000 in / 25.4 mm")
+
+
 def draw_feed_fiducials(cv: canvas.Canvas, page_w: float, page_h: float) -> None:
-    y = page_h - 0.125 * IN
+    y = page_h - FEED_FIDUCIAL_TOP_OFFSET_IN * IN
     cv.setStrokeColor(BLACK)
     cv.setFillColor(BLACK)
     cv.setLineWidth(0.5)
     for x in (0.75 * IN, page_w / 2, page_w - 0.75 * IN):
         cv.line(x, y, x, y - 0.12 * IN)
     cv.setFont("Helvetica", 5)
-    cv.drawString(page_w / 2 + 0.04 * IN, y - 0.08 * IN, "feed/skew ticks")
+    cv.drawString(page_w / 2 + 0.04 * IN, y - 0.08 * IN, "feed/skew fiducials")
 
 
 def page_cover(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, Any], plan: dict[str, Any], warnings: list[str], page_w: float, page_h: float) -> None:
@@ -510,12 +536,14 @@ def page_alignment(cv: canvas.Canvas, design: dict[str, Any], profile: dict[str,
         draw_crosshair_label(cv, x, y, dx, dy)
 
     draw_feed_fiducials(cv, page_w, page_h)
-    draw_calibration_bar(cv, margin, 0.1 * IN)
+    calibration_y = CALIBRATION_Y_IN * IN
+    draw_calibration_bar(cv, margin, calibration_y)
+    draw_vertical_calibration_bar(cv, margin + 1.38 * IN, calibration_y)
 
     cv.setFillColor(INK)
     cv.setFont("Helvetica", 5.5)
-    cv.drawString(margin + 1.24 * IN, 0.16 * IN, "Print on plain paper first; overlay the label sheet and hold to light.")
-    cv.drawString(margin + 1.24 * IN, 0.08 * IN, "Print at 100% / Actual Size. Do not use Fit to Page.")
+    cv.drawString(margin + 2.42 * IN, calibration_y + 0.10 * IN, "Print on plain paper first; overlay the label sheet and hold to light.")
+    cv.drawString(margin + 2.42 * IN, calibration_y, "Print at 100% / Actual Size. Do not use Fit to Page.")
     footer(cv, page_w, f"{proof_ref} - alignment")
     cv.showPage()
 
@@ -560,11 +588,12 @@ def page_sticker_sheets(
             cv.setFillColor(HexColor(color["hex"]))
             cv.roundRect(x - bleed, y_top - die - bleed, die + 2 * bleed, die + 2 * bleed, 4, stroke=0, fill=1)
             if global_index in section_starts or global_index == spare_start:
-                cv.setFillColor(TEAL)
-                cv.setFont("Helvetica-Bold", 5.8)
-                label = f"SECTION {section_starts.get(global_index)}" if global_index in section_starts else "SPARES"
-                cv.drawString(x, y_top + 0.06 * IN, label)
-        draw_calibration_bar(cv, margin, 0.1 * IN)
+                label_y = y_top + 0.06 * IN
+                if label_y <= page_h - 0.30 * IN:
+                    cv.setFillColor(TEAL)
+                    cv.setFont("Helvetica-Bold", 5.8)
+                    label = f"SECTION {section_starts.get(global_index)}" if global_index in section_starts else "SPARES"
+                    cv.drawString(x, label_y, label)
         footer(cv, page_w, f"{proof_ref} - sheet {sheet + 1}/{sheet_count}")
         cv.showPage()
 
@@ -630,8 +659,9 @@ def page_build_guide(cv: canvas.Canvas, design: dict[str, Any], constants: dict[
     cv.setFillColor(GRAY)
     cv.setFont("Helvetica", 8)
     cv.drawString(margin, 0.58 * IN, "Fill each section row by row, left to right. Sticker sheets are already ordered for this sequence.")
+    cv.drawString(margin, 0.42 * IN, "Some sections may continue across sticker sheets. Follow the section number and sequence range, not sheet number alone.")
     if design.get("black_base"):
-        cv.drawString(margin, 0.42 * IN, "Black-base cells remain in the design map but are omitted from the sticker sequence.")
+        cv.drawString(margin, 0.26 * IN, "Black-base cells remain in the design map but are omitted from the sticker sequence.")
     footer(cv, page_w, f"{proof_ref} - build guide")
     cv.showPage()
 

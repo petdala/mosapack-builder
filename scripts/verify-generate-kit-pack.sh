@@ -98,6 +98,16 @@ if "palette_drift_warnings" not in gate:
     raise SystemExit("Gate A manifest missing palette_drift_warnings")
 if "mismatch_warnings" not in gate:
     raise SystemExit("Gate A manifest missing mismatch_warnings")
+calibration = gate.get("calibration", {})
+if calibration.get("horizontal_bar_y_in", 0) < 0.35:
+    raise SystemExit("Gate A horizontal calibration bar is too close to trim")
+if not calibration.get("vertical_bar"):
+    raise SystemExit("Gate A manifest missing vertical calibration bar")
+if calibration.get("vertical_bar_length_in") != 1.0:
+    raise SystemExit("Gate A vertical calibration bar must be 1.0in")
+fiducials = gate.get("feed_fiducials", {})
+if fiducials.get("y_from_top_in", 0) < 0.22:
+    raise SystemExit("Gate A feed/skew fiducials are too close to top trim")
 
 print("Manifest checks passed.")
 PY
@@ -117,8 +127,18 @@ for pdf_path in pdf_paths:
     reader = PdfReader(str(pdf_path))
     if len(reader.pages) < 1:
         raise SystemExit(f"{pdf_path} has no pages")
+    if pdf_path.name == "first-hello-gate-a.pdf" and len(reader.pages) != 5:
+        raise SystemExit("Gate A PDF must have exactly 5 pages")
     text = "\n".join((page.extract_text() or "") for page in reader.pages[:5])
-    for needle in ("MosaPack", "MP-FH24A", "Actual Size", "Measure me: 1.000 in"):
+    for needle in (
+        "MosaPack",
+        "MP-FH24A",
+        "Actual Size",
+        "Measure me: 1.000 in",
+        "Vertical check: 1.000 in",
+        "feed/skew fiducials",
+        "Some sections may continue across sticker sheets",
+    ):
         if needle not in text:
             raise SystemExit(f"{pdf_path} text missing {needle}")
     page = reader.pages[0]

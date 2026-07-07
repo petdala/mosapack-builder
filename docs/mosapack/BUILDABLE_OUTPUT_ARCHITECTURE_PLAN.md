@@ -116,8 +116,10 @@ Generated PDFs are not committed and are not production-approved.
 Gate A PDF mode now generates:
 
 - corrected die-grid bounding-box crosshairs
-- 1.000 inch calibration bar
-- feed/skew fiducials
+- horizontal 1.000 inch calibration bar moved out of the bottom dead margin
+- vertical 1.000 inch calibration bar for anisotropic scale checks
+- feed/skew fiducials moved away from the top dead margin
+- section labels that avoid the header safety zone
 - sheet 1 at `0.03in` bleed
 - sheet 1 at `0.05in` bleed
 - sidecar manifest JSON
@@ -125,7 +127,7 @@ Gate A PDF mode now generates:
 Gate A QA outputs:
 
 ```text
-/tmp/mosapack-gate-a-pdf-qa/
+/tmp/mosapack-gate-a-pdf-qa-v2/
 ```
 
 ## Schema/Constants Reconciliation
@@ -162,18 +164,21 @@ Architecture rule:
 
 ## Gate A Print Order
 
-1. Print the alignment page on plain paper at `100% / Actual Size`.
-2. Measure the `1.000in` calibration bar.
-3. Overlay plain paper onto a blank OL2050 label sheet.
-4. If geometry aligns, print sheet 1 at `0.03in` bleed on actual label stock.
-5. Print sheet 1 at `0.05in` bleed.
-6. Place 100-150 stickers from section 1.
+1. Print Gate A page 2 on plain paper at `100% / Actual Size`.
+2. Measure the horizontal `1.000in` calibration bar.
+3. Measure the vertical `1.000in` calibration bar.
+4. Measure crosshair span: left to right should be `8.000in`; top to bottom should be `10.500in`.
+5. Overlay plain paper onto a blank OL2050 label sheet.
+6. Continue only if scale and overlay pass.
+7. If geometry aligns, print sheet 1 at `0.03in` bleed on actual label stock.
+8. Print sheet 1 at `0.05in` bleed.
+9. Place 100-150 stickers from section 1.
 
 ## Gate A Pass/Fail Table
 
 | Check | Pass rule | Stop rule |
 | --- | --- | --- |
-| scale | 1.000in calibration bar measures correctly | auto-scale / Fit to Page detected |
+| scale | horizontal and vertical 1.000in calibration bars measure correctly | auto-scale / Fit to Page detected |
 | x/y drift | die-grid crosshairs align to stock | repeated offset exceeds tolerance |
 | skew | feed ticks remain parallel | corner differential indicates skew |
 | white slivers | no visible slivers at selected bleed | visible slivers after 0.05in bleed |
