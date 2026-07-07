@@ -5393,7 +5393,7 @@
       align-items: center;
       gap: 0.5rem;
       flex-wrap: wrap;
-      margin: 0.12rem auto 0.4rem;
+      margin: 0.08rem auto 0.12rem;
       color: var(--mp-muted);
       font-size: 0.78rem;
       font-weight: 800;
@@ -5402,8 +5402,8 @@
     .public-wizard:not(.wizard-state-upload) .wizard-assurance-strip span {
       display: inline-flex;
       align-items: center;
-      min-height: 26px;
-      padding: 0.22rem 0.55rem;
+      min-height: 24px;
+      padding: 0.16rem 0.5rem;
       border: 1px solid rgba(221, 227, 234, 0.88);
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.82);
@@ -5665,12 +5665,16 @@
       border: 0;
       background: transparent;
       box-shadow: none;
+      display: block;
+      min-height: 0;
+      height: auto;
     }
 
     .public-wizard.wizard-state-preview .canvas-viewport,
     .public-wizard.wizard-state-proof .canvas-viewport,
     .public-wizard.wizard-state-saved .canvas-viewport {
       min-height: 0;
+      height: 0;
       background: transparent;
       overflow: visible;
     }
@@ -5706,7 +5710,8 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       gap: 0.85rem;
-      padding: 1rem 0 0;
+      margin-top: 0;
+      padding: 0.08rem 0 0;
     }
 
     .proof-preview-step-card,
@@ -6600,7 +6605,7 @@
         <span class="wizard-chip">Sticker-ready</span>
       </div>
     </section>
-    <nav class="wizard-stepper" aria-label="Builder progress">
+    <nav class="wizard-stepper" aria-label="Builder progress" data-testid="wizard-stepper">
       <div class="wizard-step is-active" data-wizard-step="upload"><span class="wizard-step-number">1</span><span class="wizard-step-label">Upload Photo</span></div>
       <div class="wizard-step" data-wizard-step="crop"><span class="wizard-step-number">2</span><span class="wizard-step-label">Crop &amp; Position</span></div>
       <div class="wizard-step" data-wizard-step="preview"><span class="wizard-step-number">3</span><span class="wizard-step-label">Preview Mosaic</span></div>
@@ -6724,7 +6729,7 @@
                 <div class="preview-skeleton-frame" aria-hidden="true"></div>
                 <p>Building your mosaic preview…</p>
               </div>
-              <div class="proof-preview-step-card" id="proofPreviewStepCard">
+              <div class="proof-preview-step-card" id="proofPreviewStepCard" data-testid="preview-step-card">
                 <div class="proof-preview-heading">
                   <span class="recommended-format-eyebrow">Free preview</span>
                   <h3 class="recommended-format-title">Your buildable mosaic preview</h3>
@@ -6734,7 +6739,7 @@
                   <button type="button" class="proof-preview-toggle-button is-active" data-preview-view="source" aria-selected="true">Your photo</button>
                   <button type="button" class="proof-preview-toggle-button" data-preview-view="mosaic" aria-selected="false">Buildable mosaic</button>
                 </div>
-                <div class="proof-preview-comparison" id="proofPreviewComparison" data-mobile-preview-view="source">
+                <div class="proof-preview-comparison" id="proofPreviewComparison" data-mobile-preview-view="source" data-testid="preview-before-after">
                   <figure class="proof-preview-frame is-source">
                     <figcaption>Your photo</figcaption>
                     <img id="proofSourceThumbnail" alt="Approved cropped photo preview">
@@ -6789,7 +6794,7 @@
                   <li>We follow up after review</li>
                 </ul>
                 <div class="proof-actions">
-                  <button class="btn btn-primary" type="button" id="requestProofButton" onclick="requestCustomProof()">Request my free proof</button>
+                  <button class="btn btn-primary" type="button" id="requestProofButton" data-testid="preview-primary-cta" onclick="requestCustomProof()">Request my free proof</button>
                   <button class="btn btn-secondary" type="button" id="adjustCropButton">Adjust crop</button>
                 </div>
               </div>
@@ -8610,12 +8615,23 @@
       }
     }
 
+    function syncFocusedStepCanvasReservation(state = currentWizardState) {
+      const container = document.getElementById('canvasContainer');
+      if (!container || !document.body.classList.contains('public-wizard')) return;
+
+      if (['preview', 'proof', 'saved'].includes(state)) {
+        container.style.minHeight = '';
+        container.style.height = '';
+      }
+    }
+
     function updateWizardState(state, options = {}) {
       const config = WIZARD_STEPS[state] || WIZARD_STEPS.upload;
       currentWizardState = state;
       document.body.classList.add('public-wizard');
       Object.keys(WIZARD_STEPS).forEach((key) => document.body.classList.toggle(`wizard-state-${key}`, key === state));
       updateFocusedWizardLayout(state);
+      syncFocusedStepCanvasReservation(state);
 
       document.querySelectorAll('.wizard-step').forEach((step) => {
         const stepConfig = WIZARD_STEPS[step.dataset.wizardStep];
@@ -12474,8 +12490,15 @@
 
       const container = document.getElementById('canvasContainer');
       if (container) {
-        const desiredHeight = canvas.height + 120;
-        container.style.minHeight = `${Math.max(520, desiredHeight)}px`;
+        const publicFocusedState = document.body.classList.contains('public-wizard')
+          && ['preview', 'proof', 'saved'].some((state) => document.body.classList.contains(`wizard-state-${state}`));
+        if (publicFocusedState) {
+          container.style.minHeight = '';
+          container.style.height = '';
+        } else {
+          const desiredHeight = canvas.height + 120;
+          container.style.minHeight = `${Math.max(520, desiredHeight)}px`;
+        }
       }
 
       const wrapper = document.getElementById('canvasWrapper');
