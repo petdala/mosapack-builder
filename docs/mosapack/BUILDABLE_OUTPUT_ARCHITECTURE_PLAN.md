@@ -1,7 +1,7 @@
 # Buildable Output Architecture Plan
 
 Date: 2026-07-05
-Status: v1 browser/operator export implemented.
+Status: v1 browser/operator export implemented; local kit-pack renderer implemented.
 
 ## Recommendation
 
@@ -42,8 +42,9 @@ Tradeoffs:
 
 1. Browser/operator export from the currently loaded project. Implemented.
 2. Store/export `production.json` and deterministic SVG/HTML/PNG assets. Implemented.
-3. Validate with suppliers/local production. Pending.
-4. Add Netlify Function export only after the output format is proven. Deferred.
+3. Generate local/operator PDF kit packs from canonical design JSON. Implemented.
+4. Validate with suppliers/local production. Pending.
+5. Add Netlify Function export only after the output format is proven. Deferred.
 
 ## Files Likely Touched
 
@@ -64,6 +65,7 @@ Tradeoffs:
 - PDF assembly guide deferred
 - `generateProofEmailImage()` implemented
 - `generateProductionJson()` implemented
+- local `tools/kitpack/generate_kit_pack.py` PDF renderer implemented for operator QA
 
 ## B2 Metadata Needed
 
@@ -103,6 +105,14 @@ Synthetic local QA generated and validated one full export package under `/tmp/m
 
 Hosted QA and supplier validation remain required before production approval.
 
+Kit-pack generator QA generated operator PDFs under:
+
+```text
+/tmp/mosapack-generate-kit-pack-qa/
+```
+
+Generated PDFs are not committed and are not production-approved.
+
 ## Schema/Constants Reconciliation
 
 Draft production constants and canonical design schema now live at:
@@ -119,9 +129,10 @@ The current browser export JSON does not yet feed the future kit-pack generator 
 Architecture rule:
 
 - Buildable Proof Output v1 remains the operator proof-export layer.
-- A JS adapter should emit canonical schema v1.1 design JSON next.
-- The Python generator should be ported only after schema-valid design JSON exists.
+- A JS adapter emits canonical schema v1.1 design JSON.
+- The Python generator has been ported as local/operator tooling only.
 - The generator must load shared constants instead of hard-coding OL2050 values.
+- The generator must remain out of Netlify/customer runtime until physical validation passes.
 
 ## Physical Sample Gate
 

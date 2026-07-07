@@ -2,7 +2,7 @@
 
 Date: 2026-07-07
 Branch: `feature/production-schema-constants-v1`
-Status: reference only; not ported into runtime.
+Status: reference reviewed; ported as local/operator tooling only.
 
 ## Source
 
@@ -18,18 +18,26 @@ The file was inspected from:
 /tmp/mosapack-claude-schema-source/generate_kit_pack.py
 ```
 
-It was not committed as runtime code.
+The original source was not committed directly. A repo-adapted local/operator port now lives at:
+
+```text
+tools/kitpack/generate_kit_pack.py
+```
 
 ## Runtime Dependencies
 
 - Python 3
 - `reportlab`
 
-No dependency was added to the repo in this task.
+Dependencies are documented in:
+
+```text
+tools/kitpack/requirements.txt
+```
 
 ## Current Role
 
-`generate_kit_pack.py` should be treated as a downstream renderer reference.
+`generate_kit_pack.py` should be treated as a downstream renderer.
 
 The doctrine remains:
 
@@ -37,17 +45,17 @@ The doctrine remains:
 - shared production constants = production physics truth
 - generator = downstream renderer
 
-The generator must not become the design source of truth.
+The generator must not become the design source of truth and must not be wired into public customer runtime without a separate approval gate.
 
 ## Expected CLI
 
-Current reference usage:
+Current local/operator usage:
 
 ```text
-python3 generate_kit_pack.py design.json output.pdf
+python3 tools/kitpack/generate_kit_pack.py design.json output.pdf --constants config/production-constants.json
 ```
 
-Input is a design JSON. Output is a printable PDF kit pack.
+Input is canonical MosaPack design JSON. Output is a printable operator PDF kit pack.
 
 ## What It Currently Does
 
@@ -63,21 +71,20 @@ Input is a design JSON. Output is a printable PDF kit pack.
 - Emits overview, color manifest, and section/runs build guide pages.
 - Recomputes a small production block and warns if stored values disagree.
 
-## What Must Change Before Port
+## Port Changes Completed
 
-- Load `config/production-constants.json`.
-- Validate or normalize against `config/design-schema.v1.json`.
-- Avoid hard-coded OL2050 constants.
-- Treat OL2050 as an unverified sheet profile until Gate A alignment tests pass.
-- Preserve `proof_ref` headers and footers.
-- Preserve UUID-compatible `project_id`.
-- Support palette objects as the canonical input.
-- Support grid sizes 24, 32, and 48.
-- Support `size_in` pairings 24->12, 32->16, and 48->24.
-- Support derived production mismatch warnings against the full constants-driven production plan.
-- Confirm Python version compatibility.
-- Add tests for black-base exclusion keyed only by `ink_black`.
-- Keep generator local/operator-only until physical samples are validated.
+- Loads `config/production-constants.json`.
+- Validates against critical invariants from `config/design-schema.v1.json`.
+- Avoids hard-coded OL2050 constants.
+- Treats OL2050 as unverified until Gate A alignment tests pass.
+- Preserves `proof_ref` headers and footers.
+- Preserves UUID-compatible `project_id`.
+- Supports palette objects as canonical input, with legacy palette normalization only as a loader compatibility path.
+- Supports grid sizes 24, 32, and 48.
+- Supports `size_in` pairings 24->12, 32->16, and 48->24.
+- Supports derived production mismatch warnings against the constants-driven production plan.
+- Checks black-base exclusion keyed only by `ink_black`.
+- Remains local/operator-only until physical samples are validated.
 
 ## License/Risk Note
 
@@ -85,6 +92,6 @@ This generator is Claude-provided reference material for this repo task. It is n
 
 ## Port Recommendation
 
-Do not port the generator yet.
+The generator has been ported as local/operator tooling only.
 
-First resolve the schema diff between current Buildable Proof Output `production.json` and `config/design-schema.v1.json`. Then implement a JS export adapter that can emit canonical schema v1.1 design JSON. After that, port the Python generator as an operator/local renderer that consumes only canonical design JSON plus `config/production-constants.json`.
+Next step is not production deployment. Run Gate A alignment testing and a 100-150 sticker physical sample before trusting generator output for paid fulfillment.

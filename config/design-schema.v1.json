@@ -53,10 +53,11 @@
         "properties": {
           "id":   { "type": "string", "pattern": "^[a-z0-9_]+$" },
           "name": { "type": "string" },
-          "hex":  { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+          "hex":  { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+          "index": { "type": "integer", "minimum": 0 }
         }
       },
-      "$comment": "ALWAYS embedded (self-contained designs survive palette evolution). Array order significant: cell_map values index this array. Legacy [name,hex] pair arrays are accepted by the generator adapter but invalid under this schema — normalize on save."
+      "$comment": "ALWAYS embedded (self-contained designs survive palette evolution). Array order significant: cell_map values index this array. Optional index must equal the palette array position when present. Legacy [name,hex] pair arrays are accepted by the generator adapter but invalid under this schema — normalize on save."
     },
     "cell_map": {
       "type": "array",

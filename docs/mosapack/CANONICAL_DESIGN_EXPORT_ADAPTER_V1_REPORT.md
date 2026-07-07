@@ -13,7 +13,7 @@ This is the bridge between:
 - current operator proof exports, and
 - future `generate_kit_pack.py` local/operator rendering.
 
-The generator was not ported in this task.
+The generator was not ported in the adapter task; it has since been ported as local/operator tooling only.
 
 ## Functions Added
 
@@ -90,13 +90,13 @@ Hosted synthetic QA path:
 Hosted preview URL:
 
 ```text
-https://6a4c8df439955392fe73d92e--mosapack.netlify.app
+https://6a4c8f42fbbb24eaabad0e77--mosapack.netlify.app
 ```
 
 Hosted proof save returned:
 
 ```text
-556e7d29-33b3-4d43-8f6c-600bb8a9ec21
+efbcd8f0-3299-4733-bb3e-a60a4893e50d
 ```
 
 Validated invariants:
@@ -122,18 +122,19 @@ Generated QA JSON files were not committed.
 - Unsaved preview exports use a temporary local preview UUID.
 - Black-base support is structural only; normal sticker proofs default to `black_base: false`.
 - OL2050 remains unverified until Gate A alignment testing.
-- Generator output, PDFs, and printable sheets are not implemented in this task.
+- Generator output, PDFs, and printable sheets were not implemented in the adapter task; they are now implemented separately as local/operator tooling.
 
-## Generator Port Readiness
+## Generator Port Status
 
-The generator can be ported next as a local/operator renderer only after review confirms the canonical JSON is acceptable.
+The generator has been ported as a local/operator renderer after the canonical JSON adapter validated locally and hosted.
 
-Recommended next implementation:
+Ported path:
 
-1. Port `generate_kit_pack.py` as a local/operator renderer.
-2. Make it consume `mosapack-design-v1.json` plus `config/production-constants.json`.
-3. Keep it out of public customer UX.
-4. Run Gate A alignment and 100-150 sticker instrumented build before production approval.
+```text
+tools/kitpack/generate_kit_pack.py
+```
+
+It consumes `mosapack-design-v1.json` plus `config/production-constants.json`, remains out of public customer UX, and still requires Gate A alignment and 100-150 sticker instrumented build before production approval.
 
 ## Production Recommendation
 

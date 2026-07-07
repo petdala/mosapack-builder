@@ -1,7 +1,7 @@
 # Buildable Sticker/Magnet Proof Output v1 Spec
 
 Date: 2026-07-05
-Status: v1 browser/operator export implemented on `feature/buildable-sticker-magnet-proof-output-v1`.
+Status: v1 browser/operator export implemented; local/operator kit-pack renderer implemented.
 
 ## Inputs
 
@@ -26,6 +26,14 @@ Status: v1 browser/operator export implemented on `feature/buildable-sticker-mag
 - `production.json`
 
 PDF placement grid, PDF legend, and assembly-guide PDF are deferred until the SVG/HTML/JSON output format is supplier-reviewed.
+
+Local/operator kit-pack PDF generation is now available for QA and Gate A sample preparation:
+
+```text
+tools/kitpack/generate_kit_pack.py
+```
+
+This renderer consumes canonical design JSON and production constants. It is not exposed to customers and is not part of Netlify runtime.
 
 ## Grid Defaults
 
@@ -144,7 +152,7 @@ Current Buildable Proof Output v1 `production.json` is an operator proof-export 
 - 48x48 / 24-inch is made-to-order beta.
 - Magnets remain waitlist until material and supplier validation.
 
-Do not port the kit-pack generator into customer runtime. The next safe step is a local/operator generator port that consumes `mosapack-design-v1.json` and `config/production-constants.json`, followed by Gate A evidence.
+Do not port the kit-pack generator into customer runtime. The local/operator generator consumes `mosapack-design-v1.json` and `config/production-constants.json`; next gate is Gate A evidence.
 
 ## Canonical Design Export Adapter v1
 
@@ -176,3 +184,23 @@ The adapter converts current proof state into:
 - derived/cache `production`
 
 Generated canonical JSON is local/operator download only and is not submitted through Netlify Forms.
+
+## Local Kit-Pack Renderer
+
+Implemented CLI:
+
+```bash
+python3 tools/kitpack/generate_kit_pack.py \
+  fixtures/designs/sample-design-first-hello.v1_1.json \
+  /tmp/mosapack-generate-kit-pack-qa/first-hello-kit.pdf \
+  --constants config/production-constants.json
+```
+
+The generated PDF includes:
+
+- cover / overview
+- alignment / registration page
+- sticker sheet pages
+- build guide / section map
+
+The PDF is an operator QA artifact. It is not a customer order document and does not imply production approval.

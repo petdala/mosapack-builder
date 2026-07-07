@@ -1,7 +1,7 @@
 # Production JSON Adapter Plan
 
 Date: 2026-07-07
-Status: JS adapter implemented; generator port still deferred.
+Status: JS adapter implemented; local/operator generator port implemented.
 
 ## Purpose
 
@@ -70,19 +70,25 @@ Download Canonical Design JSON -> mosapack-design-v1.json
 
 The current proof-output `production.json` also embeds `canonical_design` and `canonical_design_validation` for review continuity.
 
-## Future Python Adapter Responsibilities
+## Python Generator Responsibilities
 
-The generator-side loader should:
+The local/operator generator now:
 
 - load `config/production-constants.json`
-- validate design JSON against schema v1.1
+- validate design JSON against critical schema v1.1 invariants
 - recompute production facts from constants and cell map
 - warn on stored derived/cache mismatches
 - preserve `project_id`
 - use `proof_ref` for customer-facing headers/footers
 - support grid sizes 24, 32, and 48
-- support palette objects only as canonical input
+- support palette objects as canonical input
 - support black-base exclusion keyed by `ink_black`
+
+Ported path:
+
+```text
+tools/kitpack/generate_kit_pack.py
+```
 
 ## Validation Order
 
@@ -97,7 +103,7 @@ The generator-side loader should:
 9. Recompute production block.
 10. Emit warnings for derived/cache mismatches.
 
-## What Blocks Generator Port
+## What Previously Blocked Generator Port
 
 - Current `cell_map` shape and type mismatch.
 - Missing `schema_version`.
@@ -109,19 +115,21 @@ The generator-side loader should:
 - OL2050 is not yet alignment verified.
 - No Gate A physical sticker build evidence.
 
+The JS canonical-design export adapter resolves the JSON-shape blockers for local QA. Physical production confidence is still blocked by Gate A evidence.
+
 ## Safe To Implement Now
 
 - Commit schema and constants as draft runtime specs.
 - Commit synthetic fixture.
 - Add no-dependency validation script.
 - Add adapter spec and diff docs.
-- Keep generator reference outside runtime.
+- Keep generator local/operator-only and outside Netlify/customer runtime.
 
 ## Recommendation
 
-The JS canonical-design export adapter has been implemented.
+The JS canonical-design export adapter has been implemented, and the Python generator has been ported as local/operator tooling.
 
-Port the Python generator only after:
+Do not move the generator into Netlify/runtime until:
 
 - the adapter emits schema-valid JSON,
 - OL2050 passes alignment validation,
@@ -129,4 +137,4 @@ Port the Python generator only after:
 
 Current recommendation:
 
-Port the generator next as a local/operator renderer only, using `mosapack-design-v1.json` and `config/production-constants.json`.
+Run Gate A alignment and 100-150 sticker physical sample validation using local PDFs generated from canonical design JSON and `config/production-constants.json`.

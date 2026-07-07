@@ -2,7 +2,7 @@
 
 Date: 2026-07-06
 Branch: `feature/buildable-sticker-magnet-proof-output-v1`
-Status: implemented for operator/local browser export; production deploy not approved.
+Status: implemented for operator/local browser export; local kit-pack renderer added; production deploy not approved.
 
 ## What Was Implemented
 
@@ -166,12 +166,31 @@ Hosted canonical adapter QA project ID:
 556e7d29-33b3-4d43-8f6c-600bb8a9ec21
 ```
 
-The generator was not ported.
+The generator has since been ported as local/operator tooling only.
+
+## Local Kit-Pack Renderer Update
+
+Path:
+
+```text
+tools/kitpack/generate_kit_pack.py
+```
+
+The renderer consumes canonical design JSON and `config/production-constants.json`, then generates printable operator PDFs for QA and Gate A sample preparation.
+
+QA output paths:
+
+```text
+/tmp/mosapack-generate-kit-pack-qa/first-hello-kit.pdf
+/tmp/mosapack-generate-kit-pack-qa/builder-export-kit.pdf
+```
+
+The generator is not wired into Netlify runtime, not shown in public customer UX, and not production-approved.
 
 ## Limitations
 
 - No server-side export function yet.
-- No PDF generation yet; v1 uses SVG/HTML/PNG/JSON.
+- Browser export still uses SVG/HTML/PNG/JSON; local/operator PDF generation is available through `tools/kitpack/generate_kit_pack.py`.
 - No ZIP packaging.
 - No fixed-size resampling yet.
 - No supplier feedback yet.
@@ -181,4 +200,4 @@ The generator was not ported.
 
 No production deploy.
 
-Next approval gate is supplier/sample validation using the generated SVG/legend/production JSON package.
+Next approval gate is Gate A alignment testing and 100-150 sticker physical sample validation using generated SVG/legend/production JSON plus local kit-pack PDFs.
