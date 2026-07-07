@@ -5019,6 +5019,10 @@
       overflow-x: clip;
     }
 
+    body.public-wizard:not(.wizard-state-upload) .public-wizard-shell {
+      padding-top: 0.45rem;
+    }
+
     .wizard-hero {
       display: grid;
       gap: 0.5rem;
@@ -5240,24 +5244,43 @@
     }
 
     .public-wizard:not(.wizard-state-upload) .wizard-hero {
-      gap: 0.25rem;
-      margin: 0 auto 0.35rem;
+      gap: 0.15rem;
+      margin: 0 auto 0.15rem;
     }
 
     .public-wizard:not(.wizard-state-upload) .wizard-hero h1 {
-      font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+      font-size: clamp(1.25rem, 2vw, 1.65rem);
       line-height: 1.12;
     }
 
     .public-wizard:not(.wizard-state-upload) .wizard-hero p {
       display: block;
       max-width: 520px;
-      font-size: 0.88rem;
-      line-height: 1.32;
+      font-size: 0.82rem;
+      line-height: 1.24;
     }
 
     .public-wizard:not(.wizard-state-upload) .wizard-trust-chips {
       display: none;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-stepper {
+      margin: 0.25rem auto 0.35rem;
+      padding: 0.1rem 0;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-step-number {
+      width: 30px;
+      height: 30px;
+      font-size: 0.78rem;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-stepper::before {
+      top: 15px;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-step-label {
+      font-size: 0.72rem;
     }
 
     .wizard-assurance-strip {
@@ -5270,7 +5293,7 @@
       align-items: center;
       gap: 0.5rem;
       flex-wrap: wrap;
-      margin: 0.25rem auto 0.7rem;
+      margin: 0.12rem auto 0.4rem;
       color: var(--mp-muted);
       font-size: 0.78rem;
       font-weight: 800;
@@ -5455,11 +5478,22 @@
       border-radius: 22px;
     }
 
+    .public-wizard.wizard-state-crop .canvas-container {
+      padding: 0.45rem;
+      background: #fff;
+    }
+
     .public-wizard.wizard-state-crop .canvas-viewport {
+      width: 100%;
+      max-width: 900px;
       min-height: 0;
       height: auto;
       overflow: visible;
       background: transparent;
+    }
+
+    .public-wizard.wizard-state-crop .crop-editor.active {
+      width: 100%;
     }
 
     .public-wizard.wizard-state-crop .canvas-wrapper {
@@ -5469,16 +5503,19 @@
     .public-wizard.wizard-state-crop .crop-editor.active {
       display: grid;
       place-items: stretch;
+      grid-template-columns: minmax(0, 860px);
+      justify-content: center;
       min-height: 0;
-      padding: 1.25rem;
+      padding: 0.45rem;
       background: #fff;
     }
 
     .public-wizard.wizard-state-crop .crop-card {
-      width: min(100%, 860px);
+      width: 100% !important;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 0.8rem;
-      gap: 0.7rem;
+      padding: 0.35rem;
+      gap: 0.45rem;
       overflow: visible;
       box-shadow: none;
     }
@@ -5489,9 +5526,9 @@
     }
 
     .public-wizard.wizard-state-crop .crop-frame {
-      width: min(100%, 420px, calc(100vh - 510px));
-      max-width: 560px;
-      max-height: min(46vh, 520px);
+      width: min(100%, 520px, calc(100vh - 330px));
+      max-width: 680px;
+      max-height: min(58vh, 620px);
       border-radius: 16px;
     }
 
@@ -6239,21 +6276,7 @@
       <span>Your photo stays private</span>
     </div>
   </main>
-
-  <div class="workspace-tabs">
-    <button class="workspace-tab active" data-tab="designer" onclick="showTab('designer')">
-      <span class="workspace-tab-icon" aria-hidden="true">Design</span>
-      <span>Create preview</span>
-      <span class="workspace-tab-badge">STEP 1</span>
-    </button>
-    <button class="workspace-tab" data-tab="builder" onclick="showTab('builder')">
-      <span class="workspace-tab-icon" aria-hidden="true">Proof</span>
-      <span>Formats & Proofs</span>
-      <span class="workspace-tab-badge">STEP 2</span>
-    </button>
-  </div>
-
-  <!-- Designer quick actions now live within Designer tab; top bar removed here -->
+  <!-- Public proof wizard only: legacy workspace tabs removed from normal DOM. -->
 
   <div class="insights-overlay" id="insightsOverlay"></div>
 
@@ -6267,82 +6290,9 @@
       <!-- Left: Canvas Area -->
       <div class="canvas-column">
       <div class="canvas-workspace">
-        <aside class="canvas-tools-rail">
-          <div class="ai-toggle-stack">
-            <button type="button" class="ai-toggle-button" id="aiToggleFaceColor" aria-label="Toggle face color optimizer" aria-pressed="true" title="Face color optimizer" onclick="toggleAiFilter('faceColor')">Face</button>
-            <button type="button" class="ai-toggle-button" id="aiToggleFaceEnhance" aria-label="Toggle face detail" aria-pressed="false" title="Face detail" onclick="toggleAiFilter('faceEnhance')">Detail</button>
-            <button type="button" class="ai-toggle-button" id="aiToggleBackground" aria-label="Toggle background fill" aria-pressed="false" title="Background fill" onclick="toggleAiFilter('background')">BG</button>
-            <button type="button" class="ai-mode-button" id="aiBgModeButton" aria-label="Cycle background fill" title="Cycle background fill">SOLID</button>
-          </div>
-          <button class="tool-button" data-panel="upload" title="Upload photo" aria-label="Upload photo" onclick="toggleWorkspacePanel('upload')">
-            Upload
-          </button>
-          <button class="tool-button" data-panel="enhance" title="Magic enhance" aria-label="Magic enhance" onclick="toggleWorkspacePanel('enhance')">
-            Enhance
-          </button>
-          <button class="tool-button" data-panel="adjust" title="Fine adjustments" aria-label="Fine adjustments" onclick="toggleWorkspacePanel('adjust')">
-            Adjust
-          </button>
-          <button class="tool-button" data-panel="library" title="Quick presets" aria-label="Quick presets" onclick="toggleWorkspacePanel('library')">
-            Presets
-          </button>
-          <button class="tool-button" data-panel="palette" title="Palette manager" aria-label="Palette manager" onclick="toggleWorkspacePanel('palette')">
-            Palette
-          </button>
-          <button class="tool-button" data-panel="settings" title="Workspace settings" aria-label="Workspace settings" onclick="toggleWorkspacePanel('settings')">
-            Settings
-          </button>
-        </aside>
       <div class="workspace-main">
-        <div class="workspace-mega" id="workspaceMega">
-          <div class="workspace-mega-inner" id="workspaceMegaInner"></div>
-        </div>
       <div class="panel">
         <!-- Canvas Header with Workspace Controls -->
-        <div class="canvas-header">
-      <div class="canvas-header-left">
-        <div class="header-control-group">
-          <span class="header-control-label">View</span>
-          <div class="view-toggle-compact" role="group" aria-label="Preview view mode">
-            <button class="view-btn-compact active" onclick="setViewMode('mosaic')" id="viewMosaic" aria-label="Show mosaic view" aria-pressed="true">
-              Mosaic view
-            </button>
-            <button class="view-btn-compact" onclick="setViewMode('blocks')" id="viewBlocks" aria-label="Show kit layout view" aria-pressed="false">
-              Kit layout
-            </button>
-            <button class="view-btn-compact" onclick="setViewMode('baseplate')" id="viewBaseplate" aria-label="Show backing view" aria-pressed="false">
-              Backing
-            </button>
-          </div>
-        </div>
-        <div class="header-control-group">
-          <span class="header-control-label">Display</span>
-          <div class="header-button-row" role="group" aria-label="Preview display toggles">
-            <button class="toggle-btn" onclick="toggleGrid()" id="gridBtn" title="Toggle Grid" aria-label="Toggle grid" aria-pressed="false">
-              Grid
-            </button>
-            <button class="toggle-btn" onclick="toggleNumbers()" id="numbersBtn" title="Toggle Numbers" aria-label="Toggle numbers" aria-pressed="false">
-              Numbers
-            </button>
-          </div>
-        </div>
-        <button class="scene-preview-button" onclick="openScenePreview()" title="Preview in scenes" aria-label="Preview design in scenes">
-          Scene Preview
-        </button>
-      </div>
-      <div class="canvas-header-actions">
-        <div class="zoom-controls-inline compact">
-          <button class="zoom-btn-mini" onclick="zoomOut()" title="Zoom Out" aria-label="Zoom out">−</button>
-          <span class="zoom-level-mini" id="zoomLevel">100%</span>
-          <button class="zoom-btn-mini" onclick="zoomIn()" title="Zoom In" aria-label="Zoom in">+</button>
-          <button class="zoom-btn-mini fit" onclick="zoomFit()" title="Fit to Screen" aria-label="Fit preview to screen">Fit</button>
-        </div>
-        <button type="button" class="canvas-reset-btn" onclick="resetBuilder()" title="Reset design" aria-label="Reset design">
-          Reset
-        </button>
-      </div>
-    </div>
-
         <div class="wizard-card-heading" id="wizardCardHeading" tabindex="-1">
           <h2 id="wizardStateTitle">Upload your photo</h2>
           <p id="wizardStateHelper">Clear, close-up photos work best.</p>
@@ -6512,650 +6462,6 @@
         </section>
         <div id="operatorToolsMount"></div>
       </aside>
-    </div>
-  </div>
-      <div id="workspacePanelTemplates" class="workspace-panel-templates">
-        <section class="workspace-mega-content" data-panel="upload">
-          <h3 class="mega-title">Create a Free Pet Preview</h3>
-          <p class="mega-description">Upload your photo and adjust the crop before generating your free preview.</p>
-          <div class="mega-button-row">
-            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Select Photo</button>
-            <button class="btn btn-secondary" onclick="resetBuilder()">Clear Canvas</button>
-          </div>
-          <ul class="mega-tips">
-            <li>Use bright, well-lit photos for best color matching.</li>
-          <li>Need inspiration? <a href="#" onclick="scrollToElement('bundleGalleryWrapper'); return false;">Browse featured bundles</a>.</li>
-            <li class="pro-note">Save your design when you want digital launch access or a custom proof follow-up.</li>
-          </ul>
-        </section>
-
-        <section class="workspace-mega-content" data-panel="enhance">
-          <h3 class="mega-title">Style Presets</h3>
-          <p class="mega-description">Dial in the look of your free preview before saving your design.</p>
-          <div class="preset-selector">
-            <label class="preset-label" for="presetDropdown">Effect:</label>
-            <select class="preset-dropdown" id="presetDropdown" onchange="setPresetFromDropdown()">
-              <option value="original">Original Colors</option>
-              <option value="enhanced">Enhanced (Vibrant)</option>
-              <option value="blackwhite">Black &amp; White</option>
-              <option value="sepia">Vintage Sepia</option>
-              <option value="pastel">Soft Pastel</option>
-              <option value="blueprint">Blueprint</option>
-              <option value="pop-art">Pop Art (Bold)</option>
-              <option value="duotone">Duotone (Teal)</option>
-            </select>
-          </div>
-          <p class="pro-note">Digital reveal files launch first; custom physical proofs are reviewed separately.</p>
-        </section>
-
-        <section class="workspace-mega-content" data-panel="palette">
-          <h3 class="mega-title">Color Palette &amp; Dithering</h3>
-          <div class="control-group">
-            <label class="control-label">Color Palette</label>
-            <div class="palette-select">
-              <div class="palette-option" onclick="setPalette('basic')" id="palette-basic">
-                <div class="palette-name">Basic (12 colors)</div>
-                <div class="palette-desc">Core sticker colors</div>
-              </div>
-              <div class="palette-option active" onclick="setPalette('professional')" id="palette-professional">
-                <div class="palette-name">Professional (16 colors)<span class="palette-badge">Recommended</span></div>
-                <div class="palette-desc">Extended color range</div>
-              </div>
-              <div class="palette-option" onclick="setPalette('premium')" id="palette-premium">
-                <div class="palette-name">Premium (25 colors)</div>
-                <div class="palette-desc">Full supplier range</div>
-              </div>
-              <div class="palette-option" onclick="setPalette('ultimate')" id="palette-ultimate">
-                <div class="palette-name">Ultimate (40 colors)<span class="palette-badge" style="background: var(--pop);">Pro</span></div>
-                <div class="palette-desc">Maximum detail &amp; realism</div>
-              </div>
-              <div class="palette-option" onclick="setPalette('portrait')" id="palette-portrait">
-                <div class="palette-name">Portrait (18 colors)</div>
-                <div class="palette-desc">Optimized for skin tones</div>
-              </div>
-            </div>
-          </div>
-          <div class="control-group">
-            <label class="control-label">Dithering Algorithm</label>
-            <select class="control-select" id="ditheringMode" onchange="updateSettings()">
-              <option value="none">None (Direct Mapping)</option>
-              <option value="ordered" selected>Ordered (Bayer)</option>
-              <option value="floyd">Floyd-Steinberg</option>
-              <option value="atkinson">Atkinson</option>
-            </select>
-          </div>
-          <div class="checkbox-group">
-            <input type="checkbox" id="linearLight" checked onchange="updateSettings()">
-            <label for="linearLight">Linear Light Processing</label>
-          </div>
-          <div class="checkbox-group">
-            <input type="checkbox" id="despeckle" onchange="updateSettings()">
-            <label for="despeckle">Despeckle Filter</label>
-          </div>
-        </section>
-
-        <section class="workspace-mega-content" data-panel="adjust">
-          <h3 class="mega-title">Fine Adjustments</h3>
-          <div class="mega-description">Refine brightness, contrast, and saturation before regenerating.</div>
-          <div class="slider-group">
-            <div class="slider-label">
-              <span class="slider-name">Brightness</span>
-              <span class="slider-value" id="brightnessValue">0</span>
-            </div>
-            <input type="range" class="slider" id="brightnessSlider" min="-50" max="50" value="0" oninput="updateSlider('brightness')">
-          </div>
-          <div class="slider-group">
-            <div class="slider-label">
-              <span class="slider-name">Contrast</span>
-              <span class="slider-value" id="contrastValue">0</span>
-            </div>
-            <input type="range" class="slider" id="contrastSlider" min="-50" max="50" value="0" oninput="updateSlider('contrast')">
-          </div>
-          <div class="slider-group">
-            <div class="slider-label">
-              <span class="slider-name">Saturation</span>
-              <span class="slider-value" id="saturationValue">0</span>
-            </div>
-            <input type="range" class="slider" id="saturationSlider" min="-50" max="50" value="0" oninput="updateSlider('saturation')">
-          </div>
-          <button class="btn btn-secondary" onclick="resetAdjustments()">Reset All</button>
-        </section>
-
-        <section class="workspace-mega-content" data-panel="library">
-          <h3 class="mega-title">Quick Start Presets</h3>
-          <p class="mega-description">Load a curated combo of size, material, and finish to start faster.</p>
-          <label class="preset-label" for="corePresetDropdown">Preset:</label>
-          <select class="preset-dropdown" id="corePresetDropdown" onchange="applyCorePreset(this.value)">
-            <option value="">Select a preset…</option>
-            <option value="portrait_gift">Portrait Gift • 48×48 Metallic Magnetic</option>
-            <option value="budget_sticker">Budget Sticker Pack • 32×32 Solid Vinyl</option>
-            <option value="lego_showcase">Display Mosaic • Premium 48×48</option>
-            <option value="gallery_luxe">Gallery Luxe • 64×64 Glow + Premium Backing</option>
-          </select>
-          <p class="mega-description">Save your design to get digital launch access or request a made-to-order proof.</p>
-          <h4 class="mega-subtitle">Choose Custom Product Path</h4>
-          <div class="product-type-selector">
-            <div class="product-type popular active" onclick="setProductType('bricks')" id="product-bricks">
-              <span class="product-icon" aria-hidden="true">Display</span>
-              <div class="product-name">Premium Display Quote</div>
-              <div class="product-desc">Premium custom quote path after proof approval</div>
-              <div class="product-price"><strong>Custom quote</strong></div>
-            </div>
-            <div class="product-type" onclick="setProductType('stickers')" id="product-stickers">
-              <span class="product-icon" aria-hidden="true">Sticker</span>
-              <div class="product-name">Sticker Reveal Kit</div>
-              <div class="product-desc">Made-to-order custom proof after review</div>
-              <div class="product-price"><strong>Request a proof</strong></div>
-            </div>
-          </div>
-
-          <h4 class="mega-subtitle">Choose Your Material</h4>
-          <p class="mega-description">See your image in different materials. Select to preview the effect.</p>
-
-          <!-- POD-STYLE: Visual preview shows their upload in selected material -->
-          <div class="material-visual-preview" id="materialVisualPreview" data-material="magnetic" data-finish="solid">
-            <div class="material-preview-label" id="materialPreviewLabel">Magnetic Reveal Kit</div>
-            <img id="materialPreviewImage" src="" alt="Your design preview" style="display: none;">
-            <div id="materialPreviewPlaceholder" style="padding: 150px 0; text-align: center; color: #999;">
-              Upload an image to see it in different materials
-            </div>
-          </div>
-
-          <!-- Material comparison - click to switch -->
-          <div class="preview-comparison" id="materialComparison">
-            <div class="preview-comparison-item active" onclick="selectMaterialPreview('magnetic')" data-material="magnetic">
-              <img id="previewThumbMagnetic" src="" alt="Magnetic preview">
-              <div class="preview-comparison-label">Magnetic</div>
-            </div>
-            <div class="preview-comparison-item" onclick="selectMaterialPreview('transparent-bricks')" data-material="transparent-bricks">
-              <img id="previewThumbTransparent" src="" alt="Transparent preview">
-              <div class="preview-comparison-label">Brick quote</div>
-            </div>
-            <div class="preview-comparison-item" onclick="selectMaterialPreview('solid-bricks')" data-material="solid-bricks">
-              <img id="previewThumbSolid" src="" alt="Solid vinyl preview">
-              <div class="preview-comparison-label">Sticker proof</div>
-            </div>
-          </div>
-
-          <!-- Compact dropdown for advanced users -->
-          <div class="material-selector-compact">
-            <label for="materialDropdown" class="material-label">Or choose from dropdown:</label>
-            <select id="materialDropdown" class="material-dropdown" onchange="setMaterialType(this.value); updateMaterialVisualPreview();">
-              <option value="magnetic" selected>Magnetic Reveal Kit - made-to-order premium option</option>
-              <option value="transparent-bricks">Premium Display Quote - after proof review</option>
-              <option value="solid-bricks">Sticker Reveal Kit - custom proof</option>
-            </select>
-            <div class="material-preview" id="materialPreview">
-              <div class="preview-badge">MADE TO ORDER</div>
-              <p class="preview-desc">Made-to-order premium magnetic option. Production begins after proof approval.</p>
-              <p class="preview-best-for">Best for: gift givers and home decor</p>
-            </div>
-          </div>
-
-          <div class="material-value-props" id="materialValueProps">
-            <div class="value-prop-card active" data-material="magnetic">
-              <h4><span class="icon" aria-hidden="true">Magnetic</span> Magnetic Reveal Kit</h4>
-              <p>Made-to-order premium magnetic option with a custom proof before the next step.</p>
-              <div class="best-for">Best for: gift givers and home decor</div>
-            </div>
-
-            <div class="value-prop-card" data-material="transparent-bricks">
-              <h4><span class="icon" aria-hidden="true">Display</span> Premium Display Quote</h4>
-              <p>Premium display quote path for approved mosaic proofs. Proof approval happens before any next step.</p>
-              <div class="best-for">Best for: collectors and premium gifts</div>
-            </div>
-
-            <div class="value-prop-card" data-material="solid-bricks">
-              <h4><span class="icon" aria-hidden="true">Sticker</span> Sticker Reveal Kit</h4>
-              <p>Made-to-order custom sticker proof for your approved mosaic design.</p>
-              <div class="best-for">Best for: accessible custom gifts and DIY assembly</div>
-            </div>
-          </div>
-
-          <h4 class="mega-subtitle">Size &amp; Backing</h4>
-          <div class="size-grid" id="sizeGrid">
-            <!-- Dynamically populated based on product type -->
-          </div>
-        </section>
-
-        <section class="workspace-mega-content" data-panel="settings">
-          <h3 class="mega-title">Workspace Settings</h3>
-          <p class="mega-description">Save your preview for digital reveal launch access or made-to-order proof follow-up.</p>
-          <ul class="mega-tips">
-            <li>Need a fresh start? Use the Reset button beside the zoom controls.</li>
-            <li>Toggle grid &amp; numbers via the Display controls above the canvas.</li>
-            <li class="pro-note">Proof requests are free while launch access is finalized.</li>
-          </ul>
-          <div id="finish-selector" class="finish-selector">
-            <h4 class="mega-subtitle">Made-to-Order Finishes</h4>
-            <p class="mega-description">Preview finish options. Nothing is made until you approve the next step.</p>
-
-            <!-- Finish comparison - visual preview -->
-            <div class="preview-comparison" id="finishComparison" style="grid-template-columns: repeat(5, 1fr);">
-              <div class="preview-comparison-item active" onclick="selectFinishPreview('solid')" data-finish="solid">
-                <img id="finishThumbSolid" src="" alt="Solid finish preview">
-                <div class="preview-comparison-label">Classic</div>
-              </div>
-              <div class="preview-comparison-item" onclick="selectFinishPreview('metallic')" data-finish="metallic">
-                <img id="finishThumbMetallic" src="" alt="Metallic preview">
-                <div class="preview-comparison-label">Metallic</div>
-              </div>
-              <div class="preview-comparison-item" onclick="selectFinishPreview('glitter')" data-finish="glitter">
-                <img id="finishThumbGlitter" src="" alt="Glitter preview">
-                <div class="preview-comparison-label">Glitter</div>
-              </div>
-              <div class="preview-comparison-item" onclick="selectFinishPreview('holographic')" data-finish="holographic">
-                <img id="finishThumbHolo" src="" alt="Holographic preview">
-                <div class="preview-comparison-label">Holo</div>
-              </div>
-              <div class="preview-comparison-item" onclick="selectFinishPreview('glow')" data-finish="glow">
-                <img id="finishThumbGlow" src="" alt="Glow preview">
-                <div class="preview-comparison-label">Glow</div>
-              </div>
-            </div>
-
-            <!-- Dropdown for advanced users -->
-            <div class="finish-selector-compact">
-              <label for="finishDropdown" class="finish-label">Or choose from dropdown:</label>
-              <select id="finishDropdown" class="finish-dropdown" onchange="setFinish(this.value); updateFinishVisualPreview();">
-                <option value="solid" selected>Classic proof option</option>
-                <option value="metallic">Metallic proof option</option>
-                <option value="glitter">Glitter proof option</option>
-                <option value="holographic">Holographic proof option</option>
-                <option value="glow">Glow proof option</option>
-              </select>
-              <div class="finish-preview" id="finishPreview">
-                <p class="preview-desc">Matte finish, no glare. Best for detailed photos.</p>
-                <p class="preview-best-for">Best for: portraits, family photos, pet photos</p>
-              </div>
-            </div>
-          </div>
-
-          <h4 class="mega-subtitle">Backing Options</h4>
-          <div class="baseplate-options">
-            <label class="baseplate-option active">
-              <input type="radio" name="baseplate" value="none" checked onclick="setBaseplate('none', event)">
-              <div class="option-content">
-                <h4>None</h4>
-                <p>DIY backing (use your own foam board or magnetic sheet)</p>
-              </div>
-              <div class="option-price">$0</div>
-            </label>
-
-            <label class="baseplate-option">
-              <input type="radio" name="baseplate" value="framed" onclick="setBaseplate('framed', event)">
-              <div class="option-content">
-                <h4>Framed Display</h4>
-                <p>Black wood frame, ready to hang</p>
-              </div>
-              <div class="option-price">+$39</div>
-            </label>
-
-            <label class="baseplate-option">
-              <input type="radio" name="baseplate" value="multi" onclick="setBaseplate('multi', event)">
-              <div class="option-content">
-                <h4>Multi-Baseplate System</h4>
-                <p>Professional modular display with connecting baseplates</p>
-              </div>
-              <div class="option-price">+$79</div>
-            </label>
-
-            <label class="baseplate-option">
-              <input type="radio" name="baseplate" value="led" onclick="setBaseplate('led', event)">
-              <div class="option-content">
-                <h4>LED Backlit</h4>
-                <p>Illuminated display with USB-powered LED strips</p>
-              </div>
-              <div class="option-price">+$59</div>
-            </label>
-
-            <label class="baseplate-option">
-              <input type="radio" name="baseplate" value="premium-magnetic" onclick="setBaseplate('premium-magnetic', event)">
-              <div class="option-content">
-                <h4>Premium Magnetic Board</h4>
-                <p>Extra-strong magnetic backing (holds 3× stronger)</p>
-              </div>
-              <div class="option-price">+$49</div>
-            </label>
-          </div>
-
-          
-        </section>
-      </div>
-
-        </div>
-      </div>
-      </div>
-
-      <div id="builder-tab" class="tab-content-area">
-        <div class="checkout-trust-row" id="checkoutTrustRow">
-          <div class="trust-item">
-            <span class="trust-icon" aria-hidden="true">Proof</span>
-            <div class="trust-copy">
-              <strong>Custom proof before any next step</strong>
-              <span>Made-to-order products start only after proof approval.</span>
-            </div>
-          </div>
-          <div class="trust-item">
-            <span class="trust-icon" aria-hidden="true">Preview</span>
-            <div class="trust-copy">
-              <strong>Color-calibrated preview</strong>
-              <span>Preview your photo mosaic before choosing a digital or custom proof path.</span>
-            </div>
-          </div>
-          <div class="trust-item">
-            <span class="trust-icon" aria-hidden="true">D1</span>
-            <div class="trust-copy">
-              <strong>Proof requests are free today</strong>
-              <span>Save your design now; payment is not collected here.</span>
-            </div>
-          </div>
-        </div>
-        <div class="express-pay-row" id="expressPayRow">
-          <button class="express-pay-btn express-shop-pay" type="button" data-pay="digital_access">
-            <span>Digital launch access</span>
-          </button>
-          <button class="express-pay-btn express-apple-pay" type="button" data-pay="sticker_proof">
-            <span>Sticker proof request</span>
-          </button>
-          <button class="express-pay-btn express-google-pay" type="button" data-pay="brick_quote">
-            <span>Display custom quote</span>
-          </button>
-        </div>
-        <div class="express-divider"><span>Save your design before proof or launch access follow-up</span></div>
-        <div class="checkout-mode-toggle" id="checkoutModeToggle">
-          <button class="mode-chip active" type="button" data-material="magnetic" data-finish="solid" data-baseplate="none" aria-pressed="true">
-            <span aria-hidden="true">DIY</span> Digital Reveal
-          </button>
-          <button class="mode-chip" type="button" data-material="magnetic" data-finish="metallic" data-baseplate="framed" aria-pressed="false">
-            <span aria-hidden="true">Proof</span> Custom Proof
-          </button>
-        </div>
-        <div class="builder-tab-content">
-          <div class="bundle-gallery-wrapper" id="bundleGalleryWrapper">
-      <div class="bundle-gallery">
-        <div class="bundle-gallery-header">
-          <div class="bundle-gallery-text">
-            <h3 class="bundle-gallery-title">Choose Your Product Path</h3>
-            <p class="bundle-gallery-subtitle" id="bundleHeroSubtitle">Start with a free preview, then save your design for digital launch access or a custom proof request.</p>
-          </div>
-          <div class="bundle-chips-inline" id="bundleChips"></div>
-        </div>
-        <div class="bundle-gallery-grid" id="bundleGallery"></div>
-      </div>
-      <div class="bundle-preview-panel hidden" id="bundlePreviewPanel">
-        <div class="bundle-preview-media">
-          <img id="bundlePreviewImage" alt="Bundle preview">
-        </div>
-        <div class="bundle-preview-info">
-          <div class="bundle-preview-heading">
-            <div>
-              <div class="bundle-preview-title" id="bundlePreviewTitle"></div>
-              <div class="bundle-preview-subtitle" id="bundlePreviewSubtitle"></div>
-            </div>
-            <div class="bundle-preview-meta">
-              <div class="bundle-preview-price-tag" id="bundlePreviewPrice"></div>
-              <div class="bundle-card-savings" id="bundlePreviewSavings"></div>
-            </div>
-          </div>
-          <ul class="bundle-preview-list" id="bundlePreviewList"></ul>
-        </div>
-        <div class="bundle-config-bar">
-          <div class="bundle-config-grid">
-            <select class="premium-select" id="materialSelectCompact" aria-label="Material">
-              <option value="magnetic">Magnetic Reveal Kit - custom proof</option>
-              <option value="transparent-bricks">Premium Display Quote - after proof review</option>
-              <option value="solid-bricks">Sticker Reveal Kit - custom proof</option>
-            </select>
-            <select class="premium-select" id="finishSelectCompact" aria-label="Finish">
-              <option value="solid">Classic proof option</option>
-              <option value="metallic">Metallic proof option</option>
-              <option value="glitter">Glitter proof option</option>
-              <option value="holographic">Holographic proof option</option>
-              <option value="glow">Glow proof option</option>
-            </select>
-            <select class="premium-select" id="baseplateSelectCompact" aria-label="Backing">
-              <option value="none">No Backing ($0)</option>
-              <option value="framed">Framed proof option</option>
-              <option value="led">LED proof option</option>
-              <option value="multi">Multi-panel proof option</option>
-              <option value="premium-magnetic">Premium magnetic proof option</option>
-            </select>
-          </div>
-        </div>
-        <div class="bundle-preview-actions">
-          <div class="bundle-total-group">
-            <span class="bundle-total-label">Total</span>
-            <span class="bundle-total-value" id="totalPriceCompact">$249.00</span>
-          </div>
-          <div>
-            <button class="bundle-preview-apply" type="button" id="bundlePreviewApply">
-              Apply selection
-            </button>
-            <button class="bundle-preview-apply bundle-cart-btn" type="button" id="addToCartCompact">
-              <span>Request proof or access</span>
-            </button>
-          </div>
-        </div>
-      </div>
-        </div>
-      </div>
-
-      <!-- Right: Summary & Insights -->
-      <div class="controls-column" id="insightsPanel">
-        <div class="summary-grid">
-          <div class="summary-card" data-summary="core">
-            <div class="summary-header">
-              <span class="summary-index">1</span>
-              <div class="summary-text-block">
-                <span class="summary-title">Core Setup</span>
-                <span class="summary-value" id="summary-core">Upload a photo to begin.</span>
-              </div>
-            </div>
-            <span class="module-group-status" id="status-core"></span>
-            <p id="summary-core-details" class="summary-detail">Choose your kit type, material, and size.</p>
-            <button class="summary-edit" type="button" onclick="toggleWorkspacePanel('library')">Edit</button>
-          </div>
-
-          <div class="summary-card" data-summary="premium">
-            <div class="summary-header">
-              <span class="summary-index">2</span>
-              <div class="summary-text-block">
-                <span class="summary-title">Premium Options</span>
-                <span class="summary-value" id="summary-premium">Select finish &amp; backing.</span>
-              </div>
-            </div>
-            <span class="module-group-status" id="status-premium"></span>
-            <p id="summary-premium-details" class="summary-detail">Upgrade the look and presentation of your mosaic.</p>
-            <button class="summary-edit" type="button" onclick="toggleWorkspacePanel('settings')">Edit</button>
-          </div>
-
-          <div class="summary-card" data-summary="tuning">
-            <div class="summary-header">
-              <span class="summary-index">3</span>
-              <div class="summary-text-block">
-                <span class="summary-title">Fine-Tune</span>
-                <span class="summary-value" id="summary-tuning">Preset: Original · Palette: Professional</span>
-              </div>
-            </div>
-            <span class="module-group-status" id="status-tuning"></span>
-            <p id="summary-tuning-details" class="summary-detail">Experiment with presets, color palettes, and manual adjustments.</p>
-            <div class="summary-actions">
-              <button class="summary-edit" type="button" onclick="toggleWorkspacePanel('enhance')">Presets</button>
-              <button class="summary-edit" type="button" onclick="toggleWorkspacePanel('palette')">Colors</button>
-              <button class="summary-edit" type="button" onclick="toggleWorkspacePanel('adjust')">Adjust</button>
-            </div>
-          </div>
-
-          <div class="summary-card" data-summary="insights">
-            <div class="summary-header">
-              <span class="summary-index">4</span>
-              <div class="summary-text-block">
-                <span class="summary-title">Preview &amp; Save</span>
-                <span class="summary-value" id="summary-insights">Awaiting preview</span>
-              </div>
-            </div>
-            <span class="module-group-status" id="status-insights"></span>
-            <p id="summary-insights-details" class="summary-detail">Review preview details, save your design, or request proof follow-up.</p>
-            <button class="summary-edit" type="button" onclick="scrollToElement('costBreakdown')">View proof options</button>
-          </div>
-        </div>
-
-        <!-- Statistics -->
-        <div class="panel">
-          <div class="stats-grid">
-            <div class="stat-item">
-              <span class="stat-value" id="totalPieces">2,304</span>
-              <span class="stat-label" id="piecesLabel">Total Bricks</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value" id="uniqueColors">0</span>
-              <span class="stat-label">Colors Used</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value" id="buildTime">3-4h</span>
-              <span class="stat-label">Build Time</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value" id="efficiency">0%</span>
-              <span class="stat-label">Pack Efficiency</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Color Distribution -->
-        <div class="panel" data-panel-id="color-distribution">
-          <div class="panel-header" onclick="togglePanel('color-distribution')">
-            <h3 class="panel-title">
-              Color Distribution
-              <span class="tooltip">
-                <span class="tooltip-icon">?</span>
-                <span class="tooltip-text">Click any color to hide/show it in the mosaic. Hidden colors won't be used when regenerating. Perfect for manually improving quality!</span>
-              </span>
-            </h3>
-            <button type="button" class="panel-toggle-btn" aria-label="Toggle Color Distribution">⌃</button>
-          </div>
-          <div class="panel-content">
-            <div style="margin-bottom: 0.5rem; padding: 0.5rem; background: var(--primary-pale); border-radius: var(--radius); font-size: 0.8125rem; color: var(--text-light);">
-              <strong>Tip:</strong> Click colors below to hide/show them. Regenerate to see changes.
-            </div>
-            <div class="color-grid" id="colorDistribution"></div>
-          </div>
-        </div>
-
-        <!-- Cost & Export (paid members) -->
-        <div class="panel" data-panel-id="cost">
-          <div class="panel-header" onclick="togglePanel('cost')">
-            <h3 class="panel-title">Proof Options &amp; Launch Access</h3>
-            <button type="button" class="panel-toggle-btn" aria-label="Toggle proof options and launch access">⌃</button>
-          </div>
-          <div class="panel-content">
-            <p class="pro-note" style="margin-bottom: 0.75rem;">Advanced exports (PDF, BOM, Image) unlock for Pro members-highlight this benefit in campaigns.</p>
-            <div class="cost-breakdown" id="costBreakdown">
-              <!-- Dynamically populated based on product type -->
-            </div>
-            <div style="margin-top: 1rem;">
-          <!-- Generate button removed: image regenerates automatically on changes -->
-            </div>
-            <div id="launchAccessButton" style="display: none; margin-top: 1rem;">
-              <button class="btn btn-primary" onclick="addToLaunchAccess()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
-                Save for Launch Access
-              </button>
-              <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
-                Proof requests are free while launch access is finalized.
-              </div>
-            </div>
-            <div class="btn-group" style="margin-top: 0.75rem;">
-              <button class="btn btn-secondary" onclick="saveProject()">Save design</button>
-              <button class="btn btn-secondary" onclick="resetBuilder()">Reset</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Advanced styling controls now live in the Workspace Mega panel -->
-        <!-- Statistics -->
-        <div class="panel">
-          <div class="stats-grid">
-            <div class="stat-item">
-              <span class="stat-value" id="totalPieces">2,304</span>
-              <span class="stat-label" id="piecesLabel">Total Bricks</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value" id="uniqueColors">0</span>
-              <span class="stat-label">Colors Used</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value" id="buildTime">3-4h</span>
-              <span class="stat-label">Build Time</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value" id="efficiency">0%</span>
-              <span class="stat-label">Pack Efficiency</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Color Distribution -->
-        <div class="panel" data-panel-id="color-distribution">
-          <div class="panel-header" onclick="togglePanel('color-distribution')">
-            <h3 class="panel-title">
-              Color Distribution
-              <span class="tooltip">
-                <span class="tooltip-icon">?</span>
-                <span class="tooltip-text">Click any color to hide/show it in the mosaic. Hidden colors won't be used when regenerating. Perfect for manually improving quality!</span>
-              </span>
-            </h3>
-            <button type="button" class="panel-toggle-btn" aria-label="Toggle Color Distribution">⌃</button>
-          </div>
-          <div class="panel-content">
-          <div style="margin-bottom: 0.5rem; padding: 0.5rem; background: var(--primary-pale); border-radius: var(--radius); font-size: 0.8125rem; color: var(--text-light);">
-            <strong>Tip:</strong> Click colors below to hide/show them. Regenerate to see changes.
-          </div>
-          <div class="color-grid" id="colorDistribution"></div>
-          </div>
-        </div>
-
-        <!-- Cost & Export -->
-        <div class="panel" data-panel-id="cost">
-          <div class="panel-header" onclick="togglePanel('cost')">
-            <h3 class="panel-title">Materials details</h3>
-            <button type="button" class="panel-toggle-btn" aria-label="Toggle proof options and launch access">⌃</button>
-          </div>
-          <div class="panel-content">
-          <div class="cost-breakdown" id="costBreakdown">
-            <!-- Dynamically populated based on product type -->
-          </div>
-          
-          <div style="margin-top: 1rem;">
-            <!-- Generate button removed: image regenerates automatically on changes -->
-          </div>
-
-          <!-- Checkout access button (shown after generation) -->
-          <div id="launchAccessButton" style="display: none; margin-top: 1rem;">
-            <button class="btn btn-primary" onclick="addToLaunchAccess()" style="width: 100%; background: linear-gradient(135deg, var(--pop) 0%, #c61670 100%); font-size: 1rem; padding: 1rem;">
-              Save for Launch Access
-            </button>
-            <div style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
-              Proof requests are free while launch access is finalized.
-            </div>
-          </div>
-
-          <!-- Upsell Banner (shown after generation) -->
-          <div class="upsell-banner" id="upsellBanner" style="display: none;">
-            <!-- Dynamically populated based on current product type -->
-          </div>
-          
-          <div class="btn-group" style="margin-top: 0.75rem;">
-            <button class="btn btn-secondary" onclick="saveProject()">Save design</button>
-            <button class="btn btn-secondary" onclick="resetBuilder()">Reset</button>
-          </div>
-          </div>
-        </div>
-      </div>
-
-
-
-
     </div>
   </div>
 
@@ -11331,6 +10637,7 @@
     function renderSizeOptions() {
       const grid = document.getElementById('sizeGrid');
       const config = PRODUCTS[currentProductType];
+      if (!grid || !config?.sizes) return;
       
       grid.innerHTML = config.sizes.map((option, idx) => {
         const isActive = option.size === currentSize;
@@ -15259,96 +14566,6 @@
   </script>
 
   <!-- Scene Preview Modal -->
-  <div class="scene-preview-modal" id="scenePreviewModal">
-    <div class="scene-preview-container">
-        <div class="scene-preview-header">
-        <h2 class="scene-preview-title">
-          Preview Your Design in Different Scenes
-        </h2>
-        <button class="scene-preview-close" onclick="closeScenePreview()" type="button" aria-label="Close scene preview">×</button>
-        </div>
-
-        <div class="scene-preview-body">
-        <!-- Scene Selector -->
-        <div class="scene-selector" role="group" aria-label="Scene preview choices">
-          <div class="scene-option active" onclick="selectScene('living-room')" data-scene="living-room" role="button" tabindex="0" aria-pressed="true">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23f5f5f5' width='400' height='300'/%3E%3Crect fill='%23e5e5e5' y='200' width='400' height='100'/%3E%3Crect fill='%23d4d4d4' x='50' y='220' width='120' height='60'/%3E%3Crect fill='%23a3a3a3' x='250' y='230' width='100' height='50'/%3E%3C/svg%3E" alt="Modern Living Room">
-            <div class="scene-option-label">Modern Living Room</div>
-          </div>
-
-          <div class="scene-option" onclick="selectScene('bedroom')" data-scene="bedroom" role="button" tabindex="0" aria-pressed="false">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e8f5f2' width='400' height='300'/%3E%3Crect fill='%23c7e6dd' y='180' width='400' height='120'/%3E%3Crect fill='%23a8d5c8' x='80' y='200' width='240' height='80'/%3E%3C/svg%3E" alt="Cozy Bedroom">
-            <div class="scene-option-label">Cozy Bedroom</div>
-          </div>
-
-          <div class="scene-option" onclick="selectScene('office')" data-scene="office" role="button" tabindex="0" aria-pressed="false">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23fafafa' width='400' height='300'/%3E%3Crect fill='%23525252' x='20' y='50' width='360' height='200'/%3E%3Crect fill='%23737373' x='40' y='70' width='320' height='160'/%3E%3C/svg%3E" alt="Modern Office">
-            <div class="scene-option-label">Modern Office</div>
-          </div>
-
-          <div class="scene-option" onclick="selectScene('gallery')" data-scene="gallery" role="button" tabindex="0" aria-pressed="false">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffffff' width='400' height='300'/%3E%3Crect fill='%23e5e5e5' y='250' width='400' height='50'/%3E%3C/svg%3E" alt="Gallery Wall">
-            <div class="scene-option-label">Gallery Wall</div>
-          </div>
-
-          <div class="scene-option" onclick="selectScene('kids-room')" data-scene="kids-room" role="button" tabindex="0" aria-pressed="false">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23fff1f7' width='400' height='300'/%3E%3Crect fill='%23fcd9ea' y='200' width='400' height='100'/%3E%3Ccircle fill='%23fbbf24' cx='100' cy='80' r='30'/%3E%3Cpolygon fill='%23e91e8c' points='300,120 320,160 280,160'/%3E%3C/svg%3E" alt="Kids Room">
-            <div class="scene-option-label">Kids Room</div>
-          </div>
-
-          <div class="scene-option" onclick="selectScene('cafe')" data-scene="cafe" role="button" tabindex="0" aria-pressed="false">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23fef3c7' width='400' height='300'/%3E%3Crect fill='%23d97706' y='240' width='400' height='60'/%3E%3Crect fill='%2392400e' x='50' y='100' width='80' height='140'/%3E%3Crect fill='%2392400e' x='270' y='100' width='80' height='140'/%3E%3C/svg%3E" alt="Café/Restaurant">
-            <div class="scene-option-label">Café/Restaurant</div>
-          </div>
-        </div>
-
-        <!-- Preview Canvas -->
-        <div class="scene-preview-canvas-container">
-          <canvas id="scenePreviewCanvas" class="scene-preview-canvas" role="img" aria-label="Scene preview canvas"></canvas>
-        </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="scene-preview-actions">
-        <button class="scene-action-btn primary" onclick="downloadScenePreview()" type="button" aria-label="Download scene preview">
-          Download Preview
-        </button>
-
-        <div class="share-dropdown">
-          <button class="scene-action-btn social" onclick="toggleShareMenu()" type="button" aria-label="Open sharing options">
-            Share
-          </button>
-          <div class="share-menu" id="shareMenu">
-            <div class="share-menu-item" onclick="shareToFacebook()">
-              <span class="share-menu-icon" aria-hidden="true">FB</span>
-              <span>Share on Facebook</span>
-            </div>
-            <div class="share-menu-item" onclick="shareToTwitter()">
-              <span class="share-menu-icon" aria-hidden="true">X</span>
-              <span>Share on Twitter</span>
-            </div>
-            <div class="share-menu-item" onclick="shareToInstagram()">
-              <span class="share-menu-icon" aria-hidden="true">IG</span>
-              <span>Share to Instagram</span>
-            </div>
-            <div class="share-menu-item" onclick="shareToEmail()">
-              <span class="share-menu-icon">✉️</span>
-              <span>Share via Email</span>
-            </div>
-            <div class="share-menu-item" onclick="copyShareLink()">
-              <span class="share-menu-icon">🔗</span>
-              <span>Copy Link</span>
-            </div>
-          </div>
-        </div>
-
-        <button class="scene-action-btn secondary" onclick="closeScenePreview()" type="button" aria-label="Close scene preview">
-          Close
-        </button>
-        </div>
-    </div>
-  </div>
-
   <div class="wizard-sticky-cta" id="wizardStickyCta">
     <button type="button" id="wizardStickyButton">Choose Photo</button>
   </div>

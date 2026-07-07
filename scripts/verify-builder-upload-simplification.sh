@@ -24,10 +24,7 @@ if grep -q '<section class="proof-export-tools"' "$BUILDER"; then
 fi
 grep -q "hardenPublicBuilderDom" "$BUILDER" || fail "public builder DOM hardening missing"
 grep -q "MOSAPACK_BUILDER_SCRIPT_NODE?.remove()" "$BUILDER" || fail "builder body script removal missing"
-grep -q "wizard-state-upload .advanced-tools" "$BUILDER" || fail "upload-state advanced-tools hide rule missing"
-if grep -q "is-ops-mode.wizard-state-upload .advanced-tools" "$BUILDER"; then
-  fail "ops-mode should not reveal advanced tools in upload state"
-fi
+grep -q "mountOperatorTools(isOpsMode)" "$BUILDER" || fail "operator tools must mount only through ops-mode helper"
 grep -q ".proof-export-tools" "$BUILDER" || fail "proof export tools styles missing"
 
 grep -q "Photo tips" "$BUILDER" || fail "Photo tips card missing"
