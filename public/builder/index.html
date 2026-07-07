@@ -5222,9 +5222,68 @@
       align-items: start;
     }
 
-    .public-wizard.wizard-state-upload .wizard-layout {
+    .public-wizard.wizard-state-upload .wizard-layout,
+    .wizard-layout--with-rail {
       grid-template-columns: minmax(680px, 1fr) minmax(330px, 380px);
       gap: 1.35rem;
+    }
+
+    .wizard-layout--focus {
+      display: flex;
+      justify-content: center;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .wizard-layout--focus .canvas-column {
+      width: min(100%, 900px);
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-hero {
+      gap: 0.25rem;
+      margin: 0 auto 0.35rem;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-hero h1 {
+      font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+      line-height: 1.12;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-hero p {
+      display: block;
+      max-width: 520px;
+      font-size: 0.88rem;
+      line-height: 1.32;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-trust-chips {
+      display: none;
+    }
+
+    .wizard-assurance-strip {
+      display: none;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-assurance-strip {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin: 0.25rem auto 0.7rem;
+      color: var(--mp-muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-assurance-strip span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0.22rem 0.55rem;
+      border: 1px solid rgba(221, 227, 234, 0.88);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
     }
 
     .public-wizard .canvas-container {
@@ -5263,6 +5322,10 @@
       gap: 0.25rem;
       padding: 1rem 1.15rem 0;
       background: #fff;
+    }
+
+    .public-wizard:not(.wizard-state-upload) .wizard-card-heading {
+      display: none;
     }
 
     .wizard-card-heading h2 {
@@ -5382,6 +5445,104 @@
       min-height: 545px;
       padding: 1rem;
       background: #fff;
+    }
+
+    .public-wizard.wizard-state-crop .canvas-container,
+    .public-wizard.wizard-state-preview .canvas-container,
+    .public-wizard.wizard-state-proof .canvas-container,
+    .public-wizard.wizard-state-saved .canvas-container {
+      overflow: visible;
+      border-radius: 22px;
+    }
+
+    .public-wizard.wizard-state-crop .canvas-viewport {
+      min-height: 0;
+      height: auto;
+      overflow: visible;
+      background: transparent;
+    }
+
+    .public-wizard.wizard-state-crop .canvas-wrapper {
+      display: none;
+    }
+
+    .public-wizard.wizard-state-crop .crop-editor.active {
+      display: grid;
+      place-items: stretch;
+      min-height: 0;
+      padding: 1.25rem;
+      background: #fff;
+    }
+
+    .public-wizard.wizard-state-crop .crop-card {
+      width: min(100%, 860px);
+      margin: 0 auto;
+      padding: 0.8rem;
+      gap: 0.7rem;
+      overflow: visible;
+      box-shadow: none;
+    }
+
+    .public-wizard.wizard-state-crop .crop-heading,
+    .public-wizard.wizard-state-crop .crop-subtitle {
+      display: none;
+    }
+
+    .public-wizard.wizard-state-crop .crop-frame {
+      width: min(100%, 420px, calc(100vh - 510px));
+      max-width: 560px;
+      max-height: min(46vh, 520px);
+      border-radius: 16px;
+    }
+
+    .public-wizard.wizard-state-crop .crop-controls,
+    .public-wizard.wizard-state-crop .crop-warning {
+      width: min(100%, 620px);
+    }
+
+    .public-wizard.wizard-state-crop .crop-controls {
+      grid-template-columns: auto minmax(160px, 1fr) auto auto;
+    }
+
+    .public-wizard.wizard-state-crop .crop-actions {
+      padding-top: 0.1rem;
+      flex-wrap: nowrap;
+    }
+
+    .public-wizard.wizard-state-crop .crop-actions .btn {
+      width: auto;
+      min-width: 190px;
+      flex: 0 0 auto;
+    }
+
+    .public-wizard.wizard-state-crop .crop-actions .btn-primary {
+      background: var(--mp-teal);
+      border-color: var(--mp-teal);
+      box-shadow: 0 14px 32px rgba(8, 184, 148, 0.22);
+    }
+
+    .public-wizard.wizard-state-preview .canvas-container,
+    .public-wizard.wizard-state-proof .canvas-container,
+    .public-wizard.wizard-state-saved .canvas-container {
+      padding: 1.1rem;
+      background: #fff;
+    }
+
+    .public-wizard.wizard-state-preview .canvas-viewport,
+    .public-wizard.wizard-state-proof .canvas-viewport,
+    .public-wizard.wizard-state-saved .canvas-viewport {
+      min-height: 0;
+      background: transparent;
+      overflow: visible;
+    }
+
+    .public-wizard.wizard-state-preview .canvas-wrapper,
+    .public-wizard.wizard-state-proof .canvas-wrapper,
+    .public-wizard.wizard-state-saved .canvas-wrapper {
+      position: relative;
+      inset: auto;
+      width: min(100%, 620px);
+      margin: 0 auto;
     }
 
     .public-wizard .crop-card {
@@ -6050,7 +6211,7 @@
   <main class="public-wizard-shell" id="publicWizardShell">
     <section class="wizard-hero" aria-labelledby="wizardHeroTitle">
       <h1 id="wizardHeroTitle">Create your mosaic proof</h1>
-      <p>Upload a photo, preview your mosaic, and request a free custom proof. No payment required right now.</p>
+      <p id="wizardHeroLead">Upload a photo, preview your mosaic, and request a free custom proof. No payment required right now.</p>
       <div class="wizard-trust-chips" aria-label="MosaPack trust notes">
         <span class="wizard-chip">Free preview</span>
         <span class="wizard-chip is-pink">Custom proof</span>
@@ -6071,6 +6232,11 @@
       <span class="wizard-mobile-dot" data-wizard-dot="preview"></span>
       <span class="wizard-mobile-dot" data-wizard-dot="proof"></span>
       <span class="wizard-mobile-dot" data-wizard-dot="saved"></span>
+    </div>
+    <div class="wizard-assurance-strip" id="wizardAssuranceStrip" aria-label="Proof assurance">
+      <span>We review every proof</span>
+      <span>No payment today</span>
+      <span>Your photo stays private</span>
     </div>
   </main>
 
@@ -6093,7 +6259,7 @@
 
     <!-- Main Content -->
   <div class="container">
-    <div class="wizard-layout">
+    <div class="wizard-layout wizard-layout--with-rail" id="wizardLayout">
       <div class="wizard-main-card">
     <div class="main-grid">
       <div id="designer-tab" class="tab-content-area active">
@@ -6305,7 +6471,7 @@
     </div>
   </div>
       </div>
-      <aside class="wizard-side-stack" aria-label="Photo proof guidance">
+      <aside class="wizard-side-stack" id="wizardSideStack" aria-label="Photo proof guidance">
         <section class="wizard-help-card is-proof-promise">
           <h3>We review every proof</h3>
           <p>A real review before anything is made.</p>
@@ -8490,14 +8656,16 @@
     }
 
     const WIZARD_STEPS = {
-      upload: { index: 1, title: 'Upload Photo', cardTitle: 'Upload your photo', helper: 'Clear, close-up photos work best.', cta: 'Choose Photo' },
-      crop: { index: 2, title: 'Crop & Position', cardTitle: 'Crop & Position', helper: 'Center the face or main subject.', cta: 'Looks good — create my preview' },
-      preview: { index: 3, title: 'Preview Mosaic', cardTitle: "Here's your mosaic preview", helper: "This is an instant preview. We'll review the saved design before anything is made.", cta: 'Request my free proof' },
-      proof: { index: 4, title: 'Request Proof', cardTitle: 'Request your free custom proof', helper: "We'll follow up with the next step after reviewing your saved design.", cta: 'Save my proof request' },
-      saved: { index: 5, title: 'Proof Saved', cardTitle: 'Proof request saved.', helper: "We'll review your design and follow up with the next step.", cta: 'Create another preview' }
+      upload: { index: 1, title: 'Upload Photo', heroTitle: 'Create your mosaic proof', heroLead: 'Upload a photo, preview your mosaic, and request a free custom proof. No payment required right now.', cardTitle: 'Upload your photo', helper: 'Clear, close-up photos work best.', cta: 'Choose Photo' },
+      crop: { index: 2, title: 'Crop & Position', heroTitle: 'Crop & position', heroLead: 'Center the face or main subject.', cardTitle: 'Crop & position', helper: 'Center the face or main subject.', cta: 'Looks good — create my preview' },
+      preview: { index: 3, title: 'Preview Mosaic', heroTitle: 'Preview your mosaic', heroLead: "Review the instant preview before saving it for proof review.", cardTitle: "Here's your mosaic preview", helper: "This is an instant preview. We'll review the saved design before anything is made.", cta: 'Request my free proof' },
+      proof: { index: 4, title: 'Request Proof', heroTitle: 'Request your free proof', heroLead: "Save your preview details so we can review your proof.", cardTitle: 'Request your free custom proof', helper: "We'll follow up with the next step after reviewing your saved design.", cta: 'Save my proof request' },
+      saved: { index: 5, title: 'Proof Saved', heroTitle: 'Proof request saved', heroLead: "We'll review your design and follow up with the next step.", cardTitle: 'Proof request saved.', helper: "We'll review your design and follow up with the next step.", cta: 'Create another preview' }
     };
 
     let currentWizardState = 'upload';
+    let wizardRailNode = null;
+    let wizardRailPlaceholder = null;
 
     function trackBuilderEvent(eventName) {
       if (typeof gtag !== 'undefined') {
@@ -8660,11 +8828,38 @@
       document.body.classList.add('public-proof-wizard-only');
     }
 
+    function updateFocusedWizardLayout(state) {
+      const layout = document.getElementById('wizardLayout');
+      const isOpsMode = document.body?.dataset?.opsMode === 'true';
+      const isUpload = state === 'upload';
+      const shouldMountRail = isUpload || isOpsMode;
+      const rail = wizardRailNode || document.getElementById('wizardSideStack');
+
+      if (layout) {
+        layout.classList.toggle('wizard-layout--with-rail', shouldMountRail);
+        layout.classList.toggle('wizard-layout--focus', !shouldMountRail);
+      }
+
+      if (!rail) return;
+
+      if (shouldMountRail) {
+        if (!rail.isConnected && wizardRailPlaceholder?.parentNode) {
+          wizardRailPlaceholder.replaceWith(rail);
+          wizardRailPlaceholder = null;
+        }
+      } else if (rail.isConnected) {
+        wizardRailPlaceholder = document.createComment('wizard guidance rail unmounted outside upload step');
+        rail.replaceWith(wizardRailPlaceholder);
+        wizardRailNode = rail;
+      }
+    }
+
     function updateWizardState(state, options = {}) {
       const config = WIZARD_STEPS[state] || WIZARD_STEPS.upload;
       currentWizardState = state;
       document.body.classList.add('public-wizard');
       Object.keys(WIZARD_STEPS).forEach((key) => document.body.classList.toggle(`wizard-state-${key}`, key === state));
+      updateFocusedWizardLayout(state);
 
       document.querySelectorAll('.wizard-step').forEach((step) => {
         const stepConfig = WIZARD_STEPS[step.dataset.wizardStep];
@@ -8685,6 +8880,11 @@
 
       const mobileProgress = document.getElementById('wizardMobileProgress');
       if (mobileProgress) mobileProgress.textContent = `Step ${config.index} of 5 — ${config.title}`;
+
+      const heroTitle = document.getElementById('wizardHeroTitle');
+      if (heroTitle) heroTitle.textContent = config.heroTitle || config.cardTitle;
+      const heroLead = document.getElementById('wizardHeroLead');
+      if (heroLead) heroLead.textContent = config.heroLead || config.helper;
 
       const title = document.getElementById('wizardStateTitle');
       if (title) title.textContent = config.cardTitle;
