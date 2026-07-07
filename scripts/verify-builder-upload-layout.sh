@@ -24,10 +24,13 @@ if grep -q '<div class="upload-text">Upload your photo</div>' "$BUILDER"; then
 fi
 
 grep -q "Sticker-ready" "$BUILDER" || fail "trimmed sticker-ready trust chip missing"
-grep -q "No checkout today" "$BUILDER" || fail "no-checkout trust chip missing"
 
 if grep -q "No payment required right now</span>" "$BUILDER"; then
   fail "duplicate no-payment trust chip still present"
+fi
+
+if grep -q "No checkout today" "$BUILDER"; then
+  fail "retired no-checkout trust chip still present"
 fi
 
 if grep -Ei "checkout started|order placed|shipping promise|supplier api" "$BUILDER" >/dev/null; then

@@ -4580,7 +4580,7 @@
       display: none !important;
     }
 
-    /* QUICK FIX 3: Hide redundant trust panel (keep checkout-trust-row only) */
+    /* QUICK FIX 3: Hide redundant trust panel (keep proof-trust row only) */
     .trust-panel {
       display: none !important;
     }
@@ -5678,7 +5678,6 @@
         <span class="wizard-chip">Free preview</span>
         <span class="wizard-chip is-pink">Custom proof</span>
         <span class="wizard-chip">Sticker-ready</span>
-        <span class="wizard-chip">No checkout today</span>
       </div>
     </section>
     <nav class="wizard-stepper" aria-label="Builder progress">
@@ -5758,11 +5757,11 @@
             <button class="view-btn-compact active" onclick="setViewMode('mosaic')" id="viewMosaic" aria-label="Show mosaic view" aria-pressed="true">
               Mosaic view
             </button>
-            <button class="view-btn-compact" onclick="setViewMode('blocks')" id="viewBlocks" aria-label="Show block view" aria-pressed="false">
+            <button class="view-btn-compact" onclick="setViewMode('blocks')" id="viewBlocks" aria-label="Show kit layout view" aria-pressed="false">
               Kit layout
             </button>
-            <button class="view-btn-compact" onclick="setViewMode('baseplate')" id="viewBaseplate" aria-label="Show baseplate view" aria-pressed="false">
-              Baseplates
+            <button class="view-btn-compact" onclick="setViewMode('baseplate')" id="viewBaseplate" aria-label="Show backing view" aria-pressed="false">
+              Backing
             </button>
           </div>
         </div>
@@ -5878,15 +5877,15 @@
             <section class="post-preview-flow" id="postPreviewFlow" aria-labelledby="proofRequestTitle" hidden>
               <div class="recommended-format-card" id="recommendedFormatCard">
                 <span class="recommended-format-eyebrow">Recommended format</span>
-                <h3 class="recommended-format-title" id="recommendedFormatTitle">Digital Mystery Reveal Pack</h3>
+                <h3 class="recommended-format-title" id="recommendedFormatTitle">Sticker-Ready Proof</h3>
                 <p class="recommended-format-body" id="recommendedFormatReason">Best for instant keepsake files and sharing.</p>
-                <p class="wizard-format-note">Other formats available after proof review: Sticker · Magnetic · Premium Brick</p>
+                <p class="wizard-format-note">Start with a sticker-ready proof. Magnetic and premium display options can be reviewed later.</p>
                 <label class="sr-only" for="proofFormatSelect">Choose another format</label>
                 <select class="premium-select" id="proofFormatSelect" aria-label="Choose another format" hidden>
-                  <option value="Digital Mystery Reveal Pack">Digital Mystery Reveal Pack</option>
+                  <option value="Sticker-Ready Proof">Sticker-Ready Proof</option>
                   <option value="Sticker Reveal Kit">Sticker Reveal Kit</option>
                   <option value="Magnetic Reveal Kit">Magnetic Reveal Kit</option>
-                  <option value="Premium Brick Kit Quote">Premium Brick Kit Quote</option>
+                  <option value="Premium Display Quote">Premium Display Quote</option>
                 </select>
               </div>
               <div class="proof-request-card">
@@ -5894,9 +5893,9 @@
                 <p class="proof-request-body">We'll follow up with the next step after reviewing your saved design.</p>
                 <ul class="proof-points">
                   <li>Free preview first</li>
-                  <li>Design confirmation before production</li>
-                  <li>Digital proof path recommended first</li>
-                  <li>No checkout today</li>
+                  <li>Design confirmation before anything is made</li>
+                  <li>Sticker-ready proof path recommended first</li>
+                  <li>Proof review before any next step</li>
                 </ul>
                 <div class="proof-actions">
                   <button class="btn btn-primary" type="button" id="requestProofButton" onclick="requestCustomProof()">Request my free proof</button>
@@ -6025,7 +6024,7 @@
             <div class="palette-select">
               <div class="palette-option" onclick="setPalette('basic')" id="palette-basic">
                 <div class="palette-name">Basic (12 colors)</div>
-                <div class="palette-desc">Essential LEGO colors</div>
+                <div class="palette-desc">Core sticker colors</div>
               </div>
               <div class="palette-option active" onclick="setPalette('professional')" id="palette-professional">
                 <div class="palette-name">Professional (16 colors)<span class="palette-badge">Recommended</span></div>
@@ -6099,22 +6098,22 @@
             <option value="">Select a preset…</option>
             <option value="portrait_gift">Portrait Gift • 48×48 Metallic Magnetic</option>
             <option value="budget_sticker">Budget Sticker Pack • 32×32 Solid Vinyl</option>
-            <option value="lego_showcase">LEGO Showcase • Transparent 48×48</option>
+            <option value="lego_showcase">Display Mosaic • Premium 48×48</option>
             <option value="gallery_luxe">Gallery Luxe • 64×64 Glow + Premium Backing</option>
           </select>
           <p class="mega-description">Save your design to get digital launch access or request a made-to-order proof.</p>
           <h4 class="mega-subtitle">Choose Custom Product Path</h4>
           <div class="product-type-selector">
             <div class="product-type popular active" onclick="setProductType('bricks')" id="product-bricks">
-              <span class="product-icon" aria-hidden="true">Brick</span>
-              <div class="product-name">Premium Brick Kit</div>
+              <span class="product-icon" aria-hidden="true">Display</span>
+              <div class="product-name">Premium Display Quote</div>
               <div class="product-desc">Premium custom quote with proof approval before production</div>
               <div class="product-price"><strong>Custom quote</strong></div>
             </div>
             <div class="product-type" onclick="setProductType('stickers')" id="product-stickers">
               <span class="product-icon" aria-hidden="true">Sticker</span>
               <div class="product-name">Sticker Reveal Kit</div>
-              <div class="product-desc">Made-to-order custom proof, not instant checkout</div>
+              <div class="product-desc">Made-to-order custom proof after review</div>
               <div class="product-price"><strong>Request a proof</strong></div>
             </div>
           </div>
@@ -6152,7 +6151,7 @@
             <label for="materialDropdown" class="material-label">Or choose from dropdown:</label>
             <select id="materialDropdown" class="material-dropdown" onchange="setMaterialType(this.value); updateMaterialVisualPreview();">
               <option value="magnetic" selected>Magnetic Reveal Kit - made-to-order premium option</option>
-              <option value="transparent-bricks">Premium Brick Kit - custom quote</option>
+              <option value="transparent-bricks">Premium Display Quote - after proof review</option>
               <option value="solid-bricks">Sticker Reveal Kit - custom proof</option>
             </select>
             <div class="material-preview" id="materialPreview">
@@ -6170,8 +6169,8 @@
             </div>
 
             <div class="value-prop-card" data-material="transparent-bricks">
-              <h4><span class="icon" aria-hidden="true">Brick</span> Premium Brick Kit</h4>
-              <p>Premium custom quote path for brick mosaics. Proof approval happens before production.</p>
+              <h4><span class="icon" aria-hidden="true">Display</span> Premium Display Quote</h4>
+              <p>Premium display quote path for approved mosaic proofs. Proof approval happens before production.</p>
               <div class="best-for">Best for: collectors and premium gifts</div>
             </div>
 
@@ -6182,7 +6181,7 @@
             </div>
           </div>
 
-          <h4 class="mega-subtitle">Size &amp; Baseplates</h4>
+          <h4 class="mega-subtitle">Size &amp; Backing</h4>
           <div class="size-grid" id="sizeGrid">
             <!-- Dynamically populated based on product type -->
           </div>
@@ -6198,7 +6197,7 @@
           </ul>
           <div id="finish-selector" class="finish-selector">
             <h4 class="mega-subtitle">Made-to-Order Finishes</h4>
-            <p class="mega-description">Preview finish options. Physical production starts only after custom proof approval.</p>
+            <p class="mega-description">Preview finish options. Nothing is made until you approve the next step.</p>
 
             <!-- Finish comparison - visual preview -->
             <div class="preview-comparison" id="finishComparison" style="grid-template-columns: repeat(5, 1fr);">
@@ -6329,7 +6328,7 @@
             <span>Sticker proof request</span>
           </button>
           <button class="express-pay-btn express-google-pay" type="button" data-pay="brick_quote">
-            <span>Brick custom quote</span>
+            <span>Display custom quote</span>
           </button>
         </div>
         <div class="express-divider"><span>Save your design before proof or launch access follow-up</span></div>
@@ -6374,7 +6373,7 @@
           <div class="bundle-config-grid">
             <select class="premium-select" id="materialSelectCompact" aria-label="Material">
               <option value="magnetic">Magnetic Reveal Kit - custom proof</option>
-              <option value="transparent-bricks">Premium Brick Kit - custom quote</option>
+              <option value="transparent-bricks">Premium Display Quote - after proof review</option>
               <option value="solid-bricks">Sticker Reveal Kit - custom proof</option>
             </select>
             <select class="premium-select" id="finishSelectCompact" aria-label="Finish">
@@ -6720,7 +6719,7 @@
         size: 32
       },
       lego_showcase: {
-        label: 'LEGO Showcase',
+        label: 'Display Mosaic',
         productType: 'bricks',
         material: 'transparent-bricks',
         finish: null,
@@ -6799,7 +6798,7 @@
         image: '/assets/scenes/kids-room-1920x1080.jpg',
         fallback: '/assets/scenes/kids-room-1920x1080.jpg',
         perks: [
-          'Transparent LEGO®-compatible bricks (show-stopping depth)',
+          'Premium display finish with show-stopping depth',
           'Solid finish for true-to-photo colors',
           'Framed display with velvet gift wrap note'
         ]
@@ -7570,7 +7569,7 @@
           id: 'core',
           complete: hasPreview,
           pills: [
-            { label: currentProductType === 'bricks' ? 'Brick Packs' : 'Sticker Packs', complete: true },
+            { label: currentProductType === 'bricks' ? 'Display Quotes' : 'Sticker Proofs', complete: true },
             { label: `${currentSize}×${currentSize}`, complete: true },
             { label: titleize(currentMaterialType), complete: true }
           ]
@@ -7909,7 +7908,7 @@
     let hasSeenEmailGate = false;
     let currentBrickCount = 0;
     let pendingRequestType = 'save_design';
-    let lastRecommendedFormat = 'Digital Mystery Reveal Pack';
+    let lastRecommendedFormat = 'Sticker-Ready Proof';
     let lastProofTrigger = null;
     let lastSavedProofProjectId = '';
 
@@ -8013,8 +8012,8 @@
       }
       if (benefits) {
         benefits.innerHTML = isProof
-          ? '<li>Free preview first</li><li>Custom proof review</li><li>We do not store the full original photo</li><li>Production starts only after proof approval</li>'
-          : '<li>Free preview first</li><li>Save your current crop and format details</li><li>Choose digital access or a custom proof later</li><li>No checkout today</li>';
+          ? '<li>Free preview first</li><li>Custom proof review</li><li>We do not store the full original photo</li><li>Nothing is made until you approve the next step</li>'
+          : '<li>Free preview first</li><li>Save your current crop and format details</li><li>Choose digital access or a custom proof later</li><li>Proof review before any next step</li>';
       }
       if (submit) submit.textContent = isProof ? 'Save my proof request' : 'Save design';
     }
@@ -8072,14 +8071,14 @@
     }
 
     const FORMAT_REASONS = {
-      'Digital Mystery Reveal Pack': 'Best for instant keepsake files and sharing.',
+      'Sticker-Ready Proof': 'Best for reviewing a buildable starter proof.',
       'Sticker Reveal Kit': 'Best for a hands-on reveal kit with lower cost.',
       'Magnetic Reveal Kit': 'Best for a reusable display experience.',
-      'Premium Brick Kit Quote': 'Best for a larger display piece.'
+      'Premium Display Quote': 'Best for a larger display piece.'
     };
 
     function getRecommendedFormat() {
-      return 'Digital Mystery Reveal Pack';
+      return 'Sticker-Ready Proof';
     }
 
     function updateRecommendedFormatCard(format) {
@@ -8092,7 +8091,7 @@
 
       if (flow && processedData) flow.hidden = false;
       if (title) title.textContent = selected;
-      if (reason) reason.textContent = FORMAT_REASONS[selected] || FORMAT_REASONS['Digital Mystery Reveal Pack'];
+      if (reason) reason.textContent = FORMAT_REASONS[selected] || FORMAT_REASONS['Sticker-Ready Proof'];
       if (select && select.value !== selected) select.value = selected;
     }
 
@@ -8754,7 +8753,7 @@
             });
 
             if (!response.ok) {
-              throw new Error("Netlify Forms submission failed");
+              throw new Error("Proof form submission failed");
             }
 
             const successMessage = requestType === "custom_proof"
@@ -8865,7 +8864,7 @@
           material: 'transparent-bricks',
           finish: 'solid',
           baseplate: 'framed',
-          description: 'LEGO fans love: Transparent bricks + Framed',
+          description: 'Premium display option: depth finish + framed backing',
           percentage: '28% buy for gifts',
           discountPercent: 8
         },
@@ -9503,7 +9502,7 @@
       piecesLabel.textContent = type === 'bricks' ? 'Total Bricks' : 'Total Pieces';
 
       const sizeTitle = document.getElementById('sizeTitle');
-      sizeTitle.textContent = type === 'bricks' ? 'Size & Baseplates' : 'Sticker Size';
+      sizeTitle.textContent = type === 'bricks' ? 'Size & Backing' : 'Sticker Size';
 
       // Update stats and costs (now with correct size/price)
       updateStatistics();
@@ -9536,7 +9535,7 @@
       // Material-based icons and names
       const materialInfo = {
         'magnetic': { icon: 'Magnetic', name: 'Magnetic Reveal Kit' },
-        'transparent-bricks': { icon: 'Brick', name: 'Premium Brick Kit' },
+        'transparent-bricks': { icon: 'Display', name: 'Premium Display Quote' },
         'solid-bricks': { icon: 'Finish', name: 'Vinyl Sticker Mosaic' }
       };
 
@@ -12723,7 +12722,7 @@
 
       let html = '<div style="margin-bottom: 1rem;"><h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;">💰 Bill of Materials</h4></div>';
       const summaryItems = [];
-      const packageLabel = `${currentProductType === 'bricks' ? 'Brick Pack' : 'Sticker Pack'}`;
+      const packageLabel = `${currentProductType === 'bricks' ? 'Display Quote' : 'Sticker Proof'}`;
       const kitDetail = `${currentSize}×${currentSize}`;
       summaryItems.push({ name: packageLabel, detail: kitDetail, price: currentPrice });
       let totalCost = currentPrice;
@@ -12909,19 +12908,19 @@
         // Upsell bricks
         banner.innerHTML = `
           <div class="upsell-header">
-            <span class="upsell-icon" aria-hidden="true">Brick</span>
-            <div class="upsell-title">Upgrade to Premium Brick Pack</div>
+            <span class="upsell-icon" aria-hidden="true">Display</span>
+            <div class="upsell-title">Ask about a Premium Display Quote</div>
           </div>
           <div class="upsell-desc">
-            Build a permanent, display-quality mosaic with LEGO-compatible bricks!
+            Review a premium display version of your approved mosaic proof.
           </div>
           <ul class="upsell-features">
             <li>Premium quality & durability</li>
             <li>Removable & reusable</li>
             <li>Professional look & feel</li>
-            <li>Includes baseplates & instructions</li>
+            <li>Includes backing and instructions if approved</li>
           </ul>
-          <button class="btn btn-gold" onclick="setProductType('bricks')">Request brick quote</button>
+          <button class="btn btn-gold" onclick="setProductType('bricks')">Request display quote</button>
         `;
       }
       
@@ -13072,7 +13071,7 @@
         doc.setFontSize(12);
         doc.setTextColor(64, 64, 64);
 
-        const productType = currentProductType === 'bricks' ? 'Brick Pack' : 'Sticker Pack';
+        const productType = currentProductType === 'bricks' ? 'Display Quote' : 'Sticker Proof';
         const mosaicWidth = processedData.width;
         const mosaicHeight = processedData.height;
         const totalPieces = mosaicWidth * mosaicHeight;
@@ -13105,7 +13104,7 @@
         doc.setFontSize(11);
         doc.setTextColor(64, 64, 64);
         doc.text(`• Colors Used: ${colorsUsed}`, 60, 410);
-        doc.text(`• Baseplates Required: ${baseplatesNeeded}`, 60, 430);
+        doc.text(`• Backing Panels Required: ${baseplatesNeeded}`, 60, 430);
         doc.text(`• Estimated Build Time: ${Math.ceil(totalPieces / 100)} hours`, 60, 450);
         doc.text(`• Difficulty Level: ${currentSize <= 24 ? 'Easy' : currentSize <= 48 ? 'Medium' : 'Advanced'}`, 60, 470);
 
@@ -14393,7 +14392,7 @@
       // Update label
       const labels = {
         'magnetic': 'Magnetic Reveal Kit',
-        'transparent-bricks': '🟦 Transparent Bricks',
+        'transparent-bricks': 'Premium display finish',
         'solid-bricks': '📋 Vinyl Stickers'
       };
       const label = document.getElementById('materialPreviewLabel');
@@ -14619,7 +14618,7 @@
         <li>Free preview first</li>
         <li>Save your current crop and format details</li>
         <li>Choose digital access or a custom proof later</li>
-        <li>No checkout today</li>
+        <li>Proof review before any next step</li>
       </ul>
 
       <form class="email-gate-form" id="emailGateForm" name="mosapack-save-design" method="POST" data-netlify="true" netlify-honeypot="bot-field">
@@ -14698,7 +14697,7 @@
       </form>
 
       <p class="email-gate-privacy">
-        We store the approved cropped source and preview only after you request/save a proof. Raw image data is not submitted through Netlify Forms.
+        We store the approved cropped source and preview only after you request/save a proof. Raw image data is not submitted through our proof form.
       </p>
     </div>
   </div>
