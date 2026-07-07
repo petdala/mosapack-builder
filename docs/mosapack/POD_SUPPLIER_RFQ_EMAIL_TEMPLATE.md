@@ -5,15 +5,17 @@ Status: supplier outreach draft.
 
 ## Primary Sendable Email
 
-Subject: Feasibility question: 0.5in rounded-square sticker mosaic sheets
+Subject: Feasibility: 0.5″ kiss-cut rounded-square sticker sheets (sample review)
 
 Hello,
 
-I am evaluating suppliers for a buildable sticker mosaic kit made from 0.5in rounded-square sticker cells.
+I'm evaluating suppliers for a buildable sticker-mosaic kit built from 0.5″ rounded-square sticker cells arranged into an image. I have a small synthetic sample packet — print-ready PDF artwork, a production-constants file, and QA manifests. It contains no customer data and this is not an order.
 
-Can you produce or test custom sticker sheets with small kiss-cut rounded squares? The primary sample is a mixed-color print-layout PDF. I also have stock-color and hybrid manifests for math-only feasibility review.
+Could you tell me whether you can produce or test 0.5″ kiss-cut rounded-square sticker sheets, and share sample cost, MOQ, lead time, material options, and the registration tolerance you can hold?
 
-I have a synthetic sample packet with PDF artwork, manifest JSON, and production specs. I am looking for feasibility feedback, sample cost, MOQ, material options, registration tolerance, and whether solid-color sheet fulfillment would be true print-on-demand or inventory/pick-pack.
+One specific question: would this be true print-on-demand, or inventory / pick-pack on your side?
+
+Happy to send the packet for review. It is a few PDFs and JSON files.
 
 Thank you,
 Derek

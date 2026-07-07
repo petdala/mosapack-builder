@@ -3,6 +3,8 @@
 Date: 2026-07-07
 Status: supplier validation packet; production deploy not approved.
 
+Claude final review status: ready after minor copy polish.
+
 ## Purpose
 
 Create a supplier-facing packet for POD and short-run sticker vendors to evaluate whether MosaPack's buildable proof output can become a real sticker/magnet production workflow.
@@ -109,6 +111,8 @@ Pixel Portrait 12 manifest summary is generated in:
 /tmp/mosapack-pod-supplier-validation-packet-v1/FULFILLMENT_MATH_SUMMARY.md
 ```
 
+Pixel Portrait is the 12" commercial MVP sample. Printed mixed sheets are the intended fulfillment mode for this sample. Pure stock is shown for completeness and is already rejected for high-color Pixel Portrait designs because the extras/waste are too high. Hybrid is the only stock-adjacent path still worth exploring.
+
 The stock and hybrid warnings are expected and useful for supplier conversations:
 
 - active design uses 6 colors while launch stock hint is 4
@@ -140,6 +144,10 @@ Suppliers should answer whether they can support:
 - 24x24 starter kits first
 - 32x32 and 48x48 later
 - smaller 0.375in or 0.25in cells as future vendor-only profiles
+
+## Supplier Outreach Recommendation
+
+Send the curated packet and lead with the mixed visual PDFs. Use stock and hybrid only as math summaries and supplier questions. The short outreach email has been polished for first contact; the detailed technical inquiry remains second-touch copy for suppliers who respond positively.
 
 ## Production Recommendation
 
