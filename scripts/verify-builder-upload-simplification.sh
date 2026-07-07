@@ -15,7 +15,9 @@ grep -q "applyOperatorMode" "$BUILDER" || fail "operator mode helper missing"
 grep -q "ops') === '1'" "$BUILDER" || fail "ops=1 query detection missing"
 grep -q "is-ops-mode" "$BUILDER" || fail "is-ops-mode class missing"
 grep -q "wizard-state-upload .advanced-tools" "$BUILDER" || fail "upload-state advanced-tools hide rule missing"
-grep -q "is-ops-mode.wizard-state-upload .advanced-tools" "$BUILDER" || fail "ops-mode upload advanced-tools reveal rule missing"
+if grep -q "is-ops-mode.wizard-state-upload .advanced-tools" "$BUILDER"; then
+  fail "ops-mode should not reveal advanced tools in upload state"
+fi
 grep -q ".proof-export-tools" "$BUILDER" || fail "proof export tools styles missing"
 grep -q "public-wizard.is-ops-mode .proof-export-tools" "$BUILDER" || fail "proof export tools ops-mode reveal rule missing"
 

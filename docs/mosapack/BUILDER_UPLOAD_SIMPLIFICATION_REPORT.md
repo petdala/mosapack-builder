@@ -2,9 +2,9 @@
 
 Date: 2026-07-07
 
-Branch: `fix/builder-upload-state-layout`
+Branch: `fix/builder-upload-state-simplification`
 
-Preview URL: `https://6a4d0067e25fbd248cbedbf8--mosapack.netlify.app`
+Preview URL: `https://6a4d078de6fe2e49bfd02c8a--mosapack.netlify.app`
 
 ## Summary
 
@@ -23,14 +23,15 @@ Derek's review found that the upload state was technically fixed but still felt 
 
 - Replaced separate stacked `Best results` and `Avoid` cards with one compact `Photo tips` card.
 - Kept `What happens next` as a compact proof-first card:
-  1. We review your design.
-  2. We prepare your proof.
-  3. We follow up by email.
+  1. Upload and crop your photo.
+  2. Preview a buildable mosaic layout.
+  3. Request a proof for review.
+  4. We confirm feasibility before anything is made.
 
 ## Advanced And Operator Tools
 
 - Normal `/builder/` upload state hides Advanced Tools entirely.
-- `?ops=1` adds `is-ops-mode` and reveals Advanced Tools for operator QA.
+- `?ops=1` adds `is-ops-mode`; Advanced Tools still stay hidden during upload and appear after preview/crop where operator QA needs them.
 - Proof Export Tools remain hidden in the normal customer path.
 - Proof Export Tools are visible only in ops mode inside Advanced Tools.
 - Advanced/operator button hover, active, and focus states now use neutral/teal MosaPack styling instead of dark blue fills.
@@ -56,8 +57,8 @@ Allowed launch copy remains:
 - Test image: synthetic-safe local image at `/tmp/mosapack-upload-simplification-smoke.png`
 - Category used: `Pet`
 - Result: upload -> crop -> preview -> proof form -> proof saved completed on draft deploy.
-- Saved proof project ID: `e880530e-7175-4a6f-b959-1938be785a43`
-- Netlify Forms body check: metadata only; no raw image data or data URLs in the form body.
+- Saved proof project ID: `3a1a1868-3970-4545-a102-a6c6b155bc29`
+- Netlify Forms body check: metadata only; no raw image data or data URLs in the form body. The separate B2 save request stored the approved design data as expected.
 
 ## Screenshots
 
@@ -70,6 +71,7 @@ Files:
 - `desktop-upload-after.png`
 - `mobile-upload-after.png`
 - `tablet-upload-after.png`
+- `proof-request-state.png`
 - `ops-mode-advanced-tools.png`
 - `preview-state-after.png`
 

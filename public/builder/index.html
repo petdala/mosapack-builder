@@ -5372,8 +5372,8 @@
       display: none;
     }
 
-    .public-wizard.is-ops-mode.wizard-state-upload .advanced-tools {
-      display: block;
+    .public-wizard.wizard-state-upload .advanced-tools > summary::after {
+      content: none;
     }
 
     .advanced-tools > summary {
@@ -6042,9 +6042,10 @@
         <section class="wizard-help-card is-next">
           <h3>What happens next</h3>
           <ol>
-            <li>We review your design.</li>
-            <li>We prepare your proof.</li>
-            <li>We follow up by email.</li>
+            <li>Upload and crop your photo.</li>
+            <li>Preview a buildable mosaic layout.</li>
+            <li>Request a proof for review.</li>
+            <li>We confirm feasibility before anything is made.</li>
           </ol>
         </section>
         <details class="advanced-tools" id="advancedTools">
