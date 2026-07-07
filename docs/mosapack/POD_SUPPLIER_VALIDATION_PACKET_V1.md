@@ -71,6 +71,7 @@ The supplier ZIP contains exactly these sendable first-contact files:
 - `FULFILLMENT_MATH_SUMMARY.md`
 - `docs/POD_SUPPLIER_TECHNICAL_SPEC.md`
 - `docs/POD_SUPPLIER_RFQ_EMAIL_TEMPLATE.md`
+- `docs/POD_BASE_BOARD_AND_KIT_ASSEMBLY_QUESTIONS.md`
 - `files/first-hello-gate-a.pdf`
 - `files/production-constants.json`
 - `manifests/first-hello-mixed.pdf`
@@ -145,9 +146,18 @@ Suppliers should answer whether they can support:
 - 32x32 and 48x48 later
 - smaller 0.375in or 0.25in cells as future vendor-only profiles
 
+Full-kit suppliers should also answer whether they can support:
+
+- `12in` placement board / printed grid board
+- numbered or color-coded build map
+- instruction card insertion
+- board plus sticker sheet packaging
+- future tiled `24in` panel packaging
+- future magnetic backing path
+
 ## Supplier Outreach Recommendation
 
-Send the curated packet and lead with the mixed visual PDFs. Use stock and hybrid only as math summaries and supplier questions. The short outreach email has been polished for first contact; the detailed technical inquiry remains second-touch copy for suppliers who respond positively.
+Send the curated packet and lead with sticker-sheet feasibility plus the mixed visual PDFs. Use stock and hybrid only as math summaries and supplier questions. Full-kit suppliers should also review the base-board and kit-assembly addendum. The short outreach email has been polished for first contact; the detailed technical inquiry remains second-touch copy for suppliers who respond positively.
 
 ## Production Recommendation
 

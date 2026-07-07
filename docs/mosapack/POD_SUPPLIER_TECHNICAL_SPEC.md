@@ -91,6 +91,25 @@ Future supplier formats may include:
 - numbered grid
 - production metadata
 
+## Optional Full-Kit Components
+
+Sticker-sheet feasibility is the primary request. For suppliers that can support full kits, MosaPack also needs:
+
+- `12in` placement board / printed grid board
+- numbered or color-coded build map
+- instruction card
+- sticker sheets
+- spare sticker policy
+- packaging for board, sheets, and instructions
+
+This section is optional for sticker-only suppliers. It is required for full-kit suppliers.
+
+Additional questions are in:
+
+```text
+docs/POD_BASE_BOARD_AND_KIT_ASSEMBLY_QUESTIONS.md
+```
+
 ## Privacy
 
 The validation packet uses synthetic/demo design data only. No customer private images should be required for initial feasibility review.

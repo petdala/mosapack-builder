@@ -15,6 +15,8 @@ Could you tell me whether you can produce or test 0.5″ kiss-cut rounded-square
 
 One specific question: would this be true print-on-demand, or inventory / pick-pack on your side?
 
+If you also support kit assembly, I’m interested in whether you can provide a printed placement board and package the board with sticker sheets and instructions.
+
 Happy to send the packet for review. It is a few PDFs and JSON files.
 
 Thank you,
