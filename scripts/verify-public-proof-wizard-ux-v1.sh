@@ -81,7 +81,29 @@ BLOCKED_TERMS=(
   "Premium Magnetic Board"
   "Save for Launch Access"
   "Save Your Design"
+  "Save design"
+  "Saved design"
+  "Saved Design Summary"
+  "No saved design yet"
+  "Saved preview"
+  "\$0.00"
+  "Proof request only"
+  "DIY Templates"
+  "Download SVG"
+  "Cricut"
+  "Silhouette"
+  "cutting machines"
+  "Instant download"
+  "\$5"
+  "4-8 hour"
+  "Source & Cut Materials"
+  "Assemble & Display"
+  "Waitlist paused"
+  "export signups manually"
   "digital launch access"
+  "cart"
+  "order"
+  "checkout"
   "Production begins"
   "shipping"
   "ships"
@@ -174,7 +196,11 @@ JSON.stringify((() => {
     'Linear Light Processing','Despeckle Filter','Quick Start Presets','Choose Custom Product Path',
     'Choose Your Material','Made-to-Order Finishes','Backing Options','Framed Display',
     'LED Backlit','Premium Magnetic Board','Save for Launch Access','Save Your Design',
-    'digital launch access','Production begins','shipping','ships','shipped',
+    'Save design','Saved design','Saved Design Summary','No saved design yet','Saved preview',
+    '$0.00','Proof request only','DIY Templates','Download SVG','Cricut','Silhouette',
+    'cutting machines','Instant download','$5','4-8 hour','Source & Cut Materials',
+    'Assemble & Display','Waitlist paused','export signups manually','digital launch access',
+    'cart','order','checkout','Production begins','shipping','ships','shipped',
     'Delivered to your door','everything included','peel-to-reveal'
   ];
   const text = `${document.body.innerText}\n${document.body.textContent}`;

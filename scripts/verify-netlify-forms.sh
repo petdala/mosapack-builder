@@ -24,7 +24,6 @@ check_form() {
   fi
 }
 
-check_form "mosapack-waitlist" "public/index.html"
 check_form "mosapack-save-design" "public/builder/index.html"
 check_form "mosapack-contact" "public/contact/index.html"
 

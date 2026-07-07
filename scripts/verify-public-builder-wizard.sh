@@ -28,7 +28,7 @@ require_no_rg() {
 }
 
 require_rg 'Create your custom mosaic proof' "$BUILDER" 'public wizard headline'
-for step_label in 'Upload Photo' 'Crop &amp; Position' 'Preview Mosaic' 'Request Proof' 'Proof Saved'; do
+for step_label in 'Upload Photo' 'Crop &amp; Position' 'Preview Mosaic' 'Request Proof' 'Proof Received'; do
   require_rg "$step_label" "$BUILDER" "5-step visual flow label: $step_label"
 done
 require_rg 'wizardStickyCta|mobile-sticky-cta' "$BUILDER" 'mobile sticky CTA'

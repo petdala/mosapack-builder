@@ -4695,7 +4695,7 @@
       display: none !important;
     }
 
-    /* QUICK FIX 4: Hide duplicate "Add to Saved design" buttons (keep primary only) */
+    /* QUICK FIX 4: Hide duplicate legacy save buttons (keep primary proof action only) */
     #addToCartCompact {
       display: none !important;
     }
@@ -6584,26 +6584,6 @@
         <span class="version-badge">Preview</span>
       </a>
 
-      <div class="header-cart">
-        <button class="cart-toggle" id="cartToggle" aria-expanded="false" aria-label="Open saved design summary">
-          <span class="cart-icon" aria-hidden="true">Save</span>
-          <span class="cart-label">Saved design</span>
-          <span class="cart-count" id="cartCount">0</span>
-        </button>
-        <div class="cart-dropdown" id="cartDropdown">
-          <div class="cart-header">Saved Design Summary</div>
-          <div class="cart-items" id="cartItemsPreview">
-            <p class="cart-empty">No saved design yet. Generate a free preview first.</p>
-          </div>
-          <div class="cart-footer">
-            <div class="cart-total">
-              <span>Saved preview</span>
-              <strong id="cartTotalPreview">$0.00</strong>
-            </div>
-            <button class="btn btn-primary" onclick="addToLaunchAccess()">Proof request only</button>
-          </div>
-        </div>
-      </div>
     </div>
   </header>
 
@@ -6625,7 +6605,7 @@
       <div class="wizard-step" data-wizard-step="crop"><span class="wizard-step-number">2</span><span class="wizard-step-label">Crop &amp; Position</span></div>
       <div class="wizard-step" data-wizard-step="preview"><span class="wizard-step-number">3</span><span class="wizard-step-label">Preview Mosaic</span></div>
       <div class="wizard-step" data-wizard-step="proof"><span class="wizard-step-number">4</span><span class="wizard-step-label">Request Proof</span></div>
-      <div class="wizard-step" data-wizard-step="saved"><span class="wizard-step-number">5</span><span class="wizard-step-label">Proof Saved</span></div>
+      <div class="wizard-step" data-wizard-step="saved"><span class="wizard-step-number">5</span><span class="wizard-step-label">Proof Received</span></div>
     </nav>
     <div class="wizard-mobile-progress" id="wizardMobileProgress">Step 1 of 5 — Upload Photo</div>
     <div class="wizard-mobile-dots" id="wizardMobileDots" aria-hidden="true">
@@ -6665,9 +6645,8 @@
         <div class="canvas-container" id="canvasContainer">
           <!-- POD-style: Product label above hero visual -->
           <div class="pod-product-label" id="podProductLabel">
-            <span class="product-icon" aria-hidden="true">Format</span>
-            <span class="product-name">Free photo mosaic preview</span>
-            <span class="product-size" id="podProductSize">48×48</span>
+            <span class="product-icon" aria-hidden="true">Preview</span>
+            <span class="product-name">Free buildable mosaic preview</span>
           </div>
           <div class="canvas-viewport" id="canvasViewport">
             <div class="loading" id="loading">
@@ -7875,7 +7854,7 @@
       if (!listEl) return;
 
       if (!currentCartSummary.items.length) {
-        listEl.innerHTML = '<p class="cart-empty">No saved design yet. Generate a free preview first.</p>';
+        listEl.innerHTML = '<p class="cart-empty">No proof preview yet. Generate a free preview first.</p>';
         return;
       }
 
@@ -8437,7 +8416,7 @@
       crop: { index: 2, title: 'Crop', heroTitle: 'Position your photo', heroLead: 'Center the face or main subject.', cardTitle: 'Position your photo', helper: 'Center the face or main subject. You can adjust this before requesting a proof.', cta: 'Preview my mosaic' },
       preview: { index: 3, title: 'Preview', heroTitle: 'Your buildable mosaic preview', heroLead: 'Compare your photo with the buildable preview before requesting proof review.', cardTitle: 'Your buildable mosaic preview', helper: 'Request a proof when this looks right.', cta: 'Request my free proof' },
       proof: { index: 4, title: 'Request Proof', heroTitle: 'Request your free proof', heroLead: 'No payment collected today. We follow up after review.', cardTitle: 'Request your free proof', helper: 'Share your contact details so MosaPack can review your proof.', cta: 'Request my proof' },
-      saved: { index: 5, title: 'Saved', heroTitle: 'Proof request received', heroLead: 'We’ll review your design and follow up with the next step. Keep an eye on your email.', cardTitle: 'Proof request received', helper: 'We’ll review your design and follow up with the next step.', cta: 'Create another preview' }
+      saved: { index: 5, title: 'Received', heroTitle: 'Proof request received', heroLead: 'We’ll review your design and follow up with the next step. Keep an eye on your email.', cardTitle: 'Proof request received', helper: 'We’ll review your design and follow up with the next step.', cta: 'Create another preview' }
     };
 
     let currentWizardState = 'upload';
@@ -10075,20 +10054,17 @@
 
       const iconSpan = label.querySelector('.product-icon');
       const nameSpan = label.querySelector('.product-name');
-      const sizeSpan = label.querySelector('.product-size');
-
-      // Material-based icons and names
+      // Material-based proof-interest labels for public preview framing.
       const materialInfo = {
-        'magnetic': { icon: 'Magnetic', name: 'Magnetic Reveal Kit' },
-        'transparent-bricks': { icon: 'Display', name: 'Premium Display Quote' },
-        'solid-bricks': { icon: 'Finish', name: 'Vinyl Sticker Mosaic' }
+        'magnetic': { icon: 'Preview', name: 'Free buildable mosaic preview' },
+        'transparent-bricks': { icon: 'Preview', name: 'Free buildable mosaic preview' },
+        'solid-bricks': { icon: 'Preview', name: 'Free buildable mosaic preview' }
       };
 
       const info = materialInfo[currentMaterialType] || materialInfo['magnetic'];
 
       if (iconSpan) iconSpan.textContent = info.icon;
-      if (nameSpan) nameSpan.textContent = `Your ${info.name}`;
-      if (sizeSpan) sizeSpan.textContent = `${currentSize}×${currentSize}`;
+      if (nameSpan) nameSpan.textContent = info.name;
     }
 
     function setMaterialType(type) {
