@@ -135,7 +135,9 @@ check_static_leaks "/builder/" "$BUILDER_TEXT"
 
 grep -q "Create your sticker-ready mosaic proof" "$BUILDER" || fail "upload hero copy missing"
 grep -q "Here’s your mosaic" "$BUILDER" || fail "preview step title missing"
-grep -q "preview-confidence-panel" "$BUILDER" || fail "preview confidence panel missing"
+grep -q "preview-choices-card" "$BUILDER" || fail "compact preview choices card missing"
+grep -q "previewFineTuneToggle" "$BUILDER" || fail "fine-tune disclosure missing"
+grep -q "preview-cta-block" "$BUILDER" || fail "compact preview CTA block missing"
 grep -q "format-interest-selector" "$BUILDER" || fail "format interest selector missing"
 grep -q "value=\"sticker_ready\"" "$BUILDER" || fail "sticker_ready format interest missing"
 grep -q "value=\"magnetic_interest\"" "$BUILDER" || fail "magnetic_interest format interest missing"
@@ -145,7 +147,7 @@ grep -q "name=\"preferred_size_in\"" "$BUILDER" || fail "preferred_size_in submi
 grep -q "Proof request received" "$BUILDER" || fail "saved proof copy missing"
 grep -q "Request my proof" "$BUILDER" || fail "proof submit CTA missing"
 grep -q "Building your mosaic preview" "$BUILDER" || fail "preview loading skeleton text missing"
-grep -q "We review every proof" "$BUILDER" || fail "assurance strip copy missing"
+grep -q "A person checks each request" "$BUILDER" || fail "assurance strip copy missing"
 grep -q "product_interest\" id=\"saveProductInterest\" value=\"sticker_proof\"" "$BUILDER" || fail "product_interest default is not sticker_proof"
 grep -q "format_interest: formatInterest" "$BUILDER" || fail "exact design payload missing format_interest"
 grep -q "photo_category: photoCategory" "$BUILDER" || fail "exact design payload missing photo_category"
@@ -220,7 +222,9 @@ JSON.stringify((() => {
     overflowX: document.documentElement.scrollWidth - window.innerWidth,
     hasUploadRail: Boolean(document.querySelector('#wizardSideStack')),
     hasAssurance: Boolean(document.querySelector('#wizardAssuranceStrip')),
-    hasPreviewConfidence: Boolean(document.querySelector('#previewConfidencePanel')),
+    hasPreviewChoices: Boolean(document.querySelector('#previewChoices')),
+    hasFineTune: Boolean(document.querySelector('#previewFineTuneToggle')),
+    hasPreviewCtaBlock: Boolean(document.querySelector('.preview-cta-block')),
     hasFormatSelector: Boolean(document.querySelector('#formatInterestSelector')),
     hasProofSummary: Boolean(document.querySelector('#proofRequestSummary')),
     hasSticky: Boolean(document.querySelector('#wizardStickyCta')),
@@ -265,7 +269,7 @@ if not builder["hasUploadRail"]:
     raise SystemExit("/builder/ upload guidance rail missing")
 if not builder["hasAssurance"]:
     raise SystemExit("/builder/ assurance strip missing")
-if not builder["hasPreviewConfidence"] or not builder["hasFormatSelector"] or not builder["hasProofSummary"]:
+if not builder["hasPreviewChoices"] or not builder["hasFineTune"] or not builder["hasPreviewCtaBlock"] or not builder["hasFormatSelector"] or not builder["hasProofSummary"]:
     raise SystemExit("/builder/ proof wizard UX components are not mounted")
 if not builder["hasSticky"]:
     raise SystemExit("/builder/ mobile sticky CTA missing")

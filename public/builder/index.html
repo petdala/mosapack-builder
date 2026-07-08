@@ -5709,14 +5709,13 @@
     .public-wizard .post-preview-flow {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      gap: 0.85rem;
+      gap: 0.65rem;
       margin-top: 0;
       padding: 0.08rem 0 0;
     }
 
     .proof-preview-step-card,
-    .preview-confidence-panel,
-    .format-interest-selector {
+    .preview-choices-card {
       border: 1px solid rgba(221, 227, 234, 0.94);
       border-radius: 18px;
       background: #fff;
@@ -5724,9 +5723,10 @@
     }
 
     .proof-preview-step-card {
+      --preview-frame-size: clamp(280px, 21vw, 300px);
       display: grid;
-      gap: 0.9rem;
-      padding: 1rem;
+      gap: 0.7rem;
+      padding: 0.85rem;
     }
 
     .proof-preview-heading {
@@ -5734,9 +5734,14 @@
       gap: 0.25rem;
     }
 
+    .proof-preview-heading .recommended-format-body {
+      font-size: 0.95rem;
+    }
+
     .proof-preview-comparison {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, var(--preview-frame-size)));
+      justify-content: center;
       gap: 0.85rem;
     }
 
@@ -5755,8 +5760,9 @@
 
     .proof-preview-frame img {
       display: block;
-      width: 100%;
+      width: min(100%, var(--preview-frame-size));
       aspect-ratio: 1 / 1;
+      justify-self: center;
       object-fit: cover;
       border: 1px solid rgba(221, 227, 234, 0.94);
       border-radius: 16px;
@@ -5793,83 +5799,164 @@
       outline-offset: 3px;
     }
 
-    .preview-confidence-panel {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.55rem;
-      padding: 1rem;
-    }
-
-    .preview-confidence-panel div {
-      min-height: 44px;
+    .preview-quiet-actions {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 0.45rem;
-      color: var(--mp-ink);
-      font-size: 0.84rem;
-      font-weight: 850;
-      line-height: 1.25;
+      gap: 0.35rem;
+      color: var(--mp-muted);
+      font-size: 0.86rem;
+      font-weight: 800;
     }
 
-    .preview-confidence-panel div::before {
-      content: '✓';
-      width: 22px;
-      height: 22px;
-      flex: 0 0 22px;
-      display: inline-grid;
-      place-items: center;
-      border-radius: 999px;
-      background: var(--primary-pale);
+    .preview-quiet-action {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      border: 0;
+      padding: 0;
+      background: transparent;
       color: var(--mp-teal-dark);
-      font-size: 0.74rem;
+      font: inherit;
       font-weight: 900;
+      cursor: pointer;
+      text-decoration: none;
     }
 
-    .format-interest-selector,
-    .preferred-size-selector {
+    .preview-quiet-action:hover {
+      color: var(--mp-teal);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .preview-fine-tune-panel[hidden] {
+      display: none;
+    }
+
+    .preview-fine-tune-panel {
       display: grid;
       gap: 0.8rem;
-      padding: 1rem;
+      padding: 0.9rem;
+      border: 1px solid rgba(8, 184, 148, 0.18);
+      border-radius: 16px;
+      background: rgba(250, 249, 247, 0.72);
     }
 
-    .format-interest-header {
+    .preview-tweak-row {
       display: grid;
-      gap: 0.25rem;
+      grid-template-columns: minmax(120px, 0.72fr) minmax(0, 1fr);
+      gap: 0.75rem;
+      align-items: center;
     }
 
-    .format-interest-header h3 {
-      margin: 0;
+    .preview-tweak-copy {
+      display: grid;
+      gap: 0.16rem;
+    }
+
+    .preview-tweak-copy strong {
       color: var(--mp-ink);
-      font-size: 1.05rem;
+      font-size: 0.9rem;
       line-height: 1.2;
     }
 
-    .format-interest-header p {
-      margin: 0;
+    .preview-tweak-copy span {
       color: var(--mp-muted);
-      font-size: 0.84rem;
-      line-height: 1.35;
+      font-size: 0.78rem;
+      line-height: 1.3;
     }
 
-    .format-interest-options,
-    .preferred-size-options {
+    .preview-tweak-options {
       display: grid;
+      grid-template-columns: repeat(5, minmax(44px, 1fr));
+      gap: 0.3rem;
+    }
+
+    .preview-tweak-option {
+      min-height: 44px;
+      border: 1px solid rgba(221, 227, 234, 0.95);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--mp-muted);
+      font-size: 0.82rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .preview-tweak-option[aria-checked="true"] {
+      border-color: rgba(8, 184, 148, 0.48);
+      background: rgba(232, 250, 245, 0.92);
+      color: var(--mp-teal-dark);
+      box-shadow: inset 0 0 0 1px rgba(8, 184, 148, 0.18);
+    }
+
+    .preview-tweak-option:disabled {
+      opacity: 0.58;
+      cursor: wait;
+    }
+
+    .preview-tweaks-reset {
+      justify-self: start;
+      min-height: 44px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--mp-teal-dark);
+      font-size: 0.84rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .preview-tweaks-reset[hidden] {
+      display: none;
+    }
+
+    .preview-choices-card {
+      display: grid;
+      gap: 0.5rem;
+      padding: 0.78rem 0.9rem;
+    }
+
+    .preview-choice-row {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
       gap: 0.55rem;
+      align-items: center;
+    }
+
+    .preview-choice-row > span {
+      color: var(--mp-muted);
+      font-size: 0.86rem;
+      font-weight: 900;
+    }
+
+    .preview-choice-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.4rem;
+    }
+
+    .preview-choice-helper {
+      margin: 0;
+      color: var(--mp-muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
     }
 
     .format-interest-option,
     .preferred-size-option {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 0.65rem;
+      position: relative;
+      display: flex;
+      justify-content: center;
       align-items: start;
-      min-height: 54px;
-      padding: 0.76rem;
+      min-height: 44px;
+      padding: 0.52rem 0.62rem;
       border: 1px solid rgba(221, 227, 234, 0.94);
-      border-radius: 14px;
+      border-radius: 999px;
       background: #fff;
       cursor: pointer;
-      transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+      text-align: center;
+      transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
     }
 
     .format-interest-option:hover,
@@ -5889,39 +5976,64 @@
 
     .format-interest-option input,
     .preferred-size-option input {
-      margin-top: 0.15rem;
-      accent-color: var(--mp-teal);
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
     }
 
     .format-interest-option strong,
     .preferred-size-option strong {
-      display: flex;
-      flex-wrap: wrap;
+      display: inline-flex;
+      justify-content: center;
+      flex-wrap: nowrap;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.32rem;
       color: var(--mp-ink);
-      font-size: 0.9rem;
+      font-size: 0.86rem;
       line-height: 1.2;
     }
 
-    .format-interest-option em,
-    .preferred-size-option em {
+    .choice-pill {
       padding: 0.12rem 0.42rem;
       border-radius: 999px;
       background: var(--mp-pink);
       color: #fff;
       font-size: 0.65rem;
-      font-style: normal;
       font-weight: 900;
       letter-spacing: 0.02em;
+      opacity: 1;
+      transition: opacity 0.18s ease;
     }
 
-    .format-interest-option small,
-    .preferred-size-option small {
-      display: block;
-      margin-top: 0.22rem;
+    .preferred-size-options.has-non-default .choice-pill {
+      display: none !important;
+      opacity: 0 !important;
+    }
+
+    .preview-cta-block {
+      display: grid;
+      gap: 0.55rem;
+      justify-items: center;
+      padding: 0.25rem 0 0.1rem;
+    }
+
+    .preview-cta-block .btn-primary {
+      width: min(100%, 420px);
+      min-height: 50px;
+      border-radius: 999px;
+      background: var(--mp-teal-dark);
+      border-color: var(--mp-teal-dark);
+      box-shadow: 0 16px 34px rgba(8, 184, 148, 0.20);
+    }
+
+    .preview-trust-line {
+      margin: 0;
       color: var(--mp-muted);
-      font-size: 0.78rem;
+      font-size: 0.84rem;
+      font-weight: 800;
+      text-align: center;
       line-height: 1.35;
     }
 
@@ -5990,7 +6102,12 @@
       font-weight: 900;
     }
 
-    .public-wizard.wizard-state-preview .proof-actions .btn-primary,
+    .public-wizard.wizard-state-preview .preview-cta-block .btn-primary {
+      background: var(--mp-teal-dark);
+      border-color: var(--mp-teal-dark);
+      box-shadow: 0 16px 34px rgba(8, 184, 148, 0.20);
+    }
+
     .public-wizard.wizard-state-proof .proof-actions .btn-primary,
     .public-wizard.wizard-state-saved .proof-actions .btn-primary {
       background: var(--mp-pink);
@@ -6540,22 +6657,35 @@
         display: none;
       }
 
-      .preview-confidence-panel {
-        grid-template-columns: 1fr;
-        padding: 0.82rem;
-        gap: 0.25rem;
-      }
-
-      .preview-confidence-panel div {
-        min-height: 32px;
-        font-size: 0.78rem;
-      }
-
-      .format-interest-selector,
-      .preferred-size-selector,
+      .preview-choices-card,
       .proof-preview-step-card {
         padding: 0.82rem;
         border-radius: 16px;
+      }
+
+      .preview-choice-row {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+      }
+
+      .preview-choice-options {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+      }
+
+      .format-interest-option,
+      .preferred-size-option {
+        justify-content: flex-start;
+        text-align: left;
+      }
+
+      .preview-tweak-row {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+      }
+
+      .preview-tweak-options {
+        grid-template-columns: repeat(5, minmax(44px, 1fr));
       }
 
       .public-wizard.wizard-state-preview #requestProofButton {
@@ -6645,7 +6775,7 @@
       <span class="wizard-mobile-dot" data-wizard-dot="saved"></span>
     </div>
     <div class="wizard-assurance-strip" id="wizardAssuranceStrip" aria-label="Proof assurance">
-      <span>We review every proof</span>
+      <span>A person checks each request</span>
       <span>No payment today</span>
       <span>Your photo stays private</span>
     </div>
@@ -6711,14 +6841,14 @@
               <div class="photo-category-picker" onclick="event.stopPropagation()">
                 <label for="photoCategorySelect">What kind of photo is this?</label>
                 <select id="photoCategorySelect" aria-label="What kind of photo is this?" onchange="updatePhotoCategorySelection(this.value)">
-                  <option value="auto">Auto / Not sure</option>
+                  <option value="auto">Not sure — we’ll choose</option>
                   <option value="pet">Pet</option>
-                  <option value="couple_wedding">Couple / Wedding</option>
+                  <option value="couple_wedding">Couple or wedding</option>
                   <option value="family">Family</option>
-                  <option value="baby_kids">Baby / Kids</option>
+                  <option value="baby_kids">Baby or kids</option>
                   <option value="memorial">Memorial</option>
-                  <option value="corporate_logo">Corporate / Logo</option>
-                  <option value="holiday_gift">Holiday Gift</option>
+                  <option value="corporate_logo">Logo or business</option>
+                  <option value="holiday_gift">Gift or holiday</option>
                   <option value="other">Other</option>
                 </select>
                 <p>This helps us tune your mosaic preview.</p>
@@ -6755,9 +6885,8 @@
               </div>
               <div class="proof-preview-step-card" id="proofPreviewStepCard" data-testid="preview-step-card">
                 <div class="proof-preview-heading">
-                  <span class="recommended-format-eyebrow">Free preview</span>
                   <h3 class="recommended-format-title">Here’s your mosaic</h3>
-                  <p class="recommended-format-body">Compare your photo with the mosaic preview.</p>
+                  <p class="recommended-format-body">Every cell is a real mosaic color.</p>
                 </div>
                 <div class="proof-preview-toggle" role="tablist" aria-label="Preview comparison">
                   <button type="button" class="proof-preview-toggle-button is-active" data-preview-view="mosaic" aria-selected="true" aria-pressed="true">Buildable mosaic</button>
@@ -6773,52 +6902,85 @@
                     <img id="proofMosaicThumbnail" alt="Buildable mosaic preview">
                   </figure>
                 </div>
-              </div>
-              <section class="preview-confidence-panel" id="previewConfidencePanel" aria-label="Preview confidence">
-                <div>Real mosaic cells</div>
-                <div>No payment today</div>
-                <div>Checked before any next step</div>
-                <div>Request when it looks right</div>
-              </section>
-              <section class="format-interest-selector" id="formatInterestSelector" aria-labelledby="formatInterestTitle">
-                <div class="format-interest-header">
-                  <h3 id="formatInterestTitle">Format interest</h3>
-                  <p>No payment today. We use this to guide follow-up.</p>
+                <div class="preview-quiet-actions">
+                  <button type="button" class="preview-quiet-action" id="previewFineTuneToggle" aria-expanded="false" aria-controls="previewFineTunePanel">Fine-tune this preview ▾</button>
+                  <span aria-hidden="true">·</span>
+                  <button type="button" class="preview-quiet-action" id="adjustCropButton">Adjust crop</button>
                 </div>
-                <div class="format-interest-options" role="radiogroup" aria-labelledby="formatInterestTitle">
+                <div class="preview-fine-tune-panel" id="previewFineTunePanel" hidden>
+                  <div class="preview-tweak-row">
+                    <div class="preview-tweak-copy">
+                      <strong>Brightness</strong>
+                      <span>Lift or deepen the whole image.</span>
+                    </div>
+                    <div class="preview-tweak-options" role="radiogroup" aria-label="Brightness">
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="brightness" data-value="-2" aria-checked="false">-2</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="brightness" data-value="-1" aria-checked="false">-1</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="brightness" data-value="0" aria-checked="true">Auto</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="brightness" data-value="1" aria-checked="false">+1</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="brightness" data-value="2" aria-checked="false">+2</button>
+                    </div>
+                  </div>
+                  <div class="preview-tweak-row">
+                    <div class="preview-tweak-copy">
+                      <strong>Contrast</strong>
+                      <span>Make light and dark pop more.</span>
+                    </div>
+                    <div class="preview-tweak-options" role="radiogroup" aria-label="Contrast">
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="contrast" data-value="-2" aria-checked="false">-2</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="contrast" data-value="-1" aria-checked="false">-1</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="contrast" data-value="0" aria-checked="true">Auto</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="contrast" data-value="1" aria-checked="false">+1</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="contrast" data-value="2" aria-checked="false">+2</button>
+                    </div>
+                  </div>
+                  <div class="preview-tweak-row">
+                    <div class="preview-tweak-copy">
+                      <strong>Simpler background</strong>
+                      <span>Calm a busy background so your subject stands out.</span>
+                    </div>
+                    <div class="preview-tweak-options" role="radiogroup" aria-label="Simpler background">
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="background_simplify" data-value="-2" aria-checked="false">-2</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="background_simplify" data-value="-1" aria-checked="false">-1</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="background_simplify" data-value="0" aria-checked="true">Auto</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="background_simplify" data-value="1" aria-checked="false">+1</button>
+                      <button type="button" class="preview-tweak-option" role="radio" data-tweak="background_simplify" data-value="2" aria-checked="false">+2</button>
+                    </div>
+                  </div>
+                  <button type="button" class="preview-tweaks-reset" id="previewTweaksReset" hidden>Reset to Auto</button>
+                </div>
+              </div>
+              <section class="preview-choices-card" id="previewChoices" aria-label="Your choices">
+                <div class="preview-choice-row format-interest-selector" id="formatInterestSelector">
+                  <span id="formatInterestTitle">Format</span>
+                  <div class="preview-choice-options format-interest-options" role="radiogroup" aria-labelledby="formatInterestTitle">
                   <label class="format-interest-option is-selected">
                     <input type="radio" name="format_interest_choice" value="sticker_ready" checked>
                     <span>
-                      <strong>Sticker-ready proof <em>Recommended</em></strong>
-                      <small>Best first path.</small>
+                      <strong>Sticker-ready</strong>
                     </span>
                   </label>
                   <label class="format-interest-option">
                     <input type="radio" name="format_interest_choice" value="magnetic_interest">
                     <span>
-                      <strong>Magnet interest</strong>
-                      <small>Reviewed after your proof.</small>
+                      <strong>Magnets</strong>
                     </span>
                   </label>
                   <label class="format-interest-option">
                     <input type="radio" name="format_interest_choice" value="premium_display_review">
                     <span>
-                      <strong>Premium display review</strong>
-                      <small>Optional follow-up path.</small>
+                      <strong>Premium display</strong>
                     </span>
                   </label>
+                  </div>
                 </div>
-              </section>
-              <section class="preferred-size-selector" id="preferredSizeSelector" aria-labelledby="preferredSizeTitle">
-                <div class="format-interest-header">
-                  <h3 id="preferredSizeTitle">Preferred finished size</h3>
-                  <p>Used for follow-up. Final options are confirmed after we reply.</p>
-                </div>
-                <div class="preferred-size-options" role="radiogroup" aria-labelledby="preferredSizeTitle">
+                <div class="preview-choice-row preferred-size-selector" id="preferredSizeSelector">
+                  <span id="preferredSizeTitle">Preferred size</span>
+                  <div class="preview-choice-options preferred-size-options" role="radiogroup" aria-labelledby="preferredSizeTitle">
                   <label class="preferred-size-option is-selected">
                     <input type="radio" name="preferred_size_choice" value="12" checked>
                     <span>
-                      <strong>12″ Starter <em>Recommended</em></strong>
+                      <strong>12″ Starter <em class="choice-pill">Recommended</em></strong>
                     </span>
                   </label>
                   <label class="preferred-size-option">
@@ -6831,23 +6993,15 @@
                     <input type="radio" name="preferred_size_choice" value="24">
                     <span>
                       <strong>24″ Statement</strong>
-                      <small>Needs follow-up.</small>
                     </span>
                   </label>
+                  </div>
                 </div>
+                <p class="preview-choice-helper">We confirm final options when we reply.</p>
               </section>
-              <div class="proof-request-card">
-                <h3 id="proofRequestTitle">Ready for the next step?</h3>
-                <p class="proof-request-body">Send this preview when it looks right.</p>
-                <ul class="proof-points">
-                  <li>No payment today</li>
-                  <li>Sticker-ready path first</li>
-                  <li>Follow-up by email</li>
-                </ul>
-                <div class="proof-actions">
-                  <button class="btn btn-primary" type="button" id="requestProofButton" data-testid="preview-primary-cta" onclick="requestCustomProof()">Request my free proof</button>
-                  <button class="btn btn-secondary" type="button" id="adjustCropButton">Adjust crop</button>
-                </div>
+              <div class="preview-cta-block">
+                <button class="btn btn-primary" type="button" id="requestProofButton" data-testid="preview-primary-cta" onclick="requestCustomProof()">Request my free proof</button>
+                <p class="preview-trust-line">Free · no payment today · a person checks every design · we reply by email</p>
               </div>
               <div class="proof-next-step-card" id="proofNextStepCard" hidden>
                 <span class="proof-next-step-eyebrow">Proof request received</span>
@@ -6868,7 +7022,7 @@
       </div>
       <aside class="wizard-side-stack" id="wizardSideStack" aria-label="Photo proof guidance">
         <section class="wizard-help-card is-proof-promise">
-          <h3>We review every proof</h3>
+          <h3>A person checks each request</h3>
           <p>A real review before anything is made.</p>
           <ul>
             <li>No payment today</li>
@@ -8177,6 +8331,9 @@
     let pendingRequestType = 'save_design';
     let currentFormatInterest = 'sticker_ready';
     let currentPreferredSizeIn = '12';
+    let currentPreviewTweaks = { brightness: 0, contrast: 0, background_simplify: 0, regen_count: 0 };
+    let previewTweakRegenTimer = null;
+    let isPreviewTweakRegen = false;
     let lastRecommendedFormat = 'Sticker-ready proof';
     let lastProofTrigger = null;
 
@@ -8184,17 +8341,17 @@
       sticker_ready: {
         value: 'sticker_ready',
         label: 'Sticker-ready proof',
-        helper: 'Best first path.'
+        summaryLabel: 'Sticker-ready proof'
       },
       magnetic_interest: {
         value: 'magnetic_interest',
-        label: 'Magnet interest',
-        helper: 'Reviewed after your proof.'
+        label: 'Magnets',
+        summaryLabel: 'Magnets'
       },
       premium_display_review: {
         value: 'premium_display_review',
-        label: 'Premium display review',
-        helper: 'Optional follow-up path.'
+        label: 'Premium display',
+        summaryLabel: 'Premium display'
       }
     };
 
@@ -8234,9 +8391,104 @@
         input.checked = input.value === next;
         input.closest('.preferred-size-option')?.classList.toggle('is-selected', input.checked);
       });
+      document.querySelectorAll('.preferred-size-options').forEach((group) => {
+        group.classList.toggle('has-non-default', next !== '12');
+        group.querySelectorAll('.choice-pill').forEach((pill) => {
+          pill.style.setProperty('opacity', next === '12' ? '1' : '0.55', 'important');
+          pill.style.setProperty('display', next === '12' ? 'inline-flex' : 'none', 'important');
+        });
+      });
       const hidden = document.getElementById('savePreferredSizeIn');
       if (hidden) hidden.value = next;
       updateProofRequestSummary();
+    }
+
+    function getPreviewTweaksPayload() {
+      return {
+        brightness: Number(currentPreviewTweaks.brightness) || 0,
+        contrast: Number(currentPreviewTweaks.contrast) || 0,
+        background_simplify: Number(currentPreviewTweaks.background_simplify) || 0,
+        regen_count: Number(currentPreviewTweaks.regen_count) || 0
+      };
+    }
+
+    function hasPreviewTweaksChanged() {
+      const tweaks = getPreviewTweaksPayload();
+      return tweaks.brightness !== 0 || tweaks.contrast !== 0 || tweaks.background_simplify !== 0;
+    }
+
+    function updatePreviewTweaksField() {
+      const hidden = document.getElementById('savePreviewTweaks');
+      if (hidden) hidden.value = JSON.stringify(getPreviewTweaksPayload());
+      updateProofRequestSummary();
+    }
+
+    function updatePreviewTweakControls() {
+      const tweaks = getPreviewTweaksPayload();
+      document.querySelectorAll('.preview-tweak-option').forEach((button) => {
+        const key = button.dataset.tweak;
+        const value = Number(button.dataset.value);
+        const active = Number(tweaks[key]) === value;
+        button.setAttribute('aria-checked', active ? 'true' : 'false');
+        button.classList.toggle('is-selected', active);
+        button.disabled = isPreviewTweakRegen;
+      });
+      const reset = document.getElementById('previewTweaksReset');
+      if (reset) reset.hidden = !hasPreviewTweaksChanged();
+      updatePreviewTweaksField();
+    }
+
+    function togglePreviewFineTune(force) {
+      const panel = document.getElementById('previewFineTunePanel');
+      const button = document.getElementById('previewFineTuneToggle');
+      if (!panel || !button) return;
+      const shouldOpen = typeof force === 'boolean' ? force : panel.hidden;
+      panel.hidden = !shouldOpen;
+      button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+      button.textContent = shouldOpen ? 'Fine-tune this preview ▴' : 'Fine-tune this preview ▾';
+    }
+
+    function setPreviewTweakControlsDisabled(disabled) {
+      isPreviewTweakRegen = disabled;
+      document.querySelectorAll('.preview-tweak-option').forEach((button) => {
+        button.disabled = disabled;
+      });
+    }
+
+    function schedulePreviewTweakRegeneration() {
+      if (!processedData || !currentImage) return;
+      clearTimeout(previewTweakRegenTimer);
+      previewTweakRegenTimer = setTimeout(async () => {
+        try {
+          setPreviewTweakControlsDisabled(true);
+          currentPreviewTweaks.regen_count = (Number(currentPreviewTweaks.regen_count) || 0) + 1;
+          updatePreviewTweaksField();
+          showStatus('Updating mosaic preview.');
+          await processImage();
+        } finally {
+          setPreviewTweakControlsDisabled(false);
+          updatePreviewTweakControls();
+        }
+      }, 400);
+    }
+
+    function setPreviewTweak(key, value) {
+      if (!['brightness', 'contrast', 'background_simplify'].includes(key)) return;
+      const next = Math.max(-2, Math.min(2, Number(value) || 0));
+      currentPreviewTweaks[key] = next;
+      updatePreviewTweakControls();
+      schedulePreviewTweakRegeneration();
+    }
+
+    function resetPreviewTweaks() {
+      currentPreviewTweaks = {
+        ...currentPreviewTweaks,
+        brightness: 0,
+        contrast: 0,
+        background_simplify: 0
+      };
+      updatePreviewTweakControls();
+      schedulePreviewTweakRegeneration();
     }
 
     function getApprovedSourceThumbnailDataUrl() {
@@ -8293,11 +8545,15 @@
       const category = document.getElementById('proofSummaryCategory');
       const interest = document.getElementById('proofSummaryInterest');
       const preferredSize = document.getElementById('proofSummaryPreferredSize');
+      const tweakSummary = document.getElementById('proofSummaryTweaks');
       const mosaicDataUrl = getMosaicThumbnailDataUrl();
       if (summaryThumb && mosaicDataUrl) summaryThumb.src = mosaicDataUrl;
-      if (category) category.textContent = getMosaicCleanProfileForCategory(getSelectedPhotoCategory()).label;
-      if (interest) interest.textContent = getFormatInterestOption().label;
+      if (category) category.textContent = getCustomerPhotoCategoryLabel();
+      if (interest) interest.textContent = getFormatInterestOption().summaryLabel || getFormatInterestOption().label;
       if (preferredSize) preferredSize.textContent = getPreferredSizeOption().label;
+      if (tweakSummary) {
+        tweakSummary.hidden = !hasPreviewTweaksChanged();
+      }
     }
 
     function setPreviewSkeleton(visible) {
@@ -8457,9 +8713,9 @@
     }
 
     const FORMAT_REASONS = {
-      'Sticker-ready proof': 'Best first path.',
-      'Magnet interest': 'Reviewed after your proof.',
-      'Premium display review': 'Optional follow-up path.'
+      'Sticker-ready proof': 'Recommended first path.',
+      'Magnets': 'We’ll follow up.',
+      'Premium display': 'For display ideas.'
     };
 
     function getRecommendedFormat() {
@@ -8510,7 +8766,7 @@
     const WIZARD_STEPS = {
       upload: { index: 1, title: 'Upload Photo', heroTitle: 'Create your sticker-ready mosaic proof', heroLead: 'Upload a photo, preview your buildable mosaic, and request a free proof. No payment today.', cardTitle: 'Upload your photo', helper: 'Clear, close-up photos work best.', cta: 'Choose a photo' },
       crop: { index: 2, title: 'Crop', heroTitle: 'Position your photo', heroLead: 'Center the face or main subject.', cardTitle: 'Position your photo', helper: 'Center the face or main subject. You can adjust this before requesting a proof.', cta: 'Preview my mosaic' },
-      preview: { index: 3, title: 'Preview', heroTitle: 'Here’s your mosaic', heroLead: 'Compare your photo with the mosaic preview.', cardTitle: 'Here’s your mosaic', helper: 'Request when it looks right.', cta: 'Request my free proof' },
+      preview: { index: 3, title: 'Preview', heroTitle: 'Here’s your mosaic', heroLead: 'Every cell is a real mosaic color.', cardTitle: 'Here’s your mosaic', helper: 'Choose your proof preferences.', cta: 'Request my free proof' },
       proof: { index: 4, title: 'Request Proof', heroTitle: 'Request your free proof', heroLead: 'A person checks your design and emails the next step — free.', cardTitle: 'Request your free proof', helper: 'Share your contact details so MosaPack can follow up.', cta: 'Request my proof' },
       saved: { index: 5, title: 'Received', heroTitle: 'Proof request received', heroLead: 'We’ll review your design and follow up with the next step. Keep an eye on your email.', cardTitle: 'Proof request received', helper: 'We’ll review your design and follow up with the next step.', cta: 'Create another preview' }
     };
@@ -8818,6 +9074,32 @@
           }
         });
       }
+      const previewFineTuneToggle = document.getElementById('previewFineTuneToggle');
+      if (previewFineTuneToggle && !previewFineTuneToggle.dataset.bound) {
+        previewFineTuneToggle.dataset.bound = 'true';
+        previewFineTuneToggle.addEventListener('click', () => togglePreviewFineTune());
+      }
+      document.querySelectorAll('.preview-tweak-option').forEach((button) => {
+        if (button.dataset.bound) return;
+        button.dataset.bound = 'true';
+        button.addEventListener('click', () => setPreviewTweak(button.dataset.tweak, button.dataset.value));
+        button.addEventListener('keydown', (event) => {
+          if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+          event.preventDefault();
+          const group = Array.from(document.querySelectorAll(`.preview-tweak-option[data-tweak="${button.dataset.tweak}"]`));
+          const index = group.indexOf(button);
+          const delta = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1;
+          const next = group[Math.max(0, Math.min(group.length - 1, index + delta))];
+          next?.focus();
+          if (next) setPreviewTweak(next.dataset.tweak, next.dataset.value);
+        });
+      });
+      const previewTweaksReset = document.getElementById('previewTweaksReset');
+      if (previewTweaksReset && !previewTweaksReset.dataset.bound) {
+        previewTweaksReset.dataset.bound = 'true';
+        previewTweaksReset.addEventListener('click', resetPreviewTweaks);
+      }
+      updatePreviewTweakControls();
       const advancedTools = document.getElementById('advancedTools');
       if (advancedTools && !advancedTools.dataset.bound) {
         advancedTools.dataset.bound = 'true';
@@ -9230,6 +9512,7 @@
             format_interest_label: getFormatInterestOption(formatInterest).label,
             preferred_size_in: Number(getPreferredSizeOption(preferredSizeIn).value),
             preferred_size_label: getPreferredSizeOption(preferredSizeIn).label,
+            preview_tweaks: getPreviewTweaksPayload(),
             product_interest: getSubmittedProductInterest(),
             request_type: requestType,
             crop_state: cropSnapshot,
@@ -9246,6 +9529,7 @@
               generated_at: timestamp,
               crop_state: cropSnapshot,
               render_settings: renderSnapshot,
+              preview_tweaks: getPreviewTweaksPayload(),
               preprocess: preprocessSnapshot,
               configuration,
               processed_data: processedSnapshot
@@ -9341,6 +9625,7 @@
           setGateField("saveRecommendedFormat", recommendedFormat);
           setGateField("saveFormatInterest", formatInterest);
           setGateField("savePreferredSizeIn", getPreferredSizeOption(preferredSizeIn).value);
+          setGateField("savePreviewTweaks", JSON.stringify(getPreviewTweaksPayload()));
           setGateField("saveProjectId", "");
           setGateField("saveProjectSaved", "false");
           setGateField("saveSaveVersion", "");
@@ -11567,6 +11852,40 @@
       Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
     }
 
+    function clampChannel(value) {
+      return Math.max(0, Math.min(255, Math.round(value)));
+    }
+
+    function applyPreviewTweaksToImageData(imageData) {
+      const tweaks = getPreviewTweaksPayload();
+      if (!tweaks.brightness && !tweaks.contrast && !tweaks.background_simplify) return imageData;
+      const data = imageData.data;
+      const brightnessOffset = tweaks.brightness * 8;
+      const contrastFactor = 1 + (tweaks.contrast * 0.08);
+      const simplifyStrength = Math.max(0, tweaks.background_simplify) * 0.14;
+
+      for (let i = 0; i < data.length; i += 4) {
+        let r = (data[i] - 128) * contrastFactor + 128 + brightnessOffset;
+        let g = (data[i + 1] - 128) * contrastFactor + 128 + brightnessOffset;
+        let b = (data[i + 2] - 128) * contrastFactor + 128 + brightnessOffset;
+
+        if (simplifyStrength > 0) {
+          const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+          const backgroundWeight = Math.max(0, Math.min(1, (110 - luma) / 110)) * Math.max(0, Math.min(1, (80 - chroma) / 80));
+          const mix = simplifyStrength * backgroundWeight;
+          r = r * (1 - mix) + luma * mix;
+          g = g * (1 - mix) + luma * mix;
+          b = b * (1 - mix) + luma * mix;
+        }
+
+        data[i] = clampChannel(r);
+        data[i + 1] = clampChannel(g);
+        data[i + 2] = clampChannel(b);
+      }
+      return imageData;
+    }
+
     async function processImage() {
       if (!currentImage) {
         showToast('Please upload an image first', 'error');
@@ -11602,6 +11921,7 @@
 
         imageData = applyPreset(imageData);
         imageData = applyAdjustments(imageData);
+        imageData = applyPreviewTweaksToImageData(imageData);
         const mosaicCleanOptions = getMosaicCleanOptions();
         imageData = applyMosaicCleanPreprocess(imageData, mosaicCleanOptions);
 
@@ -11635,7 +11955,6 @@
         setPreviewSkeleton(false);
         document.body.classList.add('builder-has-preview');
         updateFunnelProgress(4);
-        showToast('Preview generated successfully!');
         showStatus('Preview ready. You can request a free proof.');
         updateGroupStatus();
         updateWizardState('preview', { status: 'Preview ready. You can request a free proof.', focusCard: true });
@@ -11835,6 +12154,29 @@
       const uploadSelect = document.getElementById('photoCategorySelect');
       const proofSelect = document.getElementById('photoCategoryInput');
       return normalizePhotoCategory(uploadSelect?.value || proofSelect?.value || 'other');
+    }
+
+    function getRawSelectedPhotoCategory() {
+      const uploadSelect = document.getElementById('photoCategorySelect');
+      const proofSelect = document.getElementById('photoCategoryInput');
+      return uploadSelect?.value || proofSelect?.value || 'auto';
+    }
+
+    function getCustomerPhotoCategoryLabel(value = getRawSelectedPhotoCategory()) {
+      const raw = String(value || 'auto');
+      const normalized = raw === 'auto' ? 'auto' : normalizePhotoCategory(raw);
+      const labels = {
+        auto: 'Not sure — we’ll choose',
+        pet: 'Pet',
+        couple_wedding: 'Couple or wedding',
+        family: 'Family',
+        baby_kids: 'Baby or kids',
+        memorial: 'Memorial',
+        corporate_logo: 'Logo or business',
+        holiday_gift: 'Gift or holiday',
+        other: 'Other'
+      };
+      return labels[normalized] || labels.auto;
     }
 
     function getMosaicCleanProfileForCategory(category) {
@@ -12357,6 +12699,35 @@
       return { mapped: cleaned, counts, cleanupStats: stats };
     }
 
+    function getLuma(rgb) {
+      return 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
+    }
+
+    function getDarkErrorScale(r, g, b) {
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      if (luma <= 12) return 0;
+      if (luma >= 40) return 1;
+      const t = (luma - 12) / 28;
+      return t * t * (3 - 2 * t);
+    }
+
+    function findNearestDarkNeutralColor(rgb, palette) {
+      const sourceLuma = getLuma(rgb);
+      let bestIdx = 0;
+      let bestScore = Infinity;
+      for (let i = 0; i < palette.length; i++) {
+        const palRgb = hexToRgb(palette[i].hex);
+        const palLuma = getLuma(palRgb);
+        const palChroma = Math.max(palRgb.r, palRgb.g, palRgb.b) - Math.min(palRgb.r, palRgb.g, palRgb.b);
+        const score = Math.abs(palLuma - sourceLuma) + palChroma * 2.2 + Math.max(0, palLuma - 64) * 1.5;
+        if (score < bestScore) {
+          bestScore = score;
+          bestIdx = i;
+        }
+      }
+      return bestIdx;
+    }
+
     function applyDithering(imageData, palette) {
       const width = imageData.width;
       const height = imageData.height;
@@ -12376,9 +12747,10 @@
             data[i + 1] = color.g;
             data[i + 2] = color.b;
             
-            const errR = oldR - color.r;
-            const errG = oldG - color.g;
-            const errB = oldB - color.b;
+            const errorScale = getDarkErrorScale(oldR, oldG, oldB);
+            const errR = (oldR - color.r) * errorScale;
+            const errG = (oldG - color.g) * errorScale;
+            const errB = (oldB - color.b) * errorScale;
             
             if (x + 1 < width) {
               const idx = (y * width + x + 1) * 4;
@@ -12420,9 +12792,10 @@
             data[i + 1] = color.g;
             data[i + 2] = color.b;
             
-            const errR = (oldR - color.r) / 8;
-            const errG = (oldG - color.g) / 8;
-            const errB = (oldB - color.b) / 8;
+            const errorScale = getDarkErrorScale(oldR, oldG, oldB);
+            const errR = ((oldR - color.r) / 8) * errorScale;
+            const errG = ((oldG - color.g) / 8) * errorScale;
+            const errB = ((oldB - color.b) / 8) * errorScale;
             
             const neighbors = [
               [x + 1, y, 1], [x + 2, y, 1],
@@ -12491,6 +12864,13 @@
           g: imageData.data[idx + 1],
           b: imageData.data[idx + 2]
         };
+
+        if (getLuma(rgb) < 40) {
+          const darkIdx = findNearestDarkNeutralColor(rgb, palette);
+          mapped[i] = darkIdx;
+          counts[darkIdx]++;
+          continue;
+        }
         
         const lab = rgbToLab(rgb);
         
@@ -14232,6 +14612,9 @@
         window.mosapackPreviewProjectId = '';
         window.mosapackProofRef = '';
         currentPreset = 'original';
+        currentPreviewTweaks = { brightness: 0, contrast: 0, background_simplify: 0, regen_count: 0 };
+        updatePreviewTweakControls();
+        togglePreviewFineTune(false);
         cropState = {
           imageNaturalWidth: 0,
           imageNaturalHeight: 0,
@@ -15204,7 +15587,7 @@
           <dl>
             <div>
               <dt>Category</dt>
-              <dd id="proofSummaryCategory">Auto / Not sure</dd>
+              <dd id="proofSummaryCategory">Not sure — we’ll choose</dd>
             </div>
             <div>
               <dt>Interest</dt>
@@ -15215,6 +15598,7 @@
               <dd id="proofSummaryPreferredSize">12″ Starter</dd>
             </div>
           </dl>
+          <p class="proof-summary-note" id="proofSummaryTweaks" hidden>You fine-tuned this preview.</p>
           <p class="proof-summary-note">No payment today</p>
         </div>
       </div>
@@ -15227,6 +15611,7 @@
         <input type="hidden" name="recommended_format" id="saveRecommendedFormat">
         <input type="hidden" name="format_interest" id="saveFormatInterest" value="sticker_ready">
         <input type="hidden" name="preferred_size_in" id="savePreferredSizeIn" value="12">
+        <input type="hidden" name="preview_tweaks" id="savePreviewTweaks" value="{&quot;brightness&quot;:0,&quot;contrast&quot;:0,&quot;background_simplify&quot;:0,&quot;regen_count&quot;:0}">
         <input type="hidden" name="project_id" id="saveProjectId">
         <input type="hidden" name="project_saved" id="saveProjectSaved" value="false">
         <input type="hidden" name="save_version" id="saveSaveVersion" value="">
@@ -15276,14 +15661,14 @@
           hidden
           aria-hidden="true"
         >
-          <option value="auto">Auto / Not sure</option>
+          <option value="auto">Not sure — we’ll choose</option>
           <option value="pet">Pet</option>
-          <option value="couple_wedding">Couple / Wedding</option>
+          <option value="couple_wedding">Couple or wedding</option>
           <option value="family">Family</option>
-          <option value="baby_kids">Baby / Kids</option>
+          <option value="baby_kids">Baby or kids</option>
           <option value="memorial">Memorial</option>
-          <option value="corporate_logo">Corporate / Logo</option>
-          <option value="holiday_gift">Holiday Gift</option>
+          <option value="corporate_logo">Logo or business</option>
+          <option value="holiday_gift">Gift or holiday</option>
           <option value="other">Other</option>
         </select>
         <textarea

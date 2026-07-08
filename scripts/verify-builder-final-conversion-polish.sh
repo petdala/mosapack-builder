@@ -402,8 +402,8 @@ async (page) => {
   assert(sourceColors > 2000, 'uploaded/original source color count too low: ' + sourceColors);
   assert(mosaicColors < 600, 'mosaic sampled distinct colors too high: ' + mosaicColors);
 
-  await page.click('input[name="format_interest_choice"][value="premium_display_review"]');
-  await page.click('input[name="preferred_size_choice"][value="16"]');
+  await page.click('.format-interest-option:has(input[name="format_interest_choice"][value="premium_display_review"])');
+  await page.click('.preferred-size-option:has(input[name="preferred_size_choice"][value="16"])');
   const changed = await page.evaluate(() => ({
     formatInterest: document.getElementById('saveFormatInterest')?.value || '',
     preferredSizeIn: document.getElementById('savePreferredSizeIn')?.value || ''
@@ -425,7 +425,7 @@ async (page) => {
   assert(proofForm.emailRequired, 'proof form email is not required');
   assert(proofForm.consentRequired, 'proof form consent is not required');
   assert(proofForm.formatRadiosInForm === 0, 'proof form still contains format radios');
-  assert(proofForm.summaryInterest === 'Premium display review', 'proof summary did not echo format interest');
+  assert(proofForm.summaryInterest === 'Premium display', 'proof summary did not echo format interest');
   assert(proofForm.summaryPreferred === '16″ Gallery', 'proof summary did not echo preferred size');
 
   const mobile = await measureStep3(390, 844);
