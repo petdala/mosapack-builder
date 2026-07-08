@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MosaPack Builder - Custom Photo Mosaic Preview</title>
-  <meta name="description" content="Create a free custom photo mosaic preview, then request a sticker-ready proof. No payment today.">
+  <title>MosaPack — Sticker-Ready Mosaic Proof Builder</title>
+  <meta name="description" content="Create a free sticker-ready mosaic proof, preview a buildable mosaic, and request review. No payment today.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230bbf92'/%3E%3Crect x='12' y='12' width='8' height='8' rx='1' fill='%23e91e8c'/%3E%3C/svg%3E">
   
   <!-- Google Analytics 4 -->
@@ -5773,7 +5773,7 @@
 
     .proof-preview-toggle-button {
       flex: 1 1 0;
-      min-height: 34px;
+      min-height: 44px;
       border: 0;
       border-radius: 999px;
       background: transparent;
@@ -5786,6 +5786,11 @@
       background: #fff;
       color: var(--mp-teal-dark);
       box-shadow: 0 8px 18px rgba(17, 19, 24, 0.08);
+    }
+
+    .proof-preview-toggle-button:focus-visible {
+      outline: 3px solid rgba(8, 184, 148, 0.32);
+      outline-offset: 3px;
     }
 
     .preview-confidence-panel {
@@ -5820,7 +5825,8 @@
       font-weight: 900;
     }
 
-    .format-interest-selector {
+    .format-interest-selector,
+    .preferred-size-selector {
       display: grid;
       gap: 0.8rem;
       padding: 1rem;
@@ -5845,16 +5851,19 @@
       line-height: 1.35;
     }
 
-    .format-interest-options {
+    .format-interest-options,
+    .preferred-size-options {
       display: grid;
       gap: 0.55rem;
     }
 
-    .format-interest-option {
+    .format-interest-option,
+    .preferred-size-option {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
       gap: 0.65rem;
       align-items: start;
+      min-height: 54px;
       padding: 0.76rem;
       border: 1px solid rgba(221, 227, 234, 0.94);
       border-radius: 14px;
@@ -5864,18 +5873,28 @@
     }
 
     .format-interest-option:hover,
-    .format-interest-option.is-selected {
+    .format-interest-option.is-selected,
+    .preferred-size-option:hover,
+    .preferred-size-option.is-selected {
       border-color: rgba(8, 184, 148, 0.44);
       background: rgba(232, 250, 245, 0.58);
       box-shadow: 0 10px 24px rgba(8, 184, 148, 0.10);
     }
 
-    .format-interest-option input {
+    .format-interest-option:focus-within,
+    .preferred-size-option:focus-within {
+      outline: 3px solid rgba(8, 184, 148, 0.28);
+      outline-offset: 2px;
+    }
+
+    .format-interest-option input,
+    .preferred-size-option input {
       margin-top: 0.15rem;
       accent-color: var(--mp-teal);
     }
 
-    .format-interest-option strong {
+    .format-interest-option strong,
+    .preferred-size-option strong {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -5885,7 +5904,8 @@
       line-height: 1.2;
     }
 
-    .format-interest-option em {
+    .format-interest-option em,
+    .preferred-size-option em {
       padding: 0.12rem 0.42rem;
       border-radius: 999px;
       background: var(--mp-pink);
@@ -5896,7 +5916,8 @@
       letter-spacing: 0.02em;
     }
 
-    .format-interest-option small {
+    .format-interest-option small,
+    .preferred-size-option small {
       display: block;
       margin-top: 0.22rem;
       color: var(--mp-muted);
@@ -6531,9 +6552,14 @@
       }
 
       .format-interest-selector,
+      .preferred-size-selector,
       .proof-preview-step-card {
         padding: 0.82rem;
         border-radius: 16px;
+      }
+
+      .public-wizard.wizard-state-preview #requestProofButton {
+        display: none;
       }
 
       .wizard-sticky-cta {
@@ -6586,18 +6612,16 @@
           <span class="logo-text">MosaPack</span>
           <span class="logo-subtitle">Turn your photo into a custom mosaic</span>
         </div>
-        <span class="version-badge">Preview</span>
       </a>
 
     </div>
   </header>
 
-  <h1 class="sr-only">MosaPack Custom Photo Mosaic Builder</h1>
-  <div id="builderStatus" class="sr-only" role="status" aria-live="polite">Create a free photo mosaic preview.</div>
+  <div id="builderStatus" class="sr-only" role="status" aria-live="polite">Create your sticker-ready mosaic proof.</div>
 
   <main class="public-wizard-shell" id="publicWizardShell">
     <section class="wizard-hero" aria-labelledby="wizardHeroTitle">
-      <h1 id="wizardHeroTitle">Create your custom mosaic proof</h1>
+      <h1 id="wizardHeroTitle">Create your sticker-ready mosaic proof</h1>
       <p id="wizardHeroLead">Upload a photo, preview your buildable mosaic, and request a free proof. No payment today.</p>
       <div class="wizard-trust-chips" aria-label="MosaPack trust notes">
         <span class="wizard-chip">Free preview</span>
@@ -6701,7 +6725,7 @@
               </div>
             </div>
             <!-- B1 Crop / Focal Control -->
-            <div class="crop-editor" id="cropEditor" aria-live="polite">
+            <div class="crop-editor" id="cropEditor">
               <div class="crop-card">
                 <h3 class="crop-heading">Position your photo</h3>
                 <p class="crop-subtitle">Center the face or main subject.</p>
@@ -6732,73 +6756,100 @@
               <div class="proof-preview-step-card" id="proofPreviewStepCard" data-testid="preview-step-card">
                 <div class="proof-preview-heading">
                   <span class="recommended-format-eyebrow">Free preview</span>
-                  <h3 class="recommended-format-title">Your buildable mosaic preview</h3>
-                  <p class="recommended-format-body">Compare your crop with the buildable preview before requesting proof review.</p>
+                  <h3 class="recommended-format-title">Here’s your mosaic</h3>
+                  <p class="recommended-format-body">Compare your photo with the mosaic preview.</p>
                 </div>
                 <div class="proof-preview-toggle" role="tablist" aria-label="Preview comparison">
-                  <button type="button" class="proof-preview-toggle-button is-active" data-preview-view="source" aria-selected="true">Your photo</button>
-                  <button type="button" class="proof-preview-toggle-button" data-preview-view="mosaic" aria-selected="false">Buildable mosaic</button>
+                  <button type="button" class="proof-preview-toggle-button is-active" data-preview-view="mosaic" aria-selected="true" aria-pressed="true">Buildable mosaic</button>
+                  <button type="button" class="proof-preview-toggle-button" data-preview-view="source" aria-selected="false" aria-pressed="false">Your photo</button>
                 </div>
-                <div class="proof-preview-comparison" id="proofPreviewComparison" data-mobile-preview-view="source" data-testid="preview-before-after">
+                <div class="proof-preview-comparison" id="proofPreviewComparison" data-mobile-preview-view="mosaic" data-testid="preview-before-after">
                   <figure class="proof-preview-frame is-source">
                     <figcaption>Your photo</figcaption>
                     <img id="proofSourceThumbnail" alt="Approved cropped photo preview">
                   </figure>
                   <figure class="proof-preview-frame is-mosaic">
-                    <figcaption>Buildable mosaic</figcaption>
+                    <figcaption>Mosaic preview</figcaption>
                     <img id="proofMosaicThumbnail" alt="Buildable mosaic preview">
                   </figure>
                 </div>
               </div>
               <section class="preview-confidence-panel" id="previewConfidencePanel" aria-label="Preview confidence">
-                <div>Buildable mosaic preview</div>
-                <div>We review every proof before any next step</div>
-                <div>Details preserved best at this crop</div>
-                <div>Request a proof when this looks right</div>
+                <div>Real mosaic cells</div>
+                <div>No payment today</div>
+                <div>Checked before any next step</div>
+                <div>Request when it looks right</div>
               </section>
               <section class="format-interest-selector" id="formatInterestSelector" aria-labelledby="formatInterestTitle">
                 <div class="format-interest-header">
-                  <h3 id="formatInterestTitle">Choose your proof interest</h3>
-                  <p>Physical formats are reviewed after a feasibility review. No payment today.</p>
+                  <h3 id="formatInterestTitle">Format interest</h3>
+                  <p>No payment today. We use this to guide follow-up.</p>
                 </div>
                 <div class="format-interest-options" role="radiogroup" aria-labelledby="formatInterestTitle">
                   <label class="format-interest-option is-selected">
                     <input type="radio" name="format_interest_choice" value="sticker_ready" checked>
                     <span>
                       <strong>Sticker-ready proof <em>Recommended</em></strong>
-                      <small>Recommended first proof path.</small>
+                      <small>Best first path.</small>
                     </span>
                   </label>
                   <label class="format-interest-option">
                     <input type="radio" name="format_interest_choice" value="magnetic_interest">
                     <span>
-                      <strong>Magnetic proof interest</strong>
+                      <strong>Magnet interest</strong>
                       <small>Reviewed after your proof.</small>
                     </span>
                   </label>
                   <label class="format-interest-option">
-                    <input type="radio" name="format_interest_choice" value="premium_display_quote">
+                    <input type="radio" name="format_interest_choice" value="premium_display_review">
                     <span>
-                      <strong>Premium display quote</strong>
-                      <small>Optional review path.</small>
+                      <strong>Premium display review</strong>
+                      <small>Optional follow-up path.</small>
+                    </span>
+                  </label>
+                </div>
+              </section>
+              <section class="preferred-size-selector" id="preferredSizeSelector" aria-labelledby="preferredSizeTitle">
+                <div class="format-interest-header">
+                  <h3 id="preferredSizeTitle">Preferred finished size</h3>
+                  <p>Used for follow-up. Final options are confirmed after we reply.</p>
+                </div>
+                <div class="preferred-size-options" role="radiogroup" aria-labelledby="preferredSizeTitle">
+                  <label class="preferred-size-option is-selected">
+                    <input type="radio" name="preferred_size_choice" value="12" checked>
+                    <span>
+                      <strong>12″ Starter <em>Recommended</em></strong>
+                    </span>
+                  </label>
+                  <label class="preferred-size-option">
+                    <input type="radio" name="preferred_size_choice" value="16">
+                    <span>
+                      <strong>16″ Gallery</strong>
+                    </span>
+                  </label>
+                  <label class="preferred-size-option">
+                    <input type="radio" name="preferred_size_choice" value="24">
+                    <span>
+                      <strong>24″ Statement</strong>
+                      <small>Needs follow-up.</small>
                     </span>
                   </label>
                 </div>
               </section>
               <div class="proof-request-card">
-                <h3 id="proofRequestTitle">Request your free proof</h3>
-                <p class="proof-request-body">When the preview looks right, send it for MosaPack review.</p>
+                <h3 id="proofRequestTitle">Ready for the next step?</h3>
+                <p class="proof-request-body">Send this preview when it looks right.</p>
                 <ul class="proof-points">
-                  <li>No payment collected today</li>
-                  <li>Sticker-ready proof path recommended first</li>
-                  <li>We follow up after review</li>
+                  <li>No payment today</li>
+                  <li>Sticker-ready path first</li>
+                  <li>Follow-up by email</li>
                 </ul>
                 <div class="proof-actions">
                   <button class="btn btn-primary" type="button" id="requestProofButton" data-testid="preview-primary-cta" onclick="requestCustomProof()">Request my free proof</button>
                   <button class="btn btn-secondary" type="button" id="adjustCropButton">Adjust crop</button>
                 </div>
               </div>
-              <div class="proof-next-step-card" id="proofNextStepCard" hidden aria-live="polite">
+              <div class="proof-next-step-card" id="proofNextStepCard" hidden>
                 <span class="proof-next-step-eyebrow">Proof request received</span>
                 <h3>Proof request received</h3>
                 <p class="proof-next-step-body">We’ll review your design and follow up with the next step. Keep an eye on your email.</p>
@@ -6835,7 +6886,7 @@
             <li>Upload and crop your photo.</li>
             <li>Preview a buildable mosaic layout.</li>
             <li>Request a proof for review.</li>
-            <li>We confirm feasibility before anything is made.</li>
+            <li>We follow up before any next step.</li>
           </ol>
         </section>
         <div id="operatorToolsMount"></div>
@@ -6850,7 +6901,7 @@
   </div>
 
   <!-- Regenerating indicator -->
-  <div class="regen-toast" id="regenToast" role="status" aria-live="polite">
+  <div class="regen-toast" id="regenToast">
     <svg class="regen-icon" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <!-- 3x3 grid, each 5x5 with 1px gap -->
       <rect class="sq sq-1" x="0"  y="0"  width="5" height="5" />
@@ -8125,6 +8176,7 @@
     let currentBrickCount = 0;
     let pendingRequestType = 'save_design';
     let currentFormatInterest = 'sticker_ready';
+    let currentPreferredSizeIn = '12';
     let lastRecommendedFormat = 'Sticker-ready proof';
     let lastProofTrigger = null;
 
@@ -8132,26 +8184,28 @@
       sticker_ready: {
         value: 'sticker_ready',
         label: 'Sticker-ready proof',
-        helper: 'Recommended first proof path.'
+        helper: 'Best first path.'
       },
       magnetic_interest: {
         value: 'magnetic_interest',
-        label: 'Magnetic proof interest',
+        label: 'Magnet interest',
         helper: 'Reviewed after your proof.'
       },
-      premium_display_quote: {
-        value: 'premium_display_quote',
-        label: 'Premium display quote',
-        helper: 'Optional review path.'
+      premium_display_review: {
+        value: 'premium_display_review',
+        label: 'Premium display review',
+        helper: 'Optional follow-up path.'
       }
     };
 
     function getFormatInterestOption(value = currentFormatInterest) {
-      return FORMAT_INTEREST_OPTIONS[value] || FORMAT_INTEREST_OPTIONS.sticker_ready;
+      const normalized = value === 'premium_display_quote' ? 'premium_display_review' : value;
+      return FORMAT_INTEREST_OPTIONS[normalized] || FORMAT_INTEREST_OPTIONS.sticker_ready;
     }
 
     function setFormatInterest(value = 'sticker_ready') {
-      const next = FORMAT_INTEREST_OPTIONS[value] ? value : 'sticker_ready';
+      const normalized = value === 'premium_display_quote' ? 'premium_display_review' : value;
+      const next = FORMAT_INTEREST_OPTIONS[normalized] ? normalized : 'sticker_ready';
       currentFormatInterest = next;
       document.querySelectorAll('input[name="format_interest_choice"]').forEach((input) => {
         input.checked = input.value === next;
@@ -8160,6 +8214,28 @@
       const hidden = document.getElementById('saveFormatInterest');
       if (hidden) hidden.value = next;
       updateRecommendedFormatCard(getFormatInterestOption(next).label);
+      updateProofRequestSummary();
+    }
+
+    const PREFERRED_SIZE_OPTIONS = {
+      '12': { value: '12', label: '12″ Starter' },
+      '16': { value: '16', label: '16″ Gallery' },
+      '24': { value: '24', label: '24″ Statement' }
+    };
+
+    function getPreferredSizeOption(value = currentPreferredSizeIn) {
+      return PREFERRED_SIZE_OPTIONS[String(value)] || PREFERRED_SIZE_OPTIONS['12'];
+    }
+
+    function setPreferredSize(value = '12') {
+      const next = PREFERRED_SIZE_OPTIONS[String(value)] ? String(value) : '12';
+      currentPreferredSizeIn = next;
+      document.querySelectorAll('input[name="preferred_size_choice"]').forEach((input) => {
+        input.checked = input.value === next;
+        input.closest('.preferred-size-option')?.classList.toggle('is-selected', input.checked);
+      });
+      const hidden = document.getElementById('savePreferredSizeIn');
+      if (hidden) hidden.value = next;
       updateProofRequestSummary();
     }
 
@@ -8197,16 +8273,31 @@
       const mosaicDataUrl = getMosaicThumbnailDataUrl();
       if (sourceThumb && sourceDataUrl) sourceThumb.src = sourceDataUrl;
       if (mosaicThumb && mosaicDataUrl) mosaicThumb.src = mosaicDataUrl;
+      setPreviewComparisonView('mosaic');
+    }
+
+    function setPreviewComparisonView(view = 'mosaic') {
+      const next = view === 'source' ? 'source' : 'mosaic';
+      const comparison = document.getElementById('proofPreviewComparison');
+      if (comparison) comparison.dataset.mobilePreviewView = next;
+      document.querySelectorAll('.proof-preview-toggle-button').forEach((button) => {
+        const isActive = button.dataset.previewView === next;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
     }
 
     function updateProofRequestSummary() {
       const summaryThumb = document.getElementById('proofSummaryThumbnail');
       const category = document.getElementById('proofSummaryCategory');
       const interest = document.getElementById('proofSummaryInterest');
+      const preferredSize = document.getElementById('proofSummaryPreferredSize');
       const mosaicDataUrl = getMosaicThumbnailDataUrl();
       if (summaryThumb && mosaicDataUrl) summaryThumb.src = mosaicDataUrl;
       if (category) category.textContent = getMosaicCleanProfileForCategory(getSelectedPhotoCategory()).label;
       if (interest) interest.textContent = getFormatInterestOption().label;
+      if (preferredSize) preferredSize.textContent = getPreferredSizeOption().label;
     }
 
     function setPreviewSkeleton(visible) {
@@ -8306,7 +8397,7 @@
       const submit = document.getElementById('emailGateSubmit');
 
       if (title) title.textContent = 'Request your free proof';
-      if (subtitle) subtitle.textContent = 'No payment collected today. We follow up after review.';
+      if (subtitle) subtitle.textContent = 'A person checks your design and emails the next step — free.';
       if (submit) submit.textContent = 'Request my proof';
       updateProofRequestSummary();
     }
@@ -8366,9 +8457,9 @@
     }
 
     const FORMAT_REASONS = {
-      'Sticker-ready proof': 'Recommended first proof path.',
-      'Magnetic proof interest': 'Reviewed after your proof.',
-      'Premium display quote': 'Optional review path.'
+      'Sticker-ready proof': 'Best first path.',
+      'Magnet interest': 'Reviewed after your proof.',
+      'Premium display review': 'Optional follow-up path.'
     };
 
     function getRecommendedFormat() {
@@ -8417,10 +8508,10 @@
     }
 
     const WIZARD_STEPS = {
-      upload: { index: 1, title: 'Upload Photo', heroTitle: 'Create your custom mosaic proof', heroLead: 'Upload a photo, preview your buildable mosaic, and request a free proof. No payment today.', cardTitle: 'Upload your photo', helper: 'Clear, close-up photos work best.', cta: 'Choose a photo' },
+      upload: { index: 1, title: 'Upload Photo', heroTitle: 'Create your sticker-ready mosaic proof', heroLead: 'Upload a photo, preview your buildable mosaic, and request a free proof. No payment today.', cardTitle: 'Upload your photo', helper: 'Clear, close-up photos work best.', cta: 'Choose a photo' },
       crop: { index: 2, title: 'Crop', heroTitle: 'Position your photo', heroLead: 'Center the face or main subject.', cardTitle: 'Position your photo', helper: 'Center the face or main subject. You can adjust this before requesting a proof.', cta: 'Preview my mosaic' },
-      preview: { index: 3, title: 'Preview', heroTitle: 'Your buildable mosaic preview', heroLead: 'Compare your photo with the buildable preview before requesting proof review.', cardTitle: 'Your buildable mosaic preview', helper: 'Request a proof when this looks right.', cta: 'Request my free proof' },
-      proof: { index: 4, title: 'Request Proof', heroTitle: 'Request your free proof', heroLead: 'No payment collected today. We follow up after review.', cardTitle: 'Request your free proof', helper: 'Share your contact details so MosaPack can review your proof.', cta: 'Request my proof' },
+      preview: { index: 3, title: 'Preview', heroTitle: 'Here’s your mosaic', heroLead: 'Compare your photo with the mosaic preview.', cardTitle: 'Here’s your mosaic', helper: 'Request when it looks right.', cta: 'Request my free proof' },
+      proof: { index: 4, title: 'Request Proof', heroTitle: 'Request your free proof', heroLead: 'A person checks your design and emails the next step — free.', cardTitle: 'Request your free proof', helper: 'Share your contact details so MosaPack can follow up.', cta: 'Request my proof' },
       saved: { index: 5, title: 'Received', heroTitle: 'Proof request received', heroLead: 'We’ll review your design and follow up with the next step. Keep an eye on your email.', cardTitle: 'Proof request received', helper: 'We’ll review your design and follow up with the next step.', cta: 'Create another preview' }
     };
 
@@ -8739,7 +8830,7 @@
         proofReturnButton.dataset.bound = 'true';
         proofReturnButton.addEventListener('click', () => {
           resetBuilder();
-          updateWizardState('upload', { status: 'Create another free photo mosaic preview.', focusCard: true });
+          updateWizardState('upload', { status: 'Create another sticker-ready mosaic proof.', focusCard: true });
         });
       }
       applyPanelState();
@@ -8909,21 +9000,21 @@
       });
       setFormatInterest(currentFormatInterest);
 
+      document.querySelectorAll('input[name="preferred_size_choice"]').forEach((input) => {
+        if (!input.dataset.bound) {
+          input.dataset.bound = 'true';
+          input.addEventListener('change', () => setPreferredSize(input.value));
+        }
+      });
+      setPreferredSize(currentPreferredSizeIn);
+
       document.querySelectorAll('.proof-preview-toggle-button').forEach((button) => {
         if (!button.dataset.bound) {
           button.dataset.bound = 'true';
-          button.addEventListener('click', () => {
-            const view = button.dataset.previewView || 'source';
-            const comparison = document.getElementById('proofPreviewComparison');
-            if (comparison) comparison.dataset.mobilePreviewView = view;
-            document.querySelectorAll('.proof-preview-toggle-button').forEach((toggle) => {
-              const active = toggle === button;
-              toggle.classList.toggle('is-active', active);
-              toggle.setAttribute('aria-selected', active ? 'true' : 'false');
-            });
-          });
+          button.addEventListener('click', () => setPreviewComparisonView(button.dataset.previewView || 'mosaic'));
         }
       });
+      setPreviewComparisonView('mosaic');
 
       const proofBackToPreviewButton = document.getElementById('proofBackToPreviewButton');
       if (proofBackToPreviewButton && !proofBackToPreviewButton.dataset.bound) {
@@ -9109,7 +9200,7 @@
           };
         }
 
-        function buildExactDesignPayload({ email, name, note, requestType, recommendedFormat, photoCategory, formatInterest }) {
+        function buildExactDesignPayload({ email, name, note, requestType, recommendedFormat, photoCategory, formatInterest, preferredSizeIn }) {
           if (!processedData) throw new Error("Generate a preview before requesting a proof.");
           const cropSnapshot = getCropStateSnapshot();
           const renderSnapshot = getRenderSettingsSnapshot();
@@ -9137,6 +9228,8 @@
             selected_format: recommendedFormat,
             format_interest: formatInterest,
             format_interest_label: getFormatInterestOption(formatInterest).label,
+            preferred_size_in: Number(getPreferredSizeOption(preferredSizeIn).value),
+            preferred_size_label: getPreferredSizeOption(preferredSizeIn).label,
             product_interest: getSubmittedProductInterest(),
             request_type: requestType,
             crop_state: cropSnapshot,
@@ -9219,6 +9312,7 @@
 
           const requestType = pendingRequestType || "custom_proof";
           const formatInterest = currentFormatInterest || 'sticker_ready';
+          const preferredSizeIn = currentPreferredSizeIn || '12';
           const recommendedFormat = getFormatInterestOption(formatInterest).label;
           const photoCategoryKey = getSelectedPhotoCategory();
           const resolvedProfile = getMosaicCleanProfileForCategory(photoCategoryKey);
@@ -9231,6 +9325,11 @@
             showToast("Generate a free preview before requesting a proof.", "error");
             return;
           }
+          if (!name) {
+            showToast("Enter your name so we can follow up on your proof.", "error");
+            document.getElementById("nameInput")?.focus();
+            return;
+          }
           if (!consent?.checked) {
             showToast("Confirm temporary design storage so we can review your custom proof.", "error");
             consent?.focus();
@@ -9241,6 +9340,7 @@
           setGateField("saveProofRequested", requestType === "custom_proof" ? "true" : "false");
           setGateField("saveRecommendedFormat", recommendedFormat);
           setGateField("saveFormatInterest", formatInterest);
+          setGateField("savePreferredSizeIn", getPreferredSizeOption(preferredSizeIn).value);
           setGateField("saveProjectId", "");
           setGateField("saveProjectSaved", "false");
           setGateField("saveSaveVersion", "");
@@ -9275,7 +9375,7 @@
 
           let didSaveProject = false;
           try {
-            const designPayload = buildExactDesignPayload({ email, name, note, requestType, recommendedFormat, photoCategory, formatInterest });
+            const designPayload = buildExactDesignPayload({ email, name, note, requestType, recommendedFormat, photoCategory, formatInterest, preferredSizeIn });
             const saveResult = await saveExactDesign(designPayload);
             didSaveProject = true;
             setGateField("saveProjectId", saveResult.project_id);
@@ -9307,6 +9407,7 @@
             }
             emailForm.reset();
             setFormatInterest(currentFormatInterest);
+            setPreferredSize(currentPreferredSizeIn);
             if (proofFormatSelect) proofFormatSelect.value = recommendedFormat;
             pendingRequestType = "custom_proof";
             hideEmailGate();
@@ -11535,9 +11636,9 @@
         document.body.classList.add('builder-has-preview');
         updateFunnelProgress(4);
         showToast('Preview generated successfully!');
-        showStatus('Preview ready. You can request a custom proof.');
+        showStatus('Preview ready. You can request a free proof.');
         updateGroupStatus();
-        updateWizardState('preview', { status: 'Preview ready. You can request a custom proof.', focusCard: true });
+        updateWizardState('preview', { status: 'Preview ready. You can request a free proof.', focusCard: true });
         updateBuildableProofExportState();
         trackBuilderEvent('builder_preview_created');
 
@@ -14157,7 +14258,7 @@
         const postPreviewFlow = document.getElementById('postPreviewFlow');
         if (postPreviewFlow) postPreviewFlow.hidden = true;
         hideProofNextStepCard();
-        updateWizardState('upload', { status: 'Create a free photo mosaic preview.' });
+        updateWizardState('upload', { status: 'Create your sticker-ready mosaic proof.' });
         updateFunnelProgress(1);
         document.getElementById('presetDropdown').value = 'original';
         const quickStartDropdown = document.getElementById('corePresetDropdown');
@@ -15092,7 +15193,7 @@
     <div class="email-gate-card">
       <button class="email-gate-close" type="button" onclick="hideEmailGate()" aria-label="Close proof request form">×</button>
       <h2 id="emailGateTitle">Request your free proof</h2>
-      <p class="subtitle" id="emailGateSubtitle">No payment collected today. We follow up after review.</p>
+      <p class="subtitle" id="emailGateSubtitle">A person checks your design and emails the next step — free.</p>
 
       <div class="proof-request-summary" id="proofRequestSummary">
         <div class="proof-summary-thumb">
@@ -15109,8 +15210,12 @@
               <dt>Interest</dt>
               <dd id="proofSummaryInterest">Sticker-ready proof</dd>
             </div>
+            <div>
+              <dt>Preferred size</dt>
+              <dd id="proofSummaryPreferredSize">12″ Starter</dd>
+            </div>
           </dl>
-          <p class="proof-summary-note">No payment collected today · We follow up after review</p>
+          <p class="proof-summary-note">No payment today</p>
         </div>
       </div>
 
@@ -15121,6 +15226,7 @@
         <input type="hidden" name="proof_requested" id="saveProofRequested" value="false">
         <input type="hidden" name="recommended_format" id="saveRecommendedFormat">
         <input type="hidden" name="format_interest" id="saveFormatInterest" value="sticker_ready">
+        <input type="hidden" name="preferred_size_in" id="savePreferredSizeIn" value="12">
         <input type="hidden" name="project_id" id="saveProjectId">
         <input type="hidden" name="project_saved" id="saveProjectSaved" value="false">
         <input type="hidden" name="save_version" id="saveSaveVersion" value="">
@@ -15152,6 +15258,7 @@
           id="nameInput"
           name="name"
           placeholder="Name"
+          required
         />
         <input
           type="email"

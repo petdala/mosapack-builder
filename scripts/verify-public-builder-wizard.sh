@@ -27,7 +27,7 @@ require_no_rg() {
   rm -f /tmp/mosapack-wizard-hit.txt
 }
 
-require_rg 'Create your custom mosaic proof' "$BUILDER" 'public wizard headline'
+require_rg 'Create your sticker-ready mosaic proof' "$BUILDER" 'public wizard headline'
 for step_label in 'Upload Photo' 'Crop &amp; Position' 'Preview Mosaic' 'Request Proof' 'Proof Received'; do
   require_rg "$step_label" "$BUILDER" "5-step visual flow label: $step_label"
 done
@@ -37,7 +37,7 @@ require_rg 'Request my free proof' "$BUILDER" 'preview proof CTA copy'
 require_rg 'Request my proof' "$BUILDER" 'proof submit CTA copy'
 require_rg 'Proof request received' "$BUILDER" 'saved proof copy'
 require_rg 'Sticker-ready proof' "$BUILDER" 'default recommended sticker-ready format'
-require_rg 'Physical formats are reviewed after a feasibility review\. No payment today\.' "$BUILDER" 'post-review other-format note'
+require_rg 'No payment today\. We use this to guide follow-up\.' "$BUILDER" 'post-review other-format note'
 require_rg 'operatorToolsMount' "$BUILDER" 'operator tools mount'
 require_rg 'function mountOperatorTools' "$BUILDER" 'ops-only operator tools renderer'
 require_rg "get\\('ops'\\) === '1'" "$BUILDER" 'ops=1 query gate'

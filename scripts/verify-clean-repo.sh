@@ -169,7 +169,7 @@ if rg -n -i "sk_live|sk_test|rk_live|whsec_|STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SEC
 fi
 rm -f /tmp/mosapack-public-payment-secrets.txt
 
-if ! rg -q "Create a free photo mosaic preview|Free preview first" "$BUILDER"; then
+if ! rg -q "Create your sticker-ready mosaic proof|Free preview" "$BUILDER"; then
   echo "MISSING first-preview-free builder copy."
   FAIL=1
 fi
