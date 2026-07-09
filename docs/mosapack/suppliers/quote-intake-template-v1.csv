@@ -1,0 +1,1 @@
+quote_id,supplier_id,date_received,contact_name,contact_email,sample_possible,sample_cost,setup_fee,die_fee,art_fee,sheet_material,sheet_size,sheet_cost_1,sheet_cost_10,sheet_cost_50,sheet_cost_100,moq,lead_time_sample,lead_time_reorder,registration_tolerance,shipping_cost,kitting_available,kitting_cost,board_available,board_cost,notes,confidence,decision

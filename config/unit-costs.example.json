@@ -1,0 +1,176 @@
+{
+  "schema_version": "unit_costs.example.v1",
+  "status": "example_only_do_not_use_for_production_pricing",
+  "notes": "All numeric values are placeholders. Replace nulls only with dated supplier quotes or invoices.",
+  "currency": "USD",
+  "entries": {
+    "mixed_sticker_sheet": {
+      "unit_cost": null,
+      "unit": "sheet",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Custom mixed sticker sheet cost. Do not guess."
+    },
+    "printed_sheet_matte_ol_or_vendor": {
+      "unit_cost": null,
+      "unit": "sheet",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Matte printed sheet from OnlineLabels/custom vendor or equivalent. Use quote or receipt only."
+    },
+    "printed_sheet_poly_or_vendor": {
+      "unit_cost": null,
+      "unit": "sheet",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Poly/weatherproof printed sheet from vendor. Use quote or receipt only."
+    },
+    "stock_color_sheet": {
+      "unit_cost": null,
+      "unit": "sheet",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Full solid-color sheet cost. Must distinguish true POD from inventory/pick-pack."
+    },
+    "mixed_topoff_sheet": {
+      "unit_cost": null,
+      "unit": "sheet",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Hybrid top-off sheet cost for rare colors."
+    },
+    "placement_board_12in": {
+      "unit_cost": null,
+      "unit": "board",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "12 inch placement board or printed grid board."
+    },
+    "board_12_black": {
+      "unit_cost": null,
+      "unit": "board",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "12 inch black-base board for First Hello validation."
+    },
+    "board_16": {
+      "unit_cost": null,
+      "unit": "board",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "16 inch board or tiled board quote placeholder."
+    },
+    "board_24": {
+      "unit_cost": null,
+      "unit": "board",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "24 inch board or tiled panel quote placeholder."
+    },
+    "instruction_card": {
+      "unit_cost": null,
+      "unit": "card",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Printed instruction card or build guide insert."
+    },
+    "packaging": {
+      "unit_cost": null,
+      "unit": "kit",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Packaging for board, sheets, instructions, and spares."
+    },
+    "rigid_mailer_13x13": {
+      "unit_cost": null,
+      "unit": "mailer",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Rigid mailer for 12 inch sample/package validation."
+    },
+    "insert_card": {
+      "unit_cost": null,
+      "unit": "card",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Printed insert card for validation package."
+    },
+    "sticker_sleeve": {
+      "unit_cost": null,
+      "unit": "sleeve",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Sleeve/envelope for sticker sheet handling."
+    },
+    "shipping_12_estimate": {
+      "unit_cost": null,
+      "unit": "shipment",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Placeholder only. Replace with actual carrier quote or receipt."
+    },
+    "shipping_16_estimate": {
+      "unit_cost": null,
+      "unit": "shipment",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Placeholder only. Replace with actual carrier quote or receipt."
+    },
+    "shipping_24_estimate": {
+      "unit_cost": null,
+      "unit": "shipment",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Placeholder only. Replace with actual carrier quote or receipt."
+    },
+    "pick_pack": {
+      "unit_cost": null,
+      "unit": "kit",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Pick/pack labor or vendor fee."
+    },
+    "sample_setup": {
+      "unit_cost": null,
+      "unit": "sample_order",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "One-time or per-sample setup charges."
+    },
+    "sample_cost": {
+      "unit_cost": null,
+      "unit": "sample_order",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Supplier sample cost from current quote only."
+    },
+    "die_setup_fee": {
+      "unit_cost": null,
+      "unit": "setup_fee",
+      "source": "unquoted",
+      "as_of": null,
+      "confidence": "unknown",
+      "notes": "Die/kiss-cut setup fee from current supplier quote only."
+    }
+  }
+}
