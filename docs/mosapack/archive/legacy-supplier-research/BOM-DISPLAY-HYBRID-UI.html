@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MosaPack - Bill of Materials (Hybrid Model)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    .bom-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .bom-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .bom-header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .bom-header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .mosaic-preview {
+      padding: 30px;
+      background: #f8f9fa;
+      border-bottom: 2px solid #e9ecef;
+      text-align: center;
+    }
+
+    .mosaic-preview img {
+      max-width: 400px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .mosaic-specs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .spec-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .spec-label {
+      font-size: 12px;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+
+    .spec-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .products-section {
+      padding: 40px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .section-icon {
+      font-size: 32px;
+    }
+
+    .section-header h2 {
+      font-size: 24px;
+      color: #212529;
+    }
+
+    .section-header .badge {
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .section-description {
+      color: #6c757d;
+      font-size: 14px;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    .product-grid {
+      display: grid;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .product-card {
+      display: flex;
+      gap: 20px;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .product-card:hover {
+      border-color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    }
+
+    .product-image {
+      width: 120px;
+      height: 120px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 10px;
+    }
+
+    .product-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 5px;
+    }
+
+    .product-description {
+      font-size: 14px;
+      color: #6c757d;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .product-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .feature-tag {
+      background: white;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #667eea;
+      border: 1px solid #667eea;
+    }
+
+    .feature-tag.prime {
+      background: #00a8e1;
+      color: white;
+      border-color: #00a8e1;
+    }
+
+    .feature-tag.custom {
+      background: #28a745;
+      color: white;
+      border-color: #28a745;
+    }
+
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .product-price {
+      font-size: 28px;
+      font-weight: bold;
+      color: #212529;
+    }
+
+    .price-subtext {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 2px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-amazon {
+      background: #ff9900;
+      color: #232f3e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-amazon:hover {
+      background: #ffa724;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
+    }
+
+    .amazon-logo {
+      width: 50px;
+      height: 15px;
+    }
+
+    .summary-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .summary-item {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .summary-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-value {
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .checkout-actions {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-large {
+      padding: 18px 40px;
+      font-size: 18px;
+      border-radius: 12px;
+    }
+
+    .btn-white {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-white:hover {
+      background: #f8f9fa;
+    }
+
+    .divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #667eea, transparent);
+      margin: 40px 0;
+    }
+
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #0066cc;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .info-box-title {
+      font-weight: 600;
+      color: #0066cc;
+      margin-bottom: 5px;
+    }
+
+    .info-box-text {
+      font-size: 14px;
+      color: #495057;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .mosaic-specs,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .product-card {
+        flex-direction: column;
+      }
+
+      .product-image {
+        width: 100%;
+        height: 200px;
+      }
+
+      .checkout-actions {
+        flex-direction: column;
+      }
+
+      .btn-large {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bom-container">
+    <!-- Header -->
+    <div class="bom-header">
+      <h1>Your Custom Mosaic Kit</h1>
+      <p>Everything you need to create your pixel art masterpiece</p>
+    </div>
+
+    <!-- Mosaic Preview -->
+    <div class="mosaic-preview">
+      <img src="https://via.placeholder.com/400x400/667eea/ffffff?text=Your+Mosaic+Preview" alt="Mosaic Preview" id="mosaicPreview">
+
+      <div class="mosaic-specs">
+        <div class="spec-card">
+          <div class="spec-label">Size</div>
+          <div class="spec-value">32×32</div>
+        </div>
+        <div class="spec-card">
+          <div class="spec-label">Colors</div>
+          <div class="spec-value">8</div>
+        </div>
+        <div class="spec-card">
+          <div class="spec-label">Tiles</div>
+          <div class="spec-value">1,024</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MosaPack Products (Printful Auto-Fulfill) -->
+    <div class="products-section">
+      <div class="section-header">
+        <span class="section-icon">✨</span>
+        <div style="flex: 1;">
+          <h2>Your Custom Products</h2>
+          <span class="badge">We Create & Ship</span>
+        </div>
+      </div>
+
+      <div class="section-description">
+        These custom products are designed specifically for your mosaic and ship automatically in 2-5 business days. No manual assembly required!
+      </div>
+
+      <div class="product-grid">
+        <!-- Product 1: Sticker Sheet -->
+        <div class="product-card">
+          <div class="product-image">
+            <img src="https://via.placeholder.com/120x120/28a745/ffffff?text=Sticker+Sheet" alt="Assembly Sticker Sheet">
+          </div>
+          <div class="product-details">
+            <div>
+              <div class="product-header">
+                <div>
+                  <div class="product-name">Custom Mosaic Assembly Sticker Sheet</div>
+                  <div class="product-description">
+                    Your exact mosaic pattern printed as numbered, peel-and-stick tiles. Apply to magnetic sheets, poster board, or canvas backing. Makes assembly foolproof.
+                  </div>
+                </div>
+              </div>
+              <div class="product-features">
+                <span class="feature-tag custom">Custom Design</span>
+                <span class="feature-tag">8.5×11" Premium Vinyl</span>
+                <span class="feature-tag">Ships 2-5 Days</span>
+                <span class="feature-tag">Numbered Grid</span>
+              </div>
+            </div>
+            <div class="product-footer">
+              <div>
+                <div class="product-price">$24.00</div>
+                <div class="price-subtext">Custom printed for you</div>
+              </div>
+              <button class="btn btn-primary" onclick="addToCart('sticker-sheet')">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product 2: Assembly Poster -->
+        <div class="product-card">
+          <div class="product-image">
+            <img src="https://via.placeholder.com/120x120/667eea/ffffff?text=Poster" alt="Assembly Guide Poster">
+          </div>
+          <div class="product-details">
+            <div>
+              <div class="product-header">
+                <div>
+                  <div class="product-name">Mosaic Assembly Guide Poster</div>
+                  <div class="product-description">
+                    Large-format assembly guide (18×24") perfect for wall reference while building. Shows full mosaic with color key, grid coordinates, and tile counts.
+                  </div>
+                </div>
+              </div>
+              <div class="product-features">
+                <span class="feature-tag custom">Custom Design</span>
+                <span class="feature-tag">18×24" Premium Matte</span>
+                <span class="feature-tag">Ships 2-5 Days</span>
+                <span class="feature-tag">Full Color</span>
+              </div>
+            </div>
+            <div class="product-footer">
+              <div>
+                <div class="product-price">$29.00</div>
+                <div class="price-subtext">Museum-quality print</div>
+              </div>
+              <button class="btn btn-primary" onclick="addToCart('assembly-poster')">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product 3: Framed Art (Premium) -->
+        <div class="product-card">
+          <div class="product-image">
+            <img src="https://via.placeholder.com/120x120/764ba2/ffffff?text=Framed+Art" alt="Framed Mosaic Art">
+          </div>
+          <div class="product-details">
+            <div>
+              <div class="product-header">
+                <div>
+                  <div class="product-name">Framed Mosaic Art (Premium)</div>
+                  <div class="product-description">
+                    Your mosaic design as ready-to-hang wall art. Museum-quality framed poster with solid wood frame and shatterproof acrylite front. Perfect for gifting!
+                  </div>
+                </div>
+              </div>
+              <div class="product-features">
+                <span class="feature-tag custom">Custom Design</span>
+                <span class="feature-tag">18×24" Framed</span>
+                <span class="feature-tag">Ships 3-7 Days</span>
+                <span class="feature-tag">Ready to Hang</span>
+              </div>
+            </div>
+            <div class="product-footer">
+              <div>
+                <div class="product-price">$79.00</div>
+                <div class="price-subtext">Premium framing</div>
+              </div>
+              <button class="btn btn-primary" onclick="addToCart('framed-art')">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Amazon Affiliate Materials -->
+      <div class="section-header">
+        <span class="section-icon">🛍️</span>
+        <div style="flex: 1;">
+          <h2>Materials Needed</h2>
+          <span class="badge" style="background: #ff9900;">Fast Amazon Prime Shipping</span>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-box-title">💡 Why Amazon?</div>
+        <div class="info-box-text">
+          We partner with Amazon to get you the best materials at the lowest prices with fast Prime shipping (1-2 days). Click "Buy on Amazon" to add these to your cart, and we'll earn a small commission to support this free tool.
+        </div>
+      </div>
+
+      <div class="product-grid">
+        <!-- Amazon Product 1: Magnetic Sheets -->
+        <div class="product-card">
+          <div class="product-image">
+            <img src="https://via.placeholder.com/120x120/232f3e/ffffff?text=Magnetic+Roll" alt="Craftopia Magnetic Roll">
+          </div>
+          <div class="product-details">
+            <div>
+              <div class="product-header">
+                <div>
+                  <div class="product-name">Craftopia Magnetic Roll (24" × 10')</div>
+                  <div class="product-description">
+                    White glossy magnetic sheets perfect for your custom mosaic tiles. Self-adhesive backing makes vinyl application easy. Covers 6-8 complete mosaics.
+                  </div>
+                </div>
+              </div>
+              <div class="product-features">
+                <span class="feature-tag prime">Prime 1-2 Days</span>
+                <span class="feature-tag">4.3★ (1,200 reviews)</span>
+                <span class="feature-tag">20 sq ft</span>
+              </div>
+            </div>
+            <div class="product-footer">
+              <div>
+                <div class="product-price">$39.99</div>
+                <div class="price-subtext">Best seller</div>
+              </div>
+              <a href="https://amazon.com/dp/B078K2H5JJ?tag=YOUR-ID" target="_blank" class="btn btn-amazon">
+                <svg class="amazon-logo" viewBox="0 0 100 30" fill="currentColor">
+                  <path d="M50.5 24.5c-7.5 5.5-18.3 8.5-27.7 8.5-13.1 0-24.9-4.8-33.8-12.9-.7-.6-.1-1.5.8-1 12.5 7.3 28 11.7 44 11.7 10.8 0 22.7-2.2 33.6-6.8 1.6-.7 3 1.1 1.4 2.2"/>
+                  <path d="M53.5 21.3c-1-.9-6.3-.4-8.7-.2-.7.1-.8-.5-.2-1 4.3-3 11.3-2.1 12.1-1.1.8 1-.1 8.1-4.3 11.5-.6.5-1.2.2-.9-.4.9-2.3 2.9-7.4 1.9-8.7"/>
+                </svg>
+                Buy on Amazon →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amazon Product 2: Vinyl Pack -->
+        <div class="product-card">
+          <div class="product-image">
+            <img src="https://via.placeholder.com/120x120/232f3e/ffffff?text=Vinyl+Pack" alt="Oracal Vinyl Pack">
+          </div>
+          <div class="product-details">
+            <div>
+              <div class="product-header">
+                <div>
+                  <div class="product-name">Oracal 651 Vinyl 12-Color Pack</div>
+                  <div class="product-description">
+                    Premium permanent vinyl in 12 essential colors. Industry-standard Oracal quality, perfect for Cricut cutting. Each sheet is 12×12" for easy handling.
+                  </div>
+                </div>
+              </div>
+              <div class="product-features">
+                <span class="feature-tag prime">Prime 1-2 Days</span>
+                <span class="feature-tag">4.6★ (2,500 reviews)</span>
+                <span class="feature-tag">12 Colors</span>
+              </div>
+            </div>
+            <div class="product-footer">
+              <div>
+                <div class="product-price">$37.99</div>
+                <div class="price-subtext">$3.17 per color</div>
+              </div>
+              <a href="https://amazon.com/s?k=oracal+651+vinyl+12+pack&tag=YOUR-ID" target="_blank" class="btn btn-amazon">
+                <svg class="amazon-logo" viewBox="0 0 100 30" fill="currentColor">
+                  <path d="M50.5 24.5c-7.5 5.5-18.3 8.5-27.7 8.5-13.1 0-24.9-4.8-33.8-12.9-.7-.6-.1-1.5.8-1 12.5 7.3 28 11.7 44 11.7 10.8 0 22.7-2.2 33.6-6.8 1.6-.7 3 1.1 1.4 2.2"/>
+                  <path d="M53.5 21.3c-1-.9-6.3-.4-8.7-.2-.7.1-.8-.5-.2-1 4.3-3 11.3-2.1 12.1-1.1.8 1-.1 8.1-4.3 11.5-.6.5-1.2.2-.9-.4.9-2.3 2.9-7.4 1.9-8.7"/>
+                </svg>
+                Buy on Amazon →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amazon Product 3: Baseplate -->
+        <div class="product-card">
+          <div class="product-image">
+            <img src="https://via.placeholder.com/120x120/232f3e/ffffff?text=Baseplate" alt="LEGO Baseplate">
+          </div>
+          <div class="product-details">
+            <div>
+              <div class="product-header">
+                <div>
+                  <div class="product-name">32×32 LEGO-Compatible Baseplate</div>
+                  <div class="product-description">
+                    Perfect foundation for your mosaic display. Compatible with all major brick brands. Sturdy construction with 1,024 studs for secure tile placement.
+                  </div>
+                </div>
+              </div>
+              <div class="product-features">
+                <span class="feature-tag prime">Prime 1-2 Days</span>
+                <span class="feature-tag">4.3★ (800 reviews)</span>
+                <span class="feature-tag">10" × 10"</span>
+              </div>
+            </div>
+            <div class="product-footer">
+              <div>
+                <div class="product-price">$7.99</div>
+                <div class="price-subtext">Gray baseplate</div>
+              </div>
+              <a href="https://amazon.com/s?k=32x32+baseplate&tag=YOUR-ID" target="_blank" class="btn btn-amazon">
+                <svg class="amazon-logo" viewBox="0 0 100 30" fill="currentColor">
+                  <path d="M50.5 24.5c-7.5 5.5-18.3 8.5-27.7 8.5-13.1 0-24.9-4.8-33.8-12.9-.7-.6-.1-1.5.8-1 12.5 7.3 28 11.7 44 11.7 10.8 0 22.7-2.2 33.6-6.8 1.6-.7 3 1.1 1.4 2.2"/>
+                  <path d="M53.5 21.3c-1-.9-6.3-.4-8.7-.2-.7.1-.8-.5-.2-1 4.3-3 11.3-2.1 12.1-1.1.8 1-.1 8.1-4.3 11.5-.6.5-1.2.2-.9-.4.9-2.3 2.9-7.4 1.9-8.7"/>
+                </svg>
+                Buy on Amazon →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary & Checkout -->
+    <div class="summary-section">
+      <h2 style="margin-bottom: 30px; font-size: 28px;">Complete Kit Investment</h2>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">MosaPack Products</div>
+          <div class="summary-value">$132.00</div>
+          <div style="font-size: 14px; margin-top: 5px; opacity: 0.9;">Ships 2-5 days</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Materials (Amazon)</div>
+          <div class="summary-value">$85.97</div>
+          <div style="font-size: 14px; margin-top: 5px; opacity: 0.9;">Prime 1-2 days</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Total Investment</div>
+          <div class="summary-value">$217.97</div>
+          <div style="font-size: 14px; margin-top: 5px; opacity: 0.9;">Everything included</div>
+        </div>
+      </div>
+
+      <div class="checkout-actions">
+        <button class="btn btn-primary btn-large" onclick="checkoutMosaPack()">
+          Checkout MosaPack Products →
+        </button>
+        <button class="btn btn-white btn-large" onclick="openAllAmazonLinks()">
+          Open All Amazon Links
+        </button>
+      </div>
+
+      <div style="margin-top: 30px; font-size: 14px; opacity: 0.9;">
+        <p>✨ Custom products ship from our partner Printful (2-5 days)</p>
+        <p>🛍️ Materials ship from Amazon (1-2 days with Prime)</p>
+        <p>💡 As an Amazon Associate, MosaPack earns from qualifying purchases</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Cart management
+    let cart = {
+      mosapackProducts: [],
+      amazonProducts: []
+    };
+
+    function addToCart(productId) {
+      const products = {
+        'sticker-sheet': { name: 'Assembly Sticker Sheet', price: 24.00 },
+        'assembly-poster': { name: 'Assembly Poster 18×24"', price: 29.00 },
+        'framed-art': { name: 'Framed Mosaic Art', price: 79.00 }
+      };
+
+      const product = products[productId];
+      cart.mosapackProducts.push(product);
+
+      alert(`✅ Added "${product.name}" to cart ($${product.price.toFixed(2)})`);
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const mosapackTotal = cart.mosapackProducts.reduce((sum, p) => sum + p.price, 0);
+      document.querySelector('.summary-grid .summary-item:nth-child(1) .summary-value').textContent =
+        `$${mosapackTotal.toFixed(2)}`;
+    }
+
+    function checkoutMosaPack() {
+      if (cart.mosapackProducts.length === 0) {
+        alert('Please add at least one MosaPack product to your cart!');
+        return;
+      }
+
+      // In real implementation, this would redirect to Shopify checkout
+      const total = cart.mosapackProducts.reduce((sum, p) => sum + p.price, 0);
+      alert(`Redirecting to checkout with ${cart.mosapackProducts.length} items (Total: $${total.toFixed(2)})\n\nIn production, this would integrate with Shopify cart.`);
+
+      // Example Shopify cart URL format:
+      // window.location.href = '/cart/add?id[]=PRODUCT_ID_1&id[]=PRODUCT_ID_2';
+    }
+
+    function openAllAmazonLinks() {
+      const amazonLinks = [
+        'https://amazon.com/dp/B078K2H5JJ?tag=YOUR-ID',
+        'https://amazon.com/s?k=oracal+651+vinyl+12+pack&tag=YOUR-ID',
+        'https://amazon.com/s?k=32x32+baseplate&tag=YOUR-ID'
+      ];
+
+      if (confirm(`This will open ${amazonLinks.length} Amazon product pages in new tabs. Continue?`)) {
+        amazonLinks.forEach((link, index) => {
+          setTimeout(() => window.open(link, '_blank'), index * 500);
+        });
+      }
+    }
+
+    // Demo: Load mosaic preview from builder
+    function loadMosaicPreview(imageUrl, specs) {
+      document.getElementById('mosaicPreview').src = imageUrl;
+      // Update specs dynamically
+      // This would be populated from the builder's mosaic generation
+    }
+  </script>
+</body>
+</html>

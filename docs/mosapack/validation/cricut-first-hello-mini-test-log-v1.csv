@@ -1,0 +1,1 @@
+test_id,date,operator,machine,mat_type,blade,mat_condition,material,color,sheet_size,cell_size,cut_setting,pressure,passes,cells_cut,cells_good,cells_bad,peel_score_1_5,weed_score_1_5,registration_x_mm,registration_y_mm,time_cut_minutes,time_weed_minutes,time_place_minutes,sec_per_sticker,gray_separation_score_1_5,notes,pass_fail

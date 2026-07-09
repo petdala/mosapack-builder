@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MosaPack Supplier & Market Intelligence Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #0bbf92;
+      --primary-dark: #0b8f6a;
+      --secondary: #4c6fff;
+      --bg: #f7f9fc;
+      --panel: #ffffff;
+      --panel2: #f1f5fb;
+      --text: #12151a;
+      --muted: #5b6472;
+      --border: #e3e9f2;
+      --success: #0b8f6a;
+      --warning: #b67f00;
+      --danger: #c40000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(11, 191, 146, 0.2);
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .header .subtitle {
+      opacity: 0.9;
+      font-size: 1rem;
+    }
+
+    .nav {
+      background: white;
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+
+    .nav button {
+      padding: 1rem 1.5rem;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .nav button:hover {
+      color: var(--primary);
+      background: var(--bg);
+    }
+
+    .nav button.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .card-header {
+      font-size: 0.875rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .card-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .card-subtitle {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .metric-positive {
+      color: var(--success);
+    }
+
+    .metric-negative {
+      color: var(--danger);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .panel h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+    }
+
+    .panel h3 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comparison-table th {
+      background: var(--panel2);
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .comparison-table tr:hover {
+      background: var(--bg);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-success {
+      background: #d1f4e8;
+      color: var(--success);
+    }
+
+    .badge-warning {
+      background: #fef3c7;
+      color: var(--warning);
+    }
+
+    .badge-info {
+      background: #dbeafe;
+      color: var(--secondary);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(11, 191, 146, 0.1);
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(11, 191, 146, 0.3);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 2rem;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin: 1rem 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0.5rem 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+      transition: width 0.3s ease;
+    }
+
+    .scenario-result {
+      background: var(--panel2);
+      border-left: 4px solid var(--primary);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+
+    .highlight {
+      background: linear-gradient(135deg, rgba(11, 191, 146, 0.1), rgba(11, 143, 106, 0.05));
+      border-left: 4px solid var(--primary);
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+
+    .supplier-card {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s;
+    }
+
+    .supplier-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 6px 20px rgba(11, 191, 146, 0.15);
+    }
+
+    .supplier-card.recommended {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(11, 191, 146, 0.05), rgba(11, 143, 106, 0.02));
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 1rem;
+      }
+
+      .header {
+        padding: 1.5rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎯 MosaPack Supplier Intelligence Dashboard</h1>
+    <div class="subtitle">Complete market analysis, supplier comparison & validation planning system</div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <button class="nav-btn active" onclick="showSection('overview')">📊 Executive Overview</button>
+      <button class="nav-btn" onclick="showSection('suppliers')">🏭 Supplier Matrix</button>
+      <button class="nav-btn" onclick="showSection('calculator')">💰 Cost Calculator</button>
+      <button class="nav-btn" onclick="showSection('pathways')">🚀 Product Pathways</button>
+      <button class="nav-btn" onclick="showSection('stickers')">🎨 Sticker Production</button>
+      <button class="nav-btn" onclick="showSection('validation')">✅ Validation Plan</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- EXECUTIVE OVERVIEW -->
+    <section id="overview" class="section active">
+      <div class="cards">
+        <div class="card">
+          <div class="card-header">Cost Savings vs LEGO</div>
+          <div class="card-value metric-positive">50-70%</div>
+          <div class="card-subtitle">$69 vs $184 for 2,300 pieces</div>
+        </div>
+        <div class="card">
+          <div class="card-header">Validation Budget</div>
+          <div class="card-value">$1,000</div>
+          <div class="card-subtitle">Test all 3 pathways simultaneously</div>
+        </div>
+        <div class="card">
+          <div class="card-header">Lead Time (China)</div>
+          <div class="card-value">10-24d</div>
+          <div class="card-subtitle">3-7 days with US suppliers</div>
+        </div>
+        <div class="card">
+          <div class="card-header">Brick Margin</div>
+          <div class="card-value metric-positive">53-65%</div>
+          <div class="card-subtitle">Premium positioning available</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Key Findings Summary</h2>
+        <div class="highlight">
+          <strong>🎯 Primary Recommendation:</strong> MyGobricks.com offers $0.03/piece with zero minimums, enabling immediate validation without inventory risk. Combined with StickerYou POD, you can test all three product pathways (brick, sticker, hybrid) for under $1,000 total investment.
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3>Top Suppliers Identified</h3>
+            <table class="comparison-table">
+              <tr>
+                <th>Supplier</th>
+                <th>Cost/Piece</th>
+                <th>Lead Time</th>
+                <th>Best For</th>
+              </tr>
+              <tr>
+                <td><strong>MyGobricks</strong></td>
+                <td>$0.03</td>
+                <td>10-24 days</td>
+                <td><span class="badge badge-success">Validation</span></td>
+              </tr>
+              <tr>
+                <td><strong>BrickPatible (US)</strong></td>
+                <td>$0.05-0.08</td>
+                <td>4-8 days</td>
+                <td><span class="badge badge-info">Fast Prototyping</span></td>
+              </tr>
+              <tr>
+                <td><strong>Alibaba Wholesale</strong></td>
+                <td>$0.02-0.025</td>
+                <td>20-40 days</td>
+                <td><span class="badge badge-warning">Scale (500+ kits)</span></td>
+              </tr>
+            </table>
+          </div>
+
+          <div>
+            <h3>Product Pathway Comparison</h3>
+            <div class="chart-container">
+              <canvas id="pathwayChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Market Opportunities</h2>
+        <div class="grid-2">
+          <div class="supplier-card recommended">
+            <h3>🏆 Premium Brick Mosaics</h3>
+            <div><strong>COGS:</strong> $69 (2,300 pieces)</div>
+            <div><strong>Retail:</strong> $149-199</div>
+            <div><strong>Margin:</strong> <span class="metric-positive">53-65%</span></div>
+            <div class="tags">
+              <span class="badge badge-success">Highest Margin</span>
+              <span class="badge badge-info">Premium Market</span>
+            </div>
+          </div>
+
+          <div class="supplier-card">
+            <h3>⚡ Sticker-Only Products</h3>
+            <div><strong>COGS:</strong> $2-4 per mosaic</div>
+            <div><strong>Retail:</strong> $12-20</div>
+            <div><strong>Margin:</strong> <span class="metric-positive">70-80%</span></div>
+            <div class="tags">
+              <span class="badge badge-success">Zero Inventory</span>
+              <span class="badge badge-warning">POD Ready</span>
+            </div>
+          </div>
+
+          <div class="supplier-card">
+            <h3>🎨 Hybrid Brick-Sticker</h3>
+            <div><strong>COGS:</strong> $15-16</div>
+            <div><strong>Retail:</strong> $39-59</div>
+            <div><strong>Margin:</strong> <span class="metric-positive">60-70%</span></div>
+            <div class="tags">
+              <span class="badge badge-info">Differentiated</span>
+              <span class="badge badge-success">80% Faster Build</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUPPLIER MATRIX -->
+    <section id="suppliers" class="section">
+      <div class="panel">
+        <h2>Comprehensive Supplier Matrix</h2>
+        <p style="margin-bottom: 1.5rem; color: var(--muted);">Compare all validated suppliers across key decision criteria</p>
+
+        <h3>🧱 Brick Suppliers</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Supplier</th>
+              <th>Price/Piece</th>
+              <th>MOQ</th>
+              <th>Lead Time</th>
+              <th>Quality Score</th>
+              <th>Shipping</th>
+              <th>Best Use Case</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>MyGobricks.com</strong><br><span style="font-size: 0.875rem; color: var(--muted);">Official Gobricks distributor</span></td>
+              <td><strong>$0.03</strong></td>
+              <td>None</td>
+              <td>10-24 days</td>
+              <td>⭐⭐⭐⭐⭐ (90-95%)</td>
+              <td>$20-40 <$69<br>Free >$69</td>
+              <td><span class="badge badge-success">Primary - Validation</span></td>
+            </tr>
+            <tr>
+              <td><strong>Wobrick.com</strong></td>
+              <td>$0.03</td>
+              <td>None</td>
+              <td>10-24 days</td>
+              <td>⭐⭐⭐⭐⭐ (95%+)</td>
+              <td>Similar</td>
+              <td><span class="badge badge-info">Alternative source</span></td>
+            </tr>
+            <tr>
+              <td><strong>JoyGobricks.com</strong></td>
+              <td>$0.04</td>
+              <td>None</td>
+              <td>10-24 days</td>
+              <td>⭐⭐⭐⭐⭐</td>
+              <td>Free >$99</td>
+              <td><span class="badge badge-info">Backup supplier</span></td>
+            </tr>
+            <tr>
+              <td><strong>BrickPatible (US)</strong></td>
+              <td>$0.05-0.08</td>
+              <td>None</td>
+              <td>4-8 days</td>
+              <td>⭐⭐⭐⭐</td>
+              <td>Free 30-day returns</td>
+              <td><span class="badge badge-warning">Fast prototypes</span></td>
+            </tr>
+            <tr>
+              <td><strong>Alibaba Wholesale</strong></td>
+              <td>$0.02-0.025</td>
+              <td>5,000+</td>
+              <td>20-40 days</td>
+              <td>⭐⭐⭐⭐ (Variable)</td>
+              <td>Air freight</td>
+              <td><span class="badge badge-warning">Scale only (500+ kits)</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top: 2rem;">📦 Baseplate Suppliers</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Supplier</th>
+              <th>Price/Baseplate</th>
+              <th>Size</th>
+              <th>Lead Time</th>
+              <th>Quality</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Brick Loot</strong></td>
+              <td>$4.25</td>
+              <td>32×32 (10"×10")</td>
+              <td>2-3 days</td>
+              <td>⭐⭐⭐⭐⭐</td>
+              <td><span class="badge badge-success">Validation (US)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Strictly Briks</strong></td>
+              <td>$3.49</td>
+              <td>32×32</td>
+              <td>1-3 days</td>
+              <td>⭐⭐⭐⭐⭐</td>
+              <td><span class="badge badge-success">Retail channels</span></td>
+            </tr>
+            <tr>
+              <td><strong>Alibaba Wholesale</strong></td>
+              <td>$0.60-0.95</td>
+              <td>32×32</td>
+              <td>20-40 days</td>
+              <td>⭐⭐⭐⭐</td>
+              <td><span class="badge badge-warning">Scale (100+)</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top: 2rem;">🎨 Sticker Suppliers (POD)</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Supplier</th>
+              <th>Price Range</th>
+              <th>MOQ</th>
+              <th>Lead Time</th>
+              <th>Integration</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Printful</strong></td>
+              <td>$2.29-3.50/sheet</td>
+              <td>None (POD)</td>
+              <td>2-5 days</td>
+              <td>Shopify, Etsy, WooCommerce</td>
+              <td><span class="badge badge-success">Zero-risk validation</span></td>
+            </tr>
+            <tr>
+              <td><strong>StickerYou</strong></td>
+              <td>$8-12 (1-10)<br>$3-4 (100)</td>
+              <td>None</td>
+              <td>5-10 days</td>
+              <td>Manual fulfillment</td>
+              <td><span class="badge badge-success">Complex grids (20+ stickers/sheet)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Sticker Ninja</strong></td>
+              <td>$2.50-4 (50+)<br>$1.20-2 (1000)</td>
+              <td>50 sheets</td>
+              <td>7-10 days</td>
+              <td>Manual</td>
+              <td><span class="badge badge-info">Best quality + bulk</span></td>
+            </tr>
+            <tr>
+              <td><strong>Sticker Mule</strong></td>
+              <td>$9-12 (10)<br>$5-6 (500)</td>
+              <td>10</td>
+              <td>4 days</td>
+              <td>Manual</td>
+              <td><span class="badge badge-warning">Premium rush orders</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top: 2rem;">📏 Color Measurement Tools</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Tool</th>
+              <th>Price</th>
+              <th>Accuracy (ΔE)</th>
+              <th>Type</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Nix Mini 3</strong></td>
+              <td>$99</td>
+              <td>0.1 ΔE00</td>
+              <td>Colorimeter</td>
+              <td><span class="badge badge-success">Validation QC (Recommended)</span></td>
+            </tr>
+            <tr>
+              <td><strong>ColorMuse 2</strong></td>
+              <td>$70-100</td>
+              <td>0.2 ΔE2000</td>
+              <td>Colorimeter</td>
+              <td><span class="badge badge-info">Budget alternative</span></td>
+            </tr>
+            <tr>
+              <td><strong>Nix Spectro L</strong></td>
+              <td>$450</td>
+              <td>0.35 ΔE00</td>
+              <td>Spectrophotometer</td>
+              <td><span class="badge badge-warning">Custom color development</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Volume Pricing Breakpoints</h2>
+        <div class="chart-container" style="height: 400px;">
+          <canvas id="volumeChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- COST CALCULATOR -->
+    <section id="calculator" class="section">
+      <div class="panel">
+        <h2>💰 Product Cost Calculator</h2>
+        <p style="margin-bottom: 2rem; color: var(--muted);">Calculate COGS, margins, and breakeven for your mosaic kits</p>
+
+        <div class="grid-2">
+          <div>
+            <h3>Input Parameters</h3>
+
+            <div class="form-group">
+              <label>Mosaic Size</label>
+              <select id="mosaicSize" onchange="calculateCosts()">
+                <option value="1024">32×32 (1 baseplate, 1,024 pieces)</option>
+                <option value="2304" selected>48×48 (2×2 baseplates, 2,304 pieces)</option>
+                <option value="4096">64×64 (2×2 baseplates, 4,096 pieces)</option>
+                <option value="9216">96×96 (3×3 baseplates, 9,216 pieces)</option>
+                <option value="16384">128×128 (4×4 baseplates, 16,384 pieces)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Brick Supplier</label>
+              <select id="supplier" onchange="calculateCosts()">
+                <option value="0.03" selected>MyGobricks ($0.03/piece)</option>
+                <option value="0.04">JoyGobricks ($0.04/piece)</option>
+                <option value="0.065">BrickPatible US ($0.065/piece avg)</option>
+                <option value="0.025">Alibaba Wholesale ($0.025/piece, 5000+ MOQ)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Baseplate Supplier</label>
+              <select id="baseplateSupplier" onchange="calculateCosts()">
+                <option value="4.25" selected>Brick Loot US ($4.25/ea)</option>
+                <option value="3.49">Strictly Briks ($3.49/ea)</option>
+                <option value="0.78">Alibaba Wholesale ($0.78/ea avg, 100+ MOQ)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Add Frame?</label>
+              <select id="frame" onchange="calculateCosts()">
+                <option value="0">No Frame</option>
+                <option value="12">Budget Frame ($12)</option>
+                <option value="22">WitsEnd Wood Frame ($22)</option>
+                <option value="44">iDisplayit Premium ($44)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Labor Rate ($/hour)</label>
+              <input type="number" id="laborRate" value="18" onchange="calculateCosts()" />
+            </div>
+
+            <div class="form-group">
+              <label>Desired Retail Price ($)</label>
+              <input type="number" id="retailPrice" value="149" onchange="calculateCosts()" />
+            </div>
+          </div>
+
+          <div>
+            <h3>Cost Breakdown</h3>
+            <div id="costResults" class="scenario-result">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                  <div style="font-size: 0.875rem; color: var(--muted);">Pieces</div>
+                  <div style="font-size: 1.5rem; font-weight: 700;" id="resultPieces">—</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.875rem; color: var(--muted);">Baseplates</div>
+                  <div style="font-size: 1.5rem; font-weight: 700;" id="resultBaseplates">—</div>
+                </div>
+              </div>
+
+              <hr style="border: none; border-top: 1px solid var(--border); margin: 1rem 0;">
+
+              <div style="margin-bottom: 0.5rem;">
+                <strong>Brick Cost:</strong> <span id="resultBrickCost">$0.00</span>
+              </div>
+              <div style="margin-bottom: 0.5rem;">
+                <strong>Baseplate Cost:</strong> <span id="resultBaseplateCost">$0.00</span>
+              </div>
+              <div style="margin-bottom: 0.5rem;">
+                <strong>Frame Cost:</strong> <span id="resultFrameCost">$0.00</span>
+              </div>
+              <div style="margin-bottom: 0.5rem;">
+                <strong>Connectors (~$0.80/line):</strong> <span id="resultConnectorCost">$0.00</span>
+              </div>
+              <div style="margin-bottom: 0.5rem;">
+                <strong>Print/Instructions (~$0.30/plate):</strong> <span id="resultPrintCost">$0.00</span>
+              </div>
+              <div style="margin-bottom: 0.5rem;">
+                <strong>Labor (picking/packing):</strong> <span id="resultLaborCost">$0.00</span>
+              </div>
+
+              <hr style="border: none; border-top: 2px solid var(--border); margin: 1rem 0;">
+
+              <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">
+                <strong>Total COGS:</strong> <span id="resultTotalCOGS" style="color: var(--primary);">$0.00</span>
+              </div>
+
+              <div style="margin-bottom: 0.5rem;">
+                <strong>Retail Price:</strong> <span id="resultRetail">$0.00</span>
+              </div>
+              <div style="margin-bottom: 0.5rem;">
+                <strong>Gross Profit:</strong> <span id="resultProfit" class="metric-positive">$0.00</span>
+              </div>
+              <div style="font-size: 1.125rem; font-weight: 700;">
+                <strong>Gross Margin:</strong> <span id="resultMargin" class="metric-positive">0%</span>
+              </div>
+            </div>
+
+            <div class="highlight">
+              <strong>💡 Tip:</strong> <span id="pricingTip">Adjust parameters to see cost impacts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Scenario Comparison</h2>
+        <div class="chart-container" style="height: 400px;">
+          <canvas id="scenarioChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCT PATHWAYS -->
+    <section id="pathways" class="section">
+      <div class="panel">
+        <h2>🚀 Three Viable Product Pathways</h2>
+        <p style="margin-bottom: 2rem; color: var(--muted);">Compare business models side-by-side</p>
+
+        <div class="grid-2" style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));">
+          <div class="supplier-card recommended">
+            <h3>🏆 Premium Brick Mosaics</h3>
+            <div style="margin: 1rem 0;">
+              <div style="margin-bottom: 0.5rem;"><strong>COGS:</strong> $69 (2,300 pieces @ 48×48)</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Retail:</strong> $149-199</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Margin:</strong> <span class="metric-positive" style="font-size: 1.25rem;">53-65%</span></div>
+              <div style="margin-bottom: 0.5rem;"><strong>Lead Time:</strong> 10-24 days (China), 4-8 days (US)</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Inventory:</strong> 4-6 week planning cycles</div>
+            </div>
+
+            <div class="tags">
+              <span class="badge badge-success">Highest Margin</span>
+              <span class="badge badge-info">Premium Market</span>
+              <span class="badge badge-warning">Inventory Required</span>
+            </div>
+
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+              <strong>Target Customer:</strong>
+              <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--muted);">
+                <li>LEGO enthusiasts</li>
+                <li>Premium gift buyers</li>
+                <li>Home décor collectors</li>
+                <li>Values craftsmanship & build experience</li>
+              </ul>
+            </div>
+
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+              <strong>Suppliers:</strong>
+              <div style="margin-top: 0.5rem; color: var(--muted);">
+                • Bricks: MyGobricks ($0.03/piece)<br>
+                • Baseplates: Brick Loot ($4.25)<br>
+                • QC: Nix Mini 3 ($99)
+              </div>
+            </div>
+          </div>
+
+          <div class="supplier-card">
+            <h3>⚡ Sticker-Only Products</h3>
+            <div style="margin: 1rem 0;">
+              <div style="margin-bottom: 0.5rem;"><strong>COGS:</strong> $2-4 per mosaic</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Retail:</strong> $12-20</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Margin:</strong> <span class="metric-positive" style="font-size: 1.25rem;">70-80%</span></div>
+              <div style="margin-bottom: 0.5rem;"><strong>Lead Time:</strong> 2-10 days (POD auto-fulfillment)</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Inventory:</strong> Zero (Print-on-Demand)</div>
+            </div>
+
+            <div class="tags">
+              <span class="badge badge-success">Zero Inventory</span>
+              <span class="badge badge-success">Highest Margin %</span>
+              <span class="badge badge-info">Mass Market</span>
+            </div>
+
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+              <strong>Target Customer:</strong>
+              <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--muted);">
+                <li>Budget-conscious buyers</li>
+                <li>Impulse gift purchasers</li>
+                <li>Instant gratification seekers</li>
+                <li>No assembly time tolerance</li>
+              </ul>
+            </div>
+
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+              <strong>Suppliers:</strong>
+              <div style="margin-top: 0.5rem; color: var(--muted);">
+                • Validation: StickerYou ($8-12/sheet)<br>
+                • POD: Printful (Shopify/Etsy integration)<br>
+                • Scale: Sticker Ninja ($1.20-2/sheet @ 1000)
+              </div>
+            </div>
+          </div>
+
+          <div class="supplier-card">
+            <h3>🎨 Hybrid Brick-Sticker Kits</h3>
+            <div style="margin: 1rem 0;">
+              <div style="margin-bottom: 0.5rem;"><strong>COGS:</strong> $15-16 (400 border bricks + center sticker)</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Retail:</strong> $39-59</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Margin:</strong> <span class="metric-positive" style="font-size: 1.25rem;">60-70%</span></div>
+              <div style="margin-bottom: 0.5rem;"><strong>Lead Time:</strong> 10-24 days + 5-10 days sticker</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Assembly Time:</strong> 80% faster than full brick</div>
+            </div>
+
+            <div class="tags">
+              <span class="badge badge-info">Differentiated</span>
+              <span class="badge badge-success">Fast Build</span>
+              <span class="badge badge-warning">Moderate Inventory</span>
+            </div>
+
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+              <strong>Target Customer:</strong>
+              <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--muted);">
+                <li>Mid-tier price sensitivity</li>
+                <li>Wants brick aesthetic + speed</li>
+                <li>Larger designs (64×64, 96×96)</li>
+                <li>Gift buyers with time constraints</li>
+              </ul>
+            </div>
+
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+              <strong>Suppliers:</strong>
+              <div style="margin-top: 0.5rem; color: var(--muted);">
+                • Border Bricks: MyGobricks<br>
+                • Center Stickers: StickerYou/Ninja<br>
+                • Unique positioning vs competition
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Market Positioning Matrix</h2>
+        <div class="chart-container" style="height: 400px;">
+          <canvas id="positioningChart"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Critical Validation Metrics</h2>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>What to Measure</th>
+              <th>Success Threshold</th>
+              <th>Action if Below</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Customer Acquisition Cost (CAC)</strong></td>
+              <td>Total ad spend ÷ customers acquired</td>
+              <td>&lt; $20 for stickers<br>&lt; $40 for bricks</td>
+              <td>Optimize targeting, test new channels, improve landing page</td>
+            </tr>
+            <tr>
+              <td><strong>Completion Rate (Bricks)</strong></td>
+              <td>% of buyers who finish building</td>
+              <td>&gt; 80%</td>
+              <td>Simplify instructions, reduce complexity, add support videos</td>
+            </tr>
+            <tr>
+              <td><strong>Return Rate</strong></td>
+              <td>Returns ÷ total orders</td>
+              <td>&lt; 5%</td>
+              <td>Improve QC, clarify expectations, enhance packaging</td>
+            </tr>
+            <tr>
+              <td><strong>Repeat Purchase Rate</strong></td>
+              <td>% buying 2nd product within 90 days</td>
+              <td>&gt; 15%</td>
+              <td>Launch email campaigns, create upsell paths, add loyalty program</td>
+            </tr>
+            <tr>
+              <td><strong>Net Promoter Score (NPS)</strong></td>
+              <td>% promoters - % detractors</td>
+              <td>&gt; 50</td>
+              <td>Address pain points in reviews, improve quality/experience</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STICKER PRODUCTION -->
+    <section id="stickers" class="section">
+      <div class="panel">
+        <h2>🎨 Sticker Production Workflows</h2>
+
+        <div class="highlight">
+          <strong>Expert Recommendation:</strong> For validation, use StickerYou to test 10-50 samples ($80-200 investment). Once validated, choose Printful for POD e-commerce integration, or scale with Sticker Ninja at 100+ units for complex designs.
+        </div>
+
+        <h3>Option 1: Print-on-Demand (Zero Inventory)</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Integration</th>
+              <th>Cost/Unit</th>
+              <th>Limitations</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Printful</strong></td>
+              <td>Shopify, Etsy, WooCommerce, Amazon</td>
+              <td>$2.29-3.50/sheet</td>
+              <td>4 stickers per sheet max</td>
+              <td><span class="badge badge-success">Simple grids, zero risk</span></td>
+            </tr>
+            <tr>
+              <td><strong>Printify</strong></td>
+              <td>80+ providers, same platforms</td>
+              <td>$1.12-2.00/sticker</td>
+              <td>Variable quality across providers</td>
+              <td><span class="badge badge-info">Price shopping</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top: 2rem;">Option 2: Bulk Orders (Inventory Required)</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>MOQ</th>
+              <th>Pricing</th>
+              <th>Lead Time</th>
+              <th>Complexity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>StickerYou</strong></td>
+              <td>None</td>
+              <td>$8-12 (1-10)<br>$3-4 (100)<br>$2.50-3.50 (1000)</td>
+              <td>5-10 days</td>
+              <td><span class="badge badge-success">20+ stickers/sheet, custom layouts</span></td>
+            </tr>
+            <tr>
+              <td><strong>Sticker Ninja</strong></td>
+              <td>50 sheets</td>
+              <td>$2.50-4 (50)<br>$1.40-2.40 (500)<br>$1.20-2 (1000)</td>
+              <td>7-10 days</td>
+              <td><span class="badge badge-success">Best print quality, kiss-cut grids</span></td>
+            </tr>
+            <tr>
+              <td><strong>Sticker Mule</strong></td>
+              <td>10</td>
+              <td>$9-12 (10)<br>$5-6 (500)</td>
+              <td>4 days + 4hr proofs</td>
+              <td><span class="badge badge-warning">Premium rush, free worldwide shipping</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top: 2rem;">Option 3: Cricut 2.0 In-House Production</h3>
+        <div class="supplier-card">
+          <h3>Materials & Costs</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Cost/Sheet</th>
+                <th>Size</th>
+                <th>Best For</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>JOYEZA Premium Printable Vinyl</strong></td>
+                <td>$0.52</td>
+                <td>8.5×11"</td>
+                <td><span class="badge badge-success">Photo-quality mosaics</span></td>
+              </tr>
+              <tr>
+                <td><strong>Cricut Printable Sticker Paper</strong></td>
+                <td>$0.32</td>
+                <td>8.5×11"</td>
+                <td><span class="badge badge-info">Budget option</span></td>
+              </tr>
+              <tr>
+                <td><strong>Cricut Value Vinyl (cut-only)</strong></td>
+                <td>$0.60-0.70</td>
+                <td>12×12"</td>
+                <td><span class="badge badge-warning">1-2 color simple designs</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top: 1.5rem;">
+            <h4>Cricut Workflow Time Breakdown</h4>
+            <div style="margin: 1rem 0;">
+              <div style="margin-bottom: 0.5rem;">Design setup: <strong>15-30 minutes</strong></div>
+              <div class="progress-bar"><div class="progress-fill" style="width: 40%;"></div></div>
+
+              <div style="margin-bottom: 0.5rem; margin-top: 1rem;">Printing: <strong>2-3 minutes</strong></div>
+              <div class="progress-bar"><div class="progress-fill" style="width: 5%;"></div></div>
+
+              <div style="margin-bottom: 0.5rem; margin-top: 1rem;">Machine calibration: <strong>2-3 minutes</strong></div>
+              <div class="progress-bar"><div class="progress-fill" style="width: 5%;"></div></div>
+
+              <div style="margin-bottom: 0.5rem; margin-top: 1rem;">Cutting: <strong>3-5 minutes</strong></div>
+              <div class="progress-bar"><div class="progress-fill" style="width: 8%;"></div></div>
+
+              <div style="margin-bottom: 0.5rem; margin-top: 1rem;">Weeding/application: <strong>10-20 minutes</strong></div>
+              <div class="progress-bar"><div class="progress-fill" style="width: 25%;"></div></div>
+            </div>
+            <div style="margin-top: 1rem; padding: 1rem; background: var(--panel2); border-radius: 8px;">
+              <strong>Total Time per 12×12" Mosaic:</strong> 30-60 minutes<br>
+              <strong>Cost per Mosaic:</strong> $0.32-0.52 (materials only)
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <h4>Cricut Size Limitations</h4>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--muted);">
+              <li><strong>Standard mat (12×12"):</strong> 11.5×11.5" cutting area</li>
+              <li><strong>Large mat (12×24"):</strong> 11.5×23.5" cutting area</li>
+              <li><strong>Print-then-cut standard:</strong> 6.75×9.25" max</li>
+              <li><strong>Print-then-cut beta (A3):</strong> 10.64×15.43" max</li>
+              <li><strong>Multi-sheet mosaics:</strong> Requires design segmentation & alignment</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Finish Options: Matte vs Glossy</h2>
+        <div class="grid-2">
+          <div class="supplier-card">
+            <h3>🌫️ Matte Finish</h3>
+            <div style="margin: 1rem 0;">
+              <div style="margin-bottom: 0.5rem;"><strong>Outdoor Life:</strong> 2-3 years</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Adhesive:</strong> Weaker (damage-free removal)</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Appearance:</strong> Non-reflective, hides fingerprints</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Special Feature:</strong> Writable surface</div>
+            </div>
+            <div class="tags">
+              <span class="badge badge-info">Indoor applications</span>
+              <span class="badge badge-success">Minimalist aesthetic</span>
+            </div>
+          </div>
+
+          <div class="supplier-card">
+            <h3>✨ Glossy Finish</h3>
+            <div style="margin: 1rem 0;">
+              <div style="margin-bottom: 0.5rem;"><strong>Outdoor Life:</strong> 6-10 years</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Adhesive:</strong> Stronger, scratch resistant</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Appearance:</strong> Vibrant colors, UV-resistant</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Special Feature:</strong> Easier cleaning</div>
+            </div>
+            <div class="tags">
+              <span class="badge badge-success">Outdoor use</span>
+              <span class="badge badge-info">Packaging labels</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VALIDATION PLAN -->
+    <section id="validation" class="section">
+      <div class="panel">
+        <h2>✅ Complete Validation Roadmap</h2>
+        <p style="margin-bottom: 2rem; color: var(--muted);">Test all three pathways for under $1,000 total investment</p>
+
+        <div class="supplier-card recommended">
+          <h3>🎯 $1,000 Validation Budget Breakdown</h3>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Items</th>
+                <th>Cost</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Sticker Samples</strong></td>
+                <td>50 units from StickerYou (5 designs × 10)</td>
+                <td>$200</td>
+                <td>Test sticker market demand, designs, pricing</td>
+              </tr>
+              <tr>
+                <td><strong>Brick Color Samples</strong></td>
+                <td>100 pieces × 20 colors from MyGobricks<br>+ 4 baseplates from Brick Loot</td>
+                <td>$300</td>
+                <td>QC testing, color accuracy, build 2-3 prototypes</td>
+              </tr>
+              <tr>
+                <td><strong>Color Measurement</strong></td>
+                <td>Nix Mini 3 Colorimeter</td>
+                <td>$100</td>
+                <td>Quality control, batch consistency validation</td>
+              </tr>
+              <tr>
+                <td><strong>Framing & Assembly</strong></td>
+                <td>3 frames (budget/mid/premium) + connectors</td>
+                <td>$200</td>
+                <td>Test packaging, display options, assembly time</td>
+              </tr>
+              <tr>
+                <td><strong>Marketing Creative</strong></td>
+                <td>Photography, landing page design, ad creative</td>
+                <td>$200</td>
+                <td>Product photos, lifestyle shots, ad testing</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr style="font-weight: 700; background: var(--panel2);">
+                <td colspan="2">TOTAL VALIDATION INVESTMENT</td>
+                <td>$1,000</td>
+                <td>De-risk product-market fit</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <h3 style="margin-top: 2rem;">Phase-by-Phase Validation Plan</h3>
+
+        <div class="supplier-card">
+          <h3>Phase 1: Sticker Validation (Week 1-2) • Budget: $200</h3>
+          <div style="margin: 1rem 0;">
+            <strong>Actions:</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--muted);">
+              <li>Order 50 sample stickers from StickerYou (5 designs, 10 each)</li>
+              <li>Set up basic Shopify store with Printful POD integration</li>
+              <li>Run $100 Meta ads targeting home décor buyers</li>
+              <li>Collect email signups, measure CTR and CAC</li>
+            </ul>
+          </div>
+          <div style="margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px;">
+            <strong>Success Metrics:</strong> CAC &lt; $20 • CTR &gt; 2% • 20+ email signups
+          </div>
+        </div>
+
+        <div class="supplier-card">
+          <h3>Phase 2: Brick Prototype (Week 2-4) • Budget: $400</h3>
+          <div style="margin: 1rem 0;">
+            <strong>Actions:</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--muted);">
+              <li>Order 100 pieces × 20 colors from MyGobricks ($300)</li>
+              <li>Purchase Nix Mini 3 for color QC ($100)</li>
+              <li>Build 2-3 full prototypes (32×32, 48×48)</li>
+              <li>Test assembly time, instructions clarity</li>
+              <li>Measure brick colors against palette library</li>
+            </ul>
+          </div>
+          <div style="margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px;">
+            <strong>Success Metrics:</strong> Assembly &lt; 2hrs for 48×48 • Color ΔE &lt; 3.0 • Clutch power test pass
+          </div>
+        </div>
+
+        <div class="supplier-card">
+          <h3>Phase 3: Packaging & Framing (Week 3-4) • Budget: $200</h3>
+          <div style="margin: 1rem 0;">
+            <strong>Actions:</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--muted);">
+              <li>Test 3 frame options: budget ($12), mid ($22), premium ($44)</li>
+              <li>Design packing strategy for brick kits (color-coded bags)</li>
+              <li>Create instruction PDF with Builder PRO v3</li>
+              <li>Photograph completed mosaics in frames</li>
+              <li>Test connector systems for multi-plate mosaics</li>
+            </ul>
+          </div>
+          <div style="margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px;">
+            <strong>Success Metrics:</strong> Professional photos ready • Frame fits perfectly • Instructions clear to non-builders
+          </div>
+        </div>
+
+        <div class="supplier-card">
+          <h3>Phase 4: Market Testing (Week 4-6) • Budget: $200</h3>
+          <div style="margin: 1rem 0;">
+            <strong>Actions:</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--muted);">
+              <li>Launch landing page with all three product options</li>
+              <li>Run split A/B test ads on Meta/Pinterest</li>
+              <li>Target: 100 website visitors per pathway</li>
+              <li>Collect pre-orders or measure conversion intent</li>
+              <li>Survey respondents on price sensitivity</li>
+            </ul>
+          </div>
+          <div style="margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px;">
+            <strong>Success Metrics:</strong> Conversion rate &gt; 2% • Average order value &gt; $40 • NPS survey &gt; 60
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Go/No-Go Decision Framework</h2>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Pathway</th>
+              <th>Go Signal</th>
+              <th>No-Go Signal</th>
+              <th>Pivot Option</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Premium Brick Mosaics</strong></td>
+              <td>
+                • CAC &lt; $40<br>
+                • Pre-orders at $149+ price<br>
+                • Completion rate &gt; 80%<br>
+                • Quality feedback positive
+              </td>
+              <td>
+                • CAC &gt; $60<br>
+                • Price resistance at $149<br>
+                • Assembly too complex<br>
+                • QC issues with Gobricks
+              </td>
+              <td>Test hybrid model or scale down to 32×32 only</td>
+            </tr>
+            <tr>
+              <td><strong>Sticker-Only Products</strong></td>
+              <td>
+                • CAC &lt; $20<br>
+                • Conversion rate &gt; 3%<br>
+                • Repeat purchase rate &gt; 15%<br>
+                • Positive reviews on quality
+              </td>
+              <td>
+                • CAC &gt; $30<br>
+                • Conversion rate &lt; 1%<br>
+                • Returns due to quality<br>
+                • Low perceived value
+              </td>
+              <td>Pivot to hybrid or premium brick path</td>
+            </tr>
+            <tr>
+              <td><strong>Hybrid Brick-Sticker</strong></td>
+              <td>
+                • Interest from both segments<br>
+                • Price acceptance at $39-59<br>
+                • "Best of both" feedback<br>
+                • Faster assembly validated
+              </td>
+              <td>
+                • Confusion over value prop<br>
+                • "Compromised" perception<br>
+                • No clear segment fit<br>
+                • Fulfillment too complex
+              </td>
+              <td>Focus on one pure pathway (brick or sticker)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Next Steps After Validation</h2>
+        <div class="grid-2">
+          <div class="supplier-card">
+            <h3>✅ If Brick Pathway Wins</h3>
+            <div style="margin: 1rem 0;">
+              <strong>Immediate Actions:</strong>
+              <ul style="margin: 0.5rem 0 0 1.5rem;">
+                <li>Order 10-kit inventory from MyGobricks (~$800)</li>
+                <li>Set up pre-pack stations for color sorting</li>
+                <li>Finalize instruction PDF templates</li>
+                <li>Launch pre-order campaign</li>
+                <li>Negotiate volume pricing with Brick Loot</li>
+              </ul>
+            </div>
+            <div style="margin-top: 1rem;">
+              <strong>Scale Triggers:</strong>
+              <ul style="margin: 0.5rem 0 0 1.5rem;">
+                <li>At 50 kits sold: Consider Alibaba baseplates</li>
+                <li>At 200 kits sold: Negotiate Gobricks wholesale</li>
+                <li>At 500 kits sold: Evaluate Nix Spectro L for custom colors</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="supplier-card">
+            <h3>✅ If Sticker Pathway Wins</h3>
+            <div style="margin: 1rem 0;">
+              <strong>Immediate Actions:</strong>
+              <ul style="margin: 0.5rem 0 0 1.5rem;">
+                <li>Fully integrate Printful POD with Shopify/Etsy</li>
+                <li>Create 20+ design variations</li>
+                <li>Set up abandoned cart sequences</li>
+                <li>Launch influencer partnerships</li>
+                <li>Test Pinterest/Instagram shopping ads</li>
+              </ul>
+            </div>
+            <div style="margin-top: 1rem;">
+              <strong>Scale Triggers:</strong>
+              <ul style="margin: 0.5rem 0 0 1.5rem;">
+                <li>At 100 sales: Add StickerYou for complex grids</li>
+                <li>At 500 sales: Switch to Sticker Ninja bulk</li>
+                <li>At 1000 sales: Negotiate custom production deals</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Navigation
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // Initialize charts
+    document.addEventListener('DOMContentLoaded', function() {
+      initCharts();
+      calculateCosts();
+    });
+
+    function initCharts() {
+      // Pathway comparison chart
+      const pathwayCtx = document.getElementById('pathwayChart');
+      if (pathwayCtx) {
+        new Chart(pathwayCtx, {
+          type: 'bar',
+          data: {
+            labels: ['Brick Premium', 'Sticker Only', 'Hybrid'],
+            datasets: [{
+              label: 'Gross Margin %',
+              data: [59, 75, 65],
+              backgroundColor: ['#0bbf92', '#4c6fff', '#b67f00']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Volume pricing chart
+      const volumeCtx = document.getElementById('volumeChart');
+      if (volumeCtx) {
+        new Chart(volumeCtx, {
+          type: 'line',
+          data: {
+            labels: ['10 kits', '50 kits', '100 kits', '200 kits', '500 kits'],
+            datasets: [
+              {
+                label: 'MyGobricks ($0.03)',
+                data: [0.03, 0.03, 0.03, 0.03, 0.025],
+                borderColor: '#0bbf92',
+                backgroundColor: 'rgba(11, 191, 146, 0.1)',
+                tension: 0.4
+              },
+              {
+                label: 'BrickPatible US ($0.065 avg)',
+                data: [0.065, 0.065, 0.065, 0.065, 0.06],
+                borderColor: '#4c6fff',
+                backgroundColor: 'rgba(76, 111, 255, 0.1)',
+                tension: 0.4
+              },
+              {
+                label: 'Alibaba ($0.025 @ 5000)',
+                data: [null, null, null, null, 0.025],
+                borderColor: '#b67f00',
+                backgroundColor: 'rgba(182, 127, 0, 0.1)',
+                tension: 0.4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: 'Price per Brick by Volume'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    return '$' + value.toFixed(3);
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Scenario comparison
+      const scenarioCtx = document.getElementById('scenarioChart');
+      if (scenarioCtx) {
+        new Chart(scenarioCtx, {
+          type: 'bar',
+          data: {
+            labels: ['32×32 (1 plate)', '48×48 (4 plates)', '64×64 (4 plates)', '96×96 (9 plates)'],
+            datasets: [
+              {
+                label: 'COGS',
+                data: [32, 69, 127, 283],
+                backgroundColor: '#c40000'
+              },
+              {
+                label: 'Retail Price',
+                data: [79, 149, 249, 449],
+                backgroundColor: '#0bbf92'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: 'COGS vs Retail by Size (MyGobricks + Brick Loot)'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    return '$' + value;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Market positioning
+      const positioningCtx = document.getElementById('positioningChart');
+      if (positioningCtx) {
+        new Chart(positioningCtx, {
+          type: 'scatter',
+          data: {
+            datasets: [
+              {
+                label: 'Premium Brick Mosaics',
+                data: [{x: 149, y: 59}],
+                backgroundColor: '#0bbf92',
+                pointRadius: 15
+              },
+              {
+                label: 'Hybrid Brick-Sticker',
+                data: [{x: 49, y: 65}],
+                backgroundColor: '#b67f00',
+                pointRadius: 15
+              },
+              {
+                label: 'Sticker-Only',
+                data: [{x: 16, y: 75}],
+                backgroundColor: '#4c6fff',
+                pointRadius: 15
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: 'Price vs Margin Positioning'
+              }
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Retail Price ($)'
+                },
+                min: 0,
+                max: 200
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Gross Margin (%)'
+                },
+                min: 0,
+                max: 100
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Cost calculator
+    function calculateCosts() {
+      const pieces = parseInt(document.getElementById('mosaicSize').value);
+      const brickPrice = parseFloat(document.getElementById('supplier').value);
+      const baseplatePrice = parseFloat(document.getElementById('baseplateSupplier').value);
+      const framePrice = parseFloat(document.getElementById('frame').value);
+      const laborRate = parseFloat(document.getElementById('laborRate').value);
+      const retailPrice = parseFloat(document.getElementById('retailPrice').value);
+
+      // Calculate baseplates needed
+      const baseplates = Math.ceil(pieces / 1024);
+
+      // Calculate costs
+      const brickCost = pieces * brickPrice;
+      const baseplateCost = baseplates * baseplatePrice;
+      const frameCost = framePrice;
+
+      // Connectors (~$0.80 per connection line)
+      const connectorLines = baseplates > 1 ? (Math.sqrt(baseplates) - 1) * Math.sqrt(baseplates) * 2 : 0;
+      const connectorCost = connectorLines * 0.80;
+
+      // Print cost (~$0.30 per plate for instructions)
+      const printCost = baseplates * 0.30;
+
+      // Labor (550 pieces/min picking + 2 min per plate)
+      const laborMinutes = (pieces / 550) + (baseplates * 2);
+      const laborCost = (laborMinutes / 60) * laborRate;
+
+      // Total COGS
+      const totalCOGS = brickCost + baseplateCost + frameCost + connectorCost + printCost + laborCost;
+
+      // Profit & Margin
+      const profit = retailPrice - totalCOGS;
+      const margin = (profit / retailPrice) * 100;
+
+      // Update display
+      document.getElementById('resultPieces').textContent = pieces.toLocaleString();
+      document.getElementById('resultBaseplates').textContent = baseplates;
+      document.getElementById('resultBrickCost').textContent = '$' + brickCost.toFixed(2);
+      document.getElementById('resultBaseplateCost').textContent = '$' + baseplateCost.toFixed(2);
+      document.getElementById('resultFrameCost').textContent = '$' + frameCost.toFixed(2);
+      document.getElementById('resultConnectorCost').textContent = '$' + connectorCost.toFixed(2);
+      document.getElementById('resultPrintCost').textContent = '$' + printCost.toFixed(2);
+      document.getElementById('resultLaborCost').textContent = '$' + laborCost.toFixed(2);
+      document.getElementById('resultTotalCOGS').textContent = '$' + totalCOGS.toFixed(2);
+      document.getElementById('resultRetail').textContent = '$' + retailPrice.toFixed(2);
+      document.getElementById('resultProfit').textContent = '$' + profit.toFixed(2);
+      document.getElementById('resultMargin').textContent = margin.toFixed(1) + '%';
+
+      // Color code margin
+      const marginEl = document.getElementById('resultMargin');
+      marginEl.className = margin >= 50 ? 'metric-positive' : (margin >= 30 ? 'metric-warning' : 'metric-negative');
+
+      // Pricing tip
+      let tip = '';
+      if (margin < 30) {
+        tip = '⚠️ Margin too low. Increase price or reduce costs (use China suppliers at volume).';
+      } else if (margin > 70) {
+        tip = '💰 Excellent margin! Consider aggressive pricing to capture market share.';
+      } else {
+        tip = '✅ Healthy margin for premium positioning. Test price elasticity.';
+      }
+      document.getElementById('pricingTip').textContent = tip;
+    }
+  </script>
+</body>
+</html>
