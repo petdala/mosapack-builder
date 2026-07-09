@@ -1,0 +1,15 @@
+Status before report generation
+
+ M public/builder/index.html
+ M public/index.html
+ M scripts/verify-builder-public-copy.sh
+ M scripts/verify-builder-upload-simplification.sh
+ M scripts/verify-public-copy-and-ops-gating.sh
+?? .claude/
+?? .playwright-cli/
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/PUBLIC_BUILDER_HARDENING_V1_REPORT.md
+?? docs/mosapack/qa/public-builder-hardening-v1/
+?? scripts/verify-public-builder-hardening.sh
+
+Report files are generated after this status snapshot.

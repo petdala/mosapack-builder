@@ -1,0 +1,15 @@
+Diff before report generation
+
+ config/production-constants.json                   |  32 ++++++
+ .../mosapack/BUILDABLE_OUTPUT_ARCHITECTURE_PLAN.md |  17 ++++
+ ...UILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_SPEC.md |  37 +++++++
+ .../GATE_A_PDF_MODE_IMPLEMENTATION_REPORT.md       |   9 ++
+ ...GENERATE_KIT_PACK_PORT_IMPLEMENTATION_REPORT.md |  11 ++
+ docs/mosapack/PRODUCTION_CONSTANTS_LOADER_PLAN.md  |  30 ++++++
+ docs/mosapack/PRODUCTION_JSON_ADAPTER_PLAN.md      |  21 ++++
+ docs/mosapack/SUPPLIER_SAMPLE_PACKET_CHECKLIST.md  |  29 ++++++
+ scripts/verify-generate-kit-pack.sh                |  72 +++++++++----
+ tools/kitpack/generate_kit_pack.py                 | 111 +++++++++++++++++++++
+ 10 files changed, 349 insertions(+), 20 deletions(-)
+
+Report files are generated after this diff snapshot.

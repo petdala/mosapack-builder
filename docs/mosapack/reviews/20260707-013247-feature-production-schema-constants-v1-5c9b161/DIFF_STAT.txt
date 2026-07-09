@@ -1,0 +1,10 @@
+Diff before report generation
+
+ ...MAGNET_PROOF_OUTPUT_V1_IMPLEMENTATION_REPORT.md |  33 +++
+ ...UILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_SPEC.md |  35 ++-
+ docs/mosapack/PRODUCTION_JSON_ADAPTER_PLAN.md      |  20 +-
+ .../mosapack/PRODUCTION_JSON_SCHEMA_DIFF_REPORT.md |  34 ++-
+ public/builder/index.html                          | 325 ++++++++++++++++++++-
+ 5 files changed, 437 insertions(+), 10 deletions(-)
+
+Report files are generated after this diff snapshot.

@@ -1,0 +1,13 @@
+Status before report generation
+
+ M docs/mosapack/BUILDABLE_OUTPUT_ARCHITECTURE_PLAN.md
+ M docs/mosapack/GENERATE_KIT_PACK_PORT_IMPLEMENTATION_REPORT.md
+ M docs/mosapack/GENERATE_KIT_PACK_REFERENCE_REVIEW.md
+ M scripts/verify-generate-kit-pack.sh
+ M tools/kitpack/README.md
+ M tools/kitpack/generate_kit_pack.py
+?? docs/mosapack/GATE_A_PDF_MODE_IMPLEMENTATION_REPORT.md
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/SUPPLIER_SAMPLE_PACKET_CHECKLIST.md
+
+Report files are generated after this status snapshot.

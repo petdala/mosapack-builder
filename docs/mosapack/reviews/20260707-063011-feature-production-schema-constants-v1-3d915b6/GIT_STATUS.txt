@@ -1,0 +1,16 @@
+Status before report generation
+
+ M config/production-constants.json
+ M docs/mosapack/FULFILLMENT_MODES_V1.md
+ M docs/mosapack/GENERATE_KIT_PACK_PORT_IMPLEMENTATION_REPORT.md
+ M docs/mosapack/POD_SUPPLIER_RFQ_EMAIL_TEMPLATE.md
+ M docs/mosapack/POD_SUPPLIER_TECHNICAL_SPEC.md
+ M docs/mosapack/POD_SUPPLIER_VALIDATION_PACKET_V1.md
+ M docs/mosapack/PRODUCTION_CONSTANTS_LOADER_PLAN.md
+ M docs/mosapack/STOCK_COLOR_SHEET_MATH_MODEL.md
+ M scripts/verify-generate-kit-pack.sh
+ M tools/kitpack/generate_kit_pack.py
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? fixtures/designs/sample-design-pixel-portrait-12.v1_1.json
+
+Report files are generated after this status snapshot.

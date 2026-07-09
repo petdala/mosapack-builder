@@ -1,0 +1,11 @@
+Status before report generation
+
+ M docs/mosapack/BUILDABLE_OUTPUT_ARCHITECTURE_PLAN.md
+ M docs/mosapack/BUILDABLE_PROOF_OUTPUT_EXECUTION_BOARD.md
+ M docs/mosapack/BUILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_SPEC.md
+ M docs/mosapack/PROOF_REQUEST_OPERATIONS_RUNBOOK.md
+ M public/builder/index.html
+?? docs/mosapack/BUILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_IMPLEMENTATION_REPORT.md
+?? scripts/verify-buildable-proof-output.sh
+
+Report files are generated after this status snapshot.

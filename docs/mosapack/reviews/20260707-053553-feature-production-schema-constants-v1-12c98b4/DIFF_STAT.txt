@@ -1,0 +1,11 @@
+Diff before report generation
+
+ docs/mosapack/CELL_SIZE_GRID_PROFILE_STANDARD.md  | 11 +++++++++
+ docs/mosapack/FULFILLMENT_MODES_V1.md             | 19 ++++++++++++++++
+ docs/mosapack/STOCK_COLOR_SHEET_MATH_MODEL.md     | 13 +++++++++++
+ docs/mosapack/SUPPLIER_RFQ_EXECUTION_TRACKER.md   | 23 +++++++++++++++++++
+ docs/mosapack/SUPPLIER_RFQ_TEMPLATES.md           | 27 +++++++++++++++++++++++
+ docs/mosapack/SUPPLIER_SAMPLE_PACKET_CHECKLIST.md | 21 ++++++++++++++++++
+ 6 files changed, 114 insertions(+)
+
+Report files are generated after this diff snapshot.

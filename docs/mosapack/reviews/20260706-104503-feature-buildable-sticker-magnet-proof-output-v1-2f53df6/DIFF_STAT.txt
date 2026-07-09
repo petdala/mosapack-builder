@@ -1,0 +1,10 @@
+Diff before report generation
+
+ .../mosapack/BUILDABLE_OUTPUT_ARCHITECTURE_PLAN.md |  34 +-
+ .../BUILDABLE_PROOF_OUTPUT_EXECUTION_BOARD.md      |  20 +-
+ ...UILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_SPEC.md |  19 +-
+ docs/mosapack/PROOF_REQUEST_OPERATIONS_RUNBOOK.md  |  21 +
+ public/builder/index.html                          | 461 +++++++++++++++++++++
+ 5 files changed, 528 insertions(+), 27 deletions(-)
+
+Report files are generated after this diff snapshot.

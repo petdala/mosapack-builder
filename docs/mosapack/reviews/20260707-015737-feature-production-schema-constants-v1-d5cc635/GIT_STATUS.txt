@@ -1,0 +1,22 @@
+Status before report generation
+
+ M config/design-schema.v1.json
+ M docs/mosapack/BUILDABLE_OUTPUT_ARCHITECTURE_PLAN.md
+ M docs/mosapack/BUILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_IMPLEMENTATION_REPORT.md
+ M docs/mosapack/BUILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_SPEC.md
+ M docs/mosapack/CANONICAL_DESIGN_EXPORT_ADAPTER_V1_REPORT.md
+ M docs/mosapack/GENERATE_KIT_PACK_REFERENCE_REVIEW.md
+ M docs/mosapack/PRODUCTION_JSON_ADAPTER_PLAN.md
+ M docs/mosapack/reviews/latest/ARTIFACTS.md
+ M docs/mosapack/reviews/latest/DIFF_STAT.txt
+ M docs/mosapack/reviews/latest/FILES_CHANGED.md
+ M docs/mosapack/reviews/latest/GIT_STATUS.txt
+ M docs/mosapack/reviews/latest/REVIEW_HANDOFF.md
+ M docs/mosapack/reviews/latest/VERIFICATION.md
+?? docs/mosapack/GENERATE_KIT_PACK_PORT_IMPLEMENTATION_REPORT.md
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/reviews/20260707-015659-feature-production-schema-constants-v1-d5cc635/
+?? scripts/verify-generate-kit-pack.sh
+?? tools/
+
+Report files are generated after this status snapshot.

@@ -1,0 +1,13 @@
+Status before report generation
+
+ M public/builder/index.html
+ M scripts/verify-builder-upload-layout.sh
+ M scripts/verify-builder-upload-simplification.sh
+ M scripts/verify-public-builder-wizard.sh
+?? .claude/
+?? .playwright-cli/
+?? docs/mosapack/BUILDER_FINAL_PROOF_WIZARD_POLISH_REPORT.md
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/qa/builder-final-proof-wizard-polish/
+
+Report files are generated after this status snapshot.

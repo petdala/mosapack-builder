@@ -1,0 +1,11 @@
+Diff before report generation
+
+ public/builder/index.html                        | 800 +++++++++++++++++++----
+ scripts/verify-b2-design-save.sh                 |   2 +-
+ scripts/verify-builder-focused-walkthrough.sh    |   2 +-
+ scripts/verify-mosaic-clean-category-profiles.sh |   2 +-
+ scripts/verify-public-builder-hard-split.sh      |   2 +-
+ scripts/verify-public-builder-wizard.sh          |  14 +-
+ 6 files changed, 680 insertions(+), 142 deletions(-)
+
+Report files are generated after this diff snapshot.

@@ -1,0 +1,11 @@
+Diff before report generation
+
+ .../mosapack/BUILDABLE_OUTPUT_ARCHITECTURE_PLAN.md | 25 ++++++----
+ .../GATE_A_PDF_MODE_IMPLEMENTATION_REPORT.md       | 57 +++++++++++++++-------
+ ...GENERATE_KIT_PACK_PORT_IMPLEMENTATION_REPORT.md | 23 +++++----
+ docs/mosapack/SUPPLIER_SAMPLE_PACKET_CHECKLIST.md  | 29 ++++++-----
+ scripts/verify-generate-kit-pack.sh                | 22 ++++++++-
+ tools/kitpack/generate_kit_pack.py                 | 52 +++++++++++++++-----
+ 6 files changed, 146 insertions(+), 62 deletions(-)
+
+Report files are generated after this diff snapshot.

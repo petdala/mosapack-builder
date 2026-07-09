@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MosaPack – Magnetic Photo Mosaics | Reusable Wall Art in 30 Minutes</title>
-  <meta name="description" content="Transform your photos into magnetic pixel art. Assemble in 30 minutes, hang on any wall, change designs anytime. Professional ΔE00 color matching. Coming soon.">
-  
+  <title>MosaPack - Custom Mosaic Proofs</title>
+  <meta name="description" content="Upload a photo, preview a buildable mosaic, and request a free custom proof. No payment today.">
+
   <!-- Inter Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -48,13 +48,13 @@
        MOSAPACK ULTIMATE PREMIUM DESIGN V4
        Split-screen hero, streamlined design
        ============================================ */
-    
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     :root {
       /* Primary Brand Colors - High Contrast */
       --primary: #0bbf92;
@@ -62,26 +62,26 @@
       --primary-dark: #089b76;
       --primary-pale: #e8faf5;
       --primary-glow: rgba(11, 191, 146, 0.25);
-      
+
       /* Pop Color - Hot Pink */
       --pop: #e91e8c;
       --pop-light: #ff5da2;
       --pop-pale: #fff1f7;
       --pop-glow: rgba(233, 30, 140, 0.25);
-      
-      /* Gold - Professional */
+
+      /* Accent button */
       --gold: #f59e0b;
       --gold-light: #fbbf24;
       --gold-dark: #d97706;
       --gold-pale: #fef3c7;
-      
+
       /* Supporting Accents - Accessible */
       --accent-teal: #0bbf92;
       --accent-purple: #7c3aed;
       --accent-amber: #d97706;
       --accent-blue: #2563eb;
       --accent-orange: #ea580c;
-      
+
       /* Neutrals - Enhanced Contrast */
       --white: #ffffff;
       --gray-50: #fafafa;
@@ -94,7 +94,7 @@
       --gray-700: #404040;
       --gray-800: #262626;
       --gray-900: #171717;
-      
+
       /* Semantic Colors */
       --text: #171717;
       --text-primary: #171717;
@@ -107,7 +107,7 @@
       --bg-primary: #ffffff;
       --bg-alt: #fafafa;
       --bg-secondary: #fafafa;
-      
+
       /* Premium Shadows */
       --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
@@ -119,25 +119,25 @@
       --shadow-teal: 0 10px 40px -8px rgba(11, 191, 146, 0.3);
       --shadow-pop: 0 10px 40px -8px rgba(233, 30, 140, 0.3);
       --shadow-gold: 0 10px 40px -8px rgba(245, 158, 11, 0.4);
-      
+
       /* Gradients */
       --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       --gradient-pop: linear-gradient(135deg, var(--pop) 0%, #c61670 100%);
       --gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
       --gradient-hero: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--gray-50) 100%);
-      
+
       /* Border Radius */
       --radius-sm: 6px;
       --radius: 12px;
       --radius-lg: 16px;
       --radius-xl: 24px;
       --radius-2xl: 32px;
-      
+
       /* Transitions */
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--white);
@@ -147,7 +147,7 @@
       -moz-osx-font-smoothing: grayscale;
       overflow-x: hidden;
     }
-    
+
     /* Animated Background */
     .bg-gradient {
       position: fixed;
@@ -192,13 +192,13 @@
       background: radial-gradient(circle, rgba(233, 30, 140, 0.12) 0%, transparent 70%);
       animation-delay: -15s;
     }
-    
+
     @keyframes float-slow {
       0%, 100% { transform: translate(0, 0) scale(1); }
       33% { transform: translate(50px, -50px) scale(1.1); }
       66% { transform: translate(-30px, 30px) scale(0.9); }
     }
-    
+
     /* Container */
     .container {
       max-width: 1280px;
@@ -207,7 +207,7 @@
       position: relative;
       z-index: 1;
     }
-    
+
     /* Navigation */
     .nav {
       background: rgba(255, 255, 255, 0.95);
@@ -219,13 +219,13 @@
       z-index: 1000;
       transition: var(--transition);
     }
-    
+
     .nav.scrolled {
       background: rgba(255, 255, 255, 0.98);
       box-shadow: var(--shadow-sm);
       border-bottom-color: var(--border);
     }
-    
+
     .nav-content {
       display: flex;
       justify-content: space-between;
@@ -297,7 +297,7 @@
       gap: 24px;
       margin-left: auto;
     }
-    
+
     .nav-link {
       color: var(--text-light);
       text-decoration: none;
@@ -346,7 +346,7 @@
       transform: translateY(-2px) scale(1.02);
       box-shadow: 0 20px 50px -10px rgba(245, 158, 11, 0.5);
     }
-    
+
     /* Mobile Menu Toggle */
     .mobile-menu-toggle {
       display: none;
@@ -357,7 +357,7 @@
       cursor: pointer;
       padding: 8px;
     }
-    
+
     .mobile-menu-toggle span {
       width: 24px;
       height: 2.5px;
@@ -365,50 +365,60 @@
       transition: var(--transition-fast);
       border-radius: 2px;
     }
-    
-    /* SPLIT-SCREEN HERO SECTION */
+
+    /* Proof-first homepage hero */
     .hero-split {
       position: relative;
-      min-height: calc(100vh - 70px);
-      padding: 80px 0 100px;
-      max-width: 1400px;
+      min-height: auto;
+      padding: 48px 0 52px;
+      max-width: 1280px;
       margin: 0 auto;
     }
 
     .hero-split::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 200px;
-      background: var(--gradient-hero);
-      pointer-events: none;
-      z-index: 0;
+      display: none;
     }
 
-    /* Full-width header at top */
-    .hero-header {
-      text-align: center;
-      margin-bottom: 60px;
+    .hero-proof-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 44px;
+      align-items: center;
       position: relative;
       z-index: 1;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
+    }
+
+    .hero-header {
+      text-align: left;
+      margin-bottom: 0;
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin-left: 0;
+      margin-right: 0;
     }
 
     .hero-header h1 {
-      font-size: clamp(2.75rem, 5vw, 4rem);
-      margin-bottom: 24px;
+      font-size: clamp(2.65rem, 4vw, 3.5rem);
+      line-height: 1.02;
+      margin-bottom: 16px;
+      letter-spacing: -1.4px;
     }
 
     .hero-header .hero-subtitle {
-      font-size: 1.25rem;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-      margin-bottom: 0;
+      font-size: clamp(1.05rem, 1.5vw, 1.22rem);
+      max-width: 660px;
+      margin-left: 0;
+      margin-right: 0;
+      margin-bottom: 12px;
+    }
+
+    .hero-support-line {
+      color: var(--text-light);
+      font-size: 1rem;
+      line-height: 1.55;
+      max-width: 640px;
+      margin: 0 0 22px;
     }
 
     /* 50/50 Grid for cards + slider below */
@@ -425,7 +435,7 @@
       position: relative;
       z-index: 1;
     }
-    
+
     /* Lead Gen Badge */
     .lead-badge {
       display: inline-block;
@@ -437,7 +447,7 @@
       font-size: 0.875rem;
       font-weight: 700;
       margin-bottom: 20px;
-      animation: pulse-badge 2s ease-in-out infinite;
+      animation: none;
     }
 
     @keyframes pulse-badge {
@@ -585,7 +595,7 @@
     .hero-actions {
       display: flex;
       gap: 16px;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
       flex-wrap: wrap;
     }
 
@@ -604,76 +614,79 @@
       position: relative;
       overflow: hidden;
     }
-    
+
     .btn-primary {
       background: var(--gradient-pop);
       color: white;
       box-shadow: var(--shadow-pop);
     }
-    
+
     .btn-primary:hover {
       transform: translateY(-3px) scale(1.02);
       box-shadow: 0 20px 50px -10px rgba(233, 30, 140, 0.4);
     }
-    
-    /* Refined Gold Button */
+
+    /* Refined accent button */
     .btn-gold {
       background: var(--gradient-gold);
       color: #78350f;
       box-shadow: var(--shadow-gold);
       font-weight: 700;
     }
-    
+
     .btn-gold:hover {
       transform: translateY(-3px) scale(1.02);
       box-shadow: 0 20px 50px -10px rgba(245, 158, 11, 0.5);
       filter: brightness(1.05);
     }
-    
+
     .btn-secondary {
       background: white;
       color: var(--text);
       border: 2px solid var(--border);
       box-shadow: var(--shadow);
     }
-    
+
     .btn-secondary:hover {
       border-color: var(--primary);
       color: var(--primary);
       transform: translateY(-3px);
       box-shadow: var(--shadow-lg);
     }
-    
+
     .btn-icon {
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       font-size: 1.25rem;
     }
-    
+
     .btn:hover .btn-icon {
       transform: translateX(4px);
     }
-    
-    /* Value Props */
-    .value-props {
+
+    .hero-trust-row {
       display: flex;
-      gap: 32px;
+      gap: 14px;
       flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 40px;
+      align-items: center;
+      margin-top: 0;
     }
 
-    .value-item {
+    .hero-trust-item {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       font-size: 0.9375rem;
       color: var(--text-light);
       font-weight: 500;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(221, 226, 232, 0.9);
+      border-radius: 999px;
+      padding: 8px 12px;
     }
 
-    .value-icon {
-      width: 36px;
-      height: 36px;
+    .hero-trust-icon {
+      width: 22px;
+      height: 22px;
       background: var(--primary-pale);
       border-radius: 50%;
       display: flex;
@@ -684,7 +697,85 @@
       font-weight: bold;
       flex-shrink: 0;
     }
-    
+
+    .hero-proof-panel {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(221, 226, 232, 0.9);
+      border-radius: 28px;
+      box-shadow: 0 28px 70px -42px rgba(16, 24, 40, 0.34);
+      padding: 28px;
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-proof-panel h2 {
+      font-size: 1.35rem;
+      line-height: 1.2;
+      margin: 0 0 8px;
+      letter-spacing: -0.2px;
+    }
+
+    .hero-proof-panel > p {
+      color: var(--text-light);
+      margin: 0 0 18px;
+      line-height: 1.5;
+    }
+
+    .proof-path-cards {
+      display: grid;
+      gap: 12px;
+    }
+
+    .proof-path-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: white;
+      padding: 16px;
+      box-shadow: 0 10px 28px -24px rgba(17, 24, 39, 0.4);
+    }
+
+    .proof-path-card.is-primary {
+      border-color: rgba(11, 191, 146, 0.42);
+      background: linear-gradient(135deg, rgba(11, 191, 146, 0.08) 0%, #fff 74%);
+    }
+
+    .proof-path-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: var(--primary-pale);
+      color: var(--primary-dark);
+      font-weight: 800;
+    }
+
+    .proof-path-card:nth-child(2) .proof-path-icon {
+      background: rgba(233, 30, 140, 0.1);
+      color: var(--pop);
+    }
+
+    .proof-path-card:nth-child(3) .proof-path-icon {
+      background: rgba(245, 158, 11, 0.14);
+      color: #a16207;
+    }
+
+    .proof-path-card h3 {
+      font-size: 1rem;
+      margin: 0 0 4px;
+      color: var(--text);
+    }
+
+    .proof-path-card p {
+      margin: 0;
+      color: var(--text-light);
+      font-size: 0.9375rem;
+      line-height: 1.42;
+    }
+
     /* Hero Slider */
     .hero-slider {
       position: relative;
@@ -718,7 +809,7 @@
         0 50px 100px -25px rgba(0, 0, 0, 0.2);
       transform: translateY(-8px) scale(1.01);
     }
-    
+
     .slider-image {
       width: 100%;
       height: 100%;
@@ -728,7 +819,7 @@
       background-size: cover;
       background-position: center;
     }
-    
+
     .slider-image.before {
       background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
       z-index: 2;
@@ -739,7 +830,7 @@
       color: var(--text-muted);
       font-weight: 600;
     }
-    
+
     .slider-image.after {
       background: linear-gradient(135deg, var(--primary-pale), var(--pop-pale));
       z-index: 1;
@@ -749,19 +840,19 @@
       gap: 1px;
       padding: 20px;
     }
-    
+
     .mosaic-cell {
       background: var(--primary-light);
       opacity: 0.7;
       border-radius: 2px;
       transition: opacity 0.3s;
     }
-    
+
     .mosaic-cell:nth-child(3n) { background: var(--primary); opacity: 0.8; }
     .mosaic-cell:nth-child(5n) { background: var(--primary-dark); opacity: 0.6; }
     .mosaic-cell:nth-child(7n) { background: var(--pop); opacity: 0.5; }
     .mosaic-cell:nth-child(11n) { background: var(--accent-purple); opacity: 0.4; }
-    
+
     .slider-divider {
       position: absolute;
       top: 0;
@@ -774,7 +865,7 @@
       cursor: ew-resize;
       box-shadow: 0 0 30px rgba(0,0,0,0.3);
     }
-    
+
     .slider-handle {
       position: absolute;
       top: 50%;
@@ -791,12 +882,12 @@
       box-shadow: var(--shadow-xl);
       transition: var(--transition);
     }
-    
+
     .slider-handle:hover {
       transform: translate(-50%, -50%) scale(1.15);
       box-shadow: var(--shadow-pop);
     }
-    
+
     .slider-handle::before,
     .slider-handle::after {
       content: '';
@@ -806,17 +897,17 @@
       border-style: solid;
       border-width: 7px;
     }
-    
+
     .slider-handle::before {
       left: 12px;
       border-color: transparent var(--pop) transparent transparent;
     }
-    
+
     .slider-handle::after {
       right: 12px;
       border-color: transparent transparent transparent var(--pop);
     }
-    
+
     .slider-labels {
       position: absolute;
       top: 20px;
@@ -827,7 +918,7 @@
       z-index: 4;
       pointer-events: none;
     }
-    
+
     .slider-label {
       padding: 8px 16px;
       background: rgba(0, 0, 0, 0.75);
@@ -838,7 +929,7 @@
       backdrop-filter: blur(12px);
       box-shadow: var(--shadow);
     }
-    
+
     /* Builder Preview - Professional Polish */
     .builder-preview {
       padding: 80px 0 100px;
@@ -1451,7 +1542,7 @@
       transform: scale(1.15) rotate(5deg);
       box-shadow: 0 4px 12px rgba(11, 191, 146, 0.3);
     }
-    
+
     /* Process Section */
     .process {
       padding: 120px 0;
@@ -1672,13 +1763,13 @@
       padding: 120px 0;
       background: var(--gray-50);
     }
-    
+
     .products-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 40px;
     }
-    
+
     .product-card {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
@@ -1691,7 +1782,7 @@
       overflow: hidden;
       box-shadow: var(--shadow-md);
     }
-    
+
     .product-card::before {
       content: '';
       position: absolute;
@@ -1704,23 +1795,23 @@
       transform-origin: left;
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     .product-card:hover::before {
       transform: scaleX(1);
     }
-    
+
     .product-card:hover {
       transform: translateY(-12px);
       box-shadow: var(--shadow-2xl);
       border-color: transparent;
     }
-    
+
     .product-card.featured {
       border-color: var(--primary);
       background: linear-gradient(to bottom, var(--primary-pale) 0%, white 30%);
       box-shadow: var(--shadow-lg);
     }
-    
+
     .product-badge {
       position: absolute;
       top: 24px;
@@ -1735,18 +1826,18 @@
       letter-spacing: 0.5px;
       box-shadow: 0 10px 40px -8px rgba(233, 30, 140, 0.3);
     }
-    
+
     .product-badge.budget {
       background: var(--primary);
       box-shadow: var(--shadow-teal);
     }
-    
+
     .product-badge.premium {
       background: var(--gradient-gold);
       color: #78350f;
       box-shadow: var(--shadow-gold);
     }
-    
+
     .product-icon {
       width: 80px;
       height: 80px;
@@ -1760,20 +1851,20 @@
       transition: var(--transition);
       box-shadow: var(--shadow-sm);
     }
-    
+
     .product-card:hover .product-icon {
       transform: scale(1.1) rotate(-5deg);
       box-shadow: var(--shadow-teal);
     }
-    
+
     .product-card:nth-child(2) .product-icon {
       background: rgba(124, 58, 237, 0.1);
     }
-    
+
     .product-card:nth-child(3) .product-icon {
       background: var(--gold-pale);
     }
-    
+
     .product-name {
       font-size: 2rem;
       font-weight: 800;
@@ -1781,7 +1872,7 @@
       color: var(--text);
       letter-spacing: -0.5px;
     }
-    
+
     .product-tagline {
       font-size: 0.875rem;
       color: var(--text-muted);
@@ -1790,7 +1881,7 @@
       margin-bottom: 24px;
       font-weight: 600;
     }
-    
+
     .product-price {
       font-size: 3rem;
       font-weight: 900;
@@ -1802,19 +1893,19 @@
       line-height: 1;
       letter-spacing: -1px;
     }
-    
+
     .product-price .from {
       font-size: 1.125rem;
       font-weight: 500;
       color: var(--text-muted);
       -webkit-text-fill-color: var(--text-muted);
     }
-    
+
     .product-features {
       list-style: none;
       margin-bottom: 36px;
     }
-    
+
     .product-features li {
       padding: 14px 0;
       display: flex;
@@ -1825,12 +1916,12 @@
       border-bottom: 1px solid var(--gray-100);
       transition: var(--transition-fast);
     }
-    
+
     .product-features li:hover {
       padding-left: 10px;
       color: var(--text);
     }
-    
+
     .product-features li::before {
       content: '✓';
       color: var(--primary);
@@ -1845,7 +1936,7 @@
       background: var(--primary-pale);
       border-radius: 50%;
     }
-    
+
     /* Comparison Table */
     .comparison {
       padding: 60px 0;
@@ -2213,14 +2304,14 @@
       padding: 120px 0;
       background: var(--gray-50);
     }
-    
+
     .testimonials-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 40px;
       margin-top: 64px;
     }
-    
+
     .testimonial-card {
       padding: 40px;
       background: rgba(255, 255, 255, 0.95);
@@ -2232,19 +2323,19 @@
       transition: var(--transition);
       box-shadow: var(--shadow-md);
     }
-    
+
     .testimonial-card:hover {
       box-shadow: var(--shadow-lg);
       transform: translateY(-8px);
       border-color: var(--primary);
     }
-    
+
     .testimonial-stars {
       color: var(--accent-amber);
       font-size: 1.25rem;
       margin-bottom: 20px;
     }
-    
+
     .testimonial-text {
       font-size: 1.0625rem;
       line-height: 1.6;
@@ -2252,13 +2343,13 @@
       margin-bottom: 24px;
       font-weight: 500;
     }
-    
+
     .testimonial-author {
       display: flex;
       align-items: center;
       gap: 16px;
     }
-    
+
     .testimonial-avatar {
       width: 52px;
       height: 52px;
@@ -2272,18 +2363,18 @@
       font-size: 1.25rem;
       box-shadow: var(--shadow-teal);
     }
-    
+
     .testimonial-name {
       font-weight: 700;
       color: var(--text);
       font-size: 1rem;
     }
-    
+
     .testimonial-role {
       font-size: 0.875rem;
       color: var(--text-muted);
     }
-    
+
     /* Gallery Section */
     .gallery-section {
       padding: 120px 0;
@@ -2670,7 +2761,7 @@
       position: relative;
       overflow: hidden;
     }
-    
+
     .cta::before {
       content: '';
       position: absolute;
@@ -2681,41 +2772,41 @@
       background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
       animation: rotate-slow 25s linear infinite;
     }
-    
+
     @keyframes rotate-slow {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
-    
+
     .cta > * {
       position: relative;
       z-index: 1;
     }
-    
+
     .cta h2 {
       color: white;
       margin-bottom: 20px;
     }
-    
+
     .cta-subtitle {
       font-size: 1.375rem;
       opacity: 0.95;
       margin-bottom: 40px;
       font-weight: 400;
     }
-    
+
     .btn-white {
       background: white;
       color: var(--pop);
       box-shadow: var(--shadow-xl);
     }
-    
+
     .btn-white:hover {
       background: var(--gray-50);
       transform: translateY(-4px) scale(1.05);
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
-    
+
     /* Footer */
     .footer {
       padding: 80px 0 48px;
@@ -2723,7 +2814,7 @@
       color: white;
       position: relative;
     }
-    
+
     .footer::before {
       content: '';
       position: absolute;
@@ -2733,14 +2824,14 @@
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--gray-700), transparent);
     }
-    
+
     .footer-grid {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 1fr;
       gap: 60px;
       margin-bottom: 60px;
     }
-    
+
     .footer-brand {
       display: flex;
       align-items: center;
@@ -2749,7 +2840,7 @@
       font-weight: 800;
       margin-bottom: 20px;
     }
-    
+
     .footer-description {
       color: var(--gray-300); /* Lighter for better contrast on dark background */
       line-height: 1.6;
@@ -2786,7 +2877,7 @@
       color: var(--gray-400); /* Slightly lighter for better readability */
       font-size: 0.875rem;
     }
-    
+
     /* Scroll to Top */
     .scroll-top {
       position: fixed;
@@ -2810,34 +2901,42 @@
       font-size: 1.5rem;
       font-weight: bold;
     }
-    
+
     .scroll-top.visible {
       opacity: 1;
       visibility: visible;
     }
-    
+
     .scroll-top:hover {
       background: #c61670;
       transform: translateY(-6px) scale(1.1);
       box-shadow: 0 20px 50px -10px rgba(233, 30, 140, 0.5);
     }
-    
+
     /* Responsive Design */
     @media (max-width: 1024px) {
       .hero-split {
-        grid-template-columns: 1fr;
-        gap: 60px;
+        padding: 48px 0 56px;
       }
-      
+
+      .hero-proof-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+
+      .hero-header {
+        max-width: 760px;
+      }
+
       .products-grid,
       .testimonials-grid {
         grid-template-columns: 1fr;
       }
-      
+
       .process-grid {
         grid-template-columns: repeat(2, 1fr);
       }
-      
+
       .footer-grid {
         grid-template-columns: 1fr 1fr;
       }
@@ -2850,7 +2949,7 @@
         padding: 50px 30px;
       }
     }
-    
+
     @media (max-width: 1024px) {
       .nav-menu {
         gap: 16px;
@@ -2866,8 +2965,6 @@
       }
 
       .hero-split {
-        grid-template-columns: 1fr;
-        gap: 48px;
         padding: 48px 0 60px;
         min-height: auto;
       }
@@ -2904,42 +3001,65 @@
       }
 
       .hero-split {
-        padding: 40px 0 60px;
-        gap: 32px;
+        padding: 32px 0 40px;
       }
 
-      .hero-content {
-        padding: 28px;
+      .hero-proof-grid {
+        gap: 22px;
       }
 
       .hero-subtitle {
         font-size: 1rem;
       }
 
+      .hero-header h1 {
+        font-size: clamp(2.2rem, 10vw, 3rem);
+        margin-bottom: 14px;
+      }
+
+      .hero-support-line {
+        font-size: 0.95rem;
+        margin-bottom: 22px;
+      }
+
       .lead-badge {
         font-size: 0.8125rem;
-        padding: 8px 20px;
+        padding: 8px 16px;
+        margin-bottom: 14px;
       }
-      
+
       .hero-actions {
         flex-direction: column;
         width: 100%;
       }
-      
+
       .btn {
         width: 100%;
         justify-content: center;
       }
-      
-      .value-props {
-        flex-direction: column;
-        gap: 20px;
+
+      .hero-trust-row {
+        gap: 8px;
       }
-      
+
+      .hero-trust-item {
+        font-size: 0.875rem;
+        padding: 7px 10px;
+      }
+
+      .hero-proof-panel {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .proof-path-card {
+        padding: 14px;
+      }
+
       .process-grid {
         grid-template-columns: 1fr;
       }
-      
+
       .comparison-table {
         overflow-x: auto;
       }
@@ -2979,12 +3099,12 @@
         padding: 60px 32px;
         margin: 80px 16px;
       }
-      
+
       .footer-grid {
         grid-template-columns: 1fr;
         gap: 40px;
       }
-      
+
       .scroll-top {
         bottom: 24px;
         right: 24px;
@@ -3140,7 +3260,7 @@
 
     <!-- CTA Hover Pixels (orbit around buttons) - Added dynamically by JS -->
   </div>
-  
+
   <!-- Navigation -->
   <nav class="nav" id="nav">
     <div class="container">
@@ -3165,7 +3285,7 @@
           <a href="#how-it-works" class="nav-link">How It Works</a>
           <a href="#gallery" class="nav-link">Gallery</a>
           <a href="#faq" class="nav-link">FAQ</a>
-          <a href="./builder/" class="nav-cta">Launch Builder</a>
+          <a href="./builder/" class="nav-cta">Start Proof Builder</a>
         </div>
         <button class="mobile-menu-toggle" aria-label="Toggle menu">
           <span></span>
@@ -3176,102 +3296,81 @@
     </div>
   </nav>
 
-  <!-- SPLIT-SCREEN HERO SECTION -->
-  <section class="hero">
+  <!-- Proof-first homepage hero -->
+  <section class="hero" data-testid="root-hero">
     <div class="container">
       <div class="hero-split">
-        <!-- Full-Width Header -->
-        <div class="hero-header">
-          <div class="lead-badge">
-            Launching Soon – Preview Your Design Free Today
-          </div>
-
-          <h1>Create Custom Photo Mosaics – <span class="text-accent">Your Way</span></h1>
-
-          <p class="hero-subtitle">
-            Turn your photos into stunning pixel art mosaics. Choose ready-made magnetic kits (30 min assembly) or download DIY templates for any cutting machine.
-          </p>
-
-          <div class="value-props">
-            <div class="value-item">
-              <div class="value-icon">✓</div>
-              <span><strong>Ready to hang</strong> in 30 minutes</span>
-            </div>
-            <div class="value-item">
-              <div class="value-icon">✓</div>
-              <span><strong>Change photos</strong> whenever you want</span>
-            </div>
-            <div class="value-item">
-              <div class="value-icon">✓</div>
-              <span><strong>No signup</strong> to preview</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 50/50 Grid: Cards + Slider -->
-        <div class="hero-content-row">
-          <!-- Left: Path Cards & Actions -->
-          <div class="hero-content">
-            <!-- Dual-Path Option Cards -->
-            <div class="path-options">
-            <div class="path-card path-pod">
-              <div class="path-badge">Most Popular</div>
-              <h3>Ready-Made Kits</h3>
-              <p class="path-desc">Magnetic sheets delivered to your door. Assemble in 30 minutes, hang anywhere.</p>
-              <ul class="path-features">
-                <li>✓ Ships in 2-5 days</li>
-                <li>✓ 30 min assembly</li>
-                <li>✓ Reusable & magnetic</li>
-              </ul>
-              <div class="path-price">$12</div>
+        <div class="hero-proof-grid">
+          <div class="hero-header">
+            <div class="lead-badge">
+              Free Preview · Custom Proof · No Payment Today
             </div>
 
-            <div class="path-card path-diy">
-              <h3>DIY Templates</h3>
-              <p class="path-desc">Download SVG templates compatible with Cricut, Silhouette & all cutting machines. Full creative control.</p>
-              <ul class="path-features">
-                <li>✓ Instant download</li>
-                <li>✓ Works with any cutter</li>
-                <li>✓ 4-8 hour DIY project</li>
-              </ul>
-              <div class="path-price">$5</div>
+            <h1 data-testid="root-hero-title">Create your custom mosaic proof</h1>
+
+            <p class="hero-subtitle">
+              Upload a favorite photo, preview a buildable mosaic, and request a free custom proof for review.
+            </p>
+
+            <p class="hero-support-line">
+              Start with a sticker-ready proof. Magnetic and premium display options can be reviewed after proof approval.
+            </p>
+
+            <div class="hero-actions">
+              <a href="./builder/" class="btn btn-gold" data-testid="root-hero-primary-cta">
+                <span>Start Proof Builder</span>
+                <span class="btn-icon">→</span>
+              </a>
+              <a href="#how-it-works" class="btn btn-secondary">
+                <span>See How It Works</span>
+              </a>
+            </div>
+
+            <div class="hero-trust-row">
+              <div class="hero-trust-item">
+                <span class="hero-trust-icon">✓</span>
+                <span>Free preview</span>
+              </div>
+              <div class="hero-trust-item">
+                <span class="hero-trust-icon">✓</span>
+                <span>No payment today</span>
+              </div>
+              <div class="hero-trust-item">
+                <span class="hero-trust-icon">✓</span>
+                <span>Reviewed before any next step</span>
+              </div>
             </div>
           </div>
 
-          <div class="hero-actions">
-            <a href="./builder/" class="btn btn-gold">
-              <span>Try Free Builder – Preview Both Options</span>
-              <span class="btn-icon">→</span>
-            </a>
-            <a href="#comparison" class="btn btn-secondary">
-              <span>Compare DIY vs Ready-Made</span>
-            </a>
-          </div>
-        </div>
-        
-        <!-- Right: Slider -->
-        <div class="hero-slider">
-          <div class="slider-container-hero" id="comparison-slider">
-            <div class="slider-labels">
-              <span class="slider-label">Your Photo</span>
-              <span class="slider-label">Mosaic Result</span>
-            </div>
-            <div class="slider-image before" style="clip-path: inset(0 50% 0 0);">
-              Original
-            </div>
-            <div class="slider-image after">
-              <script>
-                for(let i = 0; i < 1200; i++) {
-                  document.write('<div class="mosaic-cell"></div>');
-                }
-              </script>
-            </div>
-            <div class="slider-divider" id="slider-divider">
-              <div class="slider-handle"></div>
+          <div class="hero-proof-panel" data-testid="root-proof-path-cards">
+            <h2>Proof paths</h2>
+            <p>Start with a free mosaic preview, then request a custom proof for review.</p>
+
+            <div class="proof-path-cards">
+              <div class="proof-path-card is-primary">
+                <div class="proof-path-icon">1</div>
+                <div>
+                  <h3>Sticker-ready proof</h3>
+                  <p>Recommended first proof path.</p>
+                </div>
+              </div>
+              <div class="proof-path-card">
+                <div class="proof-path-icon">2</div>
+                <div>
+                  <h3>Magnetic proof interest</h3>
+                  <p>Reviewed after proof.</p>
+                </div>
+              </div>
+              <div class="proof-path-card">
+                <div class="proof-path-icon">3</div>
+                <div>
+                  <h3>Premium display quote</h3>
+                  <p>Optional review path.</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        </div><!-- End hero-content-row -->
+        </div><!-- End hero-proof-grid -->
       </div>
     </div>
   </section>
@@ -3283,9 +3382,9 @@
         <!-- Compact Header Inside Main Container -->
         <div class="builder-preview-header">
           <span class="section-tag-inline section-tag-gold">Free Preview Tool – No Signup Required</span>
-          <h2 class="builder-preview-title">See Your Photo as a <span class="highlight-white highlight-mark">Magnetic Mosaic</span> in Seconds</h2>
+          <h2 class="builder-preview-title">See Your Photo as a <span class="highlight-white highlight-mark">Custom Mosaic Proof</span></h2>
           <p class="builder-preview-subtitle">
-            Upload any photo and instantly preview how it will look as beautiful magnetic wall art. Professional color matching included.
+            Upload any photo and preview how it can translate into a buildable mosaic. Request a custom proof when you’re ready. Physical formats are reviewed only after proof approval.
           </p>
         </div>
 
@@ -3297,7 +3396,7 @@
               <div class="upload-icon">📸</div>
               <h3 class="upload-title">Upload Your Photo</h3>
               <p class="upload-subtitle">Drag & drop or click to browse</p>
-              <div class="upload-formats">JPG, PNG, HEIC • Max 10MB • Free instant preview</div>
+              <div class="upload-formats">JPG, PNG, HEIC • Max 10MB • Free preview</div>
             </div>
             <div id="uploadPreview" class="upload-preview" style="display: none;">
               <img id="previewImage" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 12px;">
@@ -3306,7 +3405,7 @@
           </div>
 
           <button class="btn-launch" id="launchBuilder" disabled>
-            <span class="btn-launch-text">Launch Full Builder</span>
+            <span class="btn-launch-text">Start Proof Builder</span>
             <span class="btn-launch-icon">→</span>
             <span class="btn-launch-subtitle">Free • No signup required</span>
           </button>
@@ -3315,15 +3414,15 @@
           <div class="trust-badges">
             <div class="trust-item">
               <span class="trust-icon">✓</span>
-              <span>Professional ΔE00 Color Matching</span>
+              <span>Buildable mosaic preview</span>
             </div>
             <div class="trust-item">
               <span class="trust-icon">✓</span>
-              <span>Real Supplier Colors</span>
+              <span>Custom proof review</span>
             </div>
             <div class="trust-item">
               <span class="trust-icon">✓</span>
-              <span>Instant Preview</span>
+              <span>No payment today</span>
             </div>
           </div>
         </div>
@@ -3331,69 +3430,36 @@
     </div>
   </section>
 
-  <!-- Dual-Path Process Section -->
+  <!-- Proof-first process section -->
   <section id="how-it-works" class="process reveal-section">
     <div class="container">
       <div class="section-header">
         <span class="section-tag">Simple Process</span>
-        <h2>How It Works – <span class="text-accent">Both Paths</span></h2>
-        <p class="section-subtitle">Choose ready-made kits or DIY templates. Either way, it's simple.</p>
+        <h2>How Your <span class="text-accent">Proof Request</span> Works</h2>
+        <p class="section-subtitle">Upload your photo, preview the mosaic, and request a free proof for review.</p>
       </div>
 
-      <!-- Tabbed Process View -->
-      <div class="process-tabs">
-        <button class="process-tab active" data-path="pod">Ready-Made Kits (30 min)</button>
-        <button class="process-tab" data-path="diy">DIY Templates (4-8 hours)</button>
-      </div>
-
-      <!-- POD Process -->
       <div class="process-content" data-path="pod">
         <div class="process-grid">
           <div class="process-step">
             <div class="step-number">1</div>
             <h3 class="step-title">Upload Photo</h3>
-            <p class="step-description">Use our free builder to upload your photo. See instant preview with professional ΔE00 color matching.</p>
+            <p class="step-description">Choose a meaningful photo and tell us what kind of image it is.</p>
           </div>
           <div class="process-step">
             <div class="step-number">2</div>
-            <h3 class="step-title">Customize Size & Finish</h3>
-            <p class="step-description">Choose mosaic size (8"×8" to 32"×32"), material type (magnetic, glitter, metallic), and add optional baseplate.</p>
+            <h3 class="step-title">Crop & Preview</h3>
+            <p class="step-description">Crop the subject and preview a buildable mosaic layout.</p>
           </div>
           <div class="process-step">
             <div class="step-number">3</div>
-            <h3 class="step-title">Order Kit</h3>
-            <p class="step-description">Place your order. Your pre-cut kit ships within 2-5 business days with assembly instructions included.</p>
+            <h3 class="step-title">Request Proof</h3>
+            <p class="step-description">Send the preview for review. No payment is collected in the proof builder.</p>
           </div>
           <div class="process-step">
             <div class="step-number">4</div>
-            <h3 class="step-title">Assemble & Hang</h3>
-            <p class="step-description">Follow the simple instructions. Assemble in 30 minutes, hang on any magnetic surface or wall. Done!</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- DIY Process -->
-      <div class="process-content hidden" data-path="diy">
-        <div class="process-grid">
-          <div class="process-step">
-            <div class="step-number">1</div>
-            <h3 class="step-title">Upload Photo</h3>
-            <p class="step-description">Use our free builder to upload your photo. See instant preview with professional ΔE00 color matching.</p>
-          </div>
-          <div class="process-step">
-            <div class="step-number">2</div>
-            <h3 class="step-title">Download Template</h3>
-            <p class="step-description">Purchase and download SVG files compatible with Cricut, Silhouette & all cutters. Includes color guide and material sourcing recommendations.</p>
-          </div>
-          <div class="process-step">
-            <div class="step-number">3</div>
-            <h3 class="step-title">Source & Cut Materials</h3>
-            <p class="step-description">Buy materials (vinyl, magnetic sheets, or cardstock) from your preferred supplier. Cut using your machine (4-6 hours).</p>
-          </div>
-          <div class="process-step">
-            <div class="step-number">4</div>
-            <h3 class="step-title">Assemble & Display</h3>
-            <p class="step-description">Follow template instructions to assemble your mosaic. Frame or mount using your preferred method (2-4 hours).</p>
+            <h3 class="step-title">Review Next Step</h3>
+            <p class="step-description">We review the proof and follow up with the next step by email.</p>
           </div>
         </div>
       </div>
@@ -3405,75 +3471,69 @@
     <div class="container">
       <div class="section-header">
         <span class="section-tag">Choose Your Style</span>
-        <h2>Pick Your Perfect Mosaic Format</h2>
-        <p class="section-subtitle">Magnetic, bricks, or stickers—each brings your photos to life in a unique way</p>
+          <h2>Start With One Proof Path</h2>
+          <p class="section-subtitle">Start with a sticker-ready proof. Magnetic and premium display options can be reviewed after proof approval.</p>
       </div>
 
       <div class="products-grid">
-        <!-- Magnetic Mosaics - PRIMARY PRODUCT -->
         <div class="product-card featured">
-          <span class="product-badge">Most Popular</span>
-          <div class="product-icon">🧲</div>
-          <h3 class="product-name">Magnetic Mosaics</h3>
-          <p class="product-tagline">The easiest way to display your memories</p>
+          <span class="product-badge">Recommended</span>
+          <div class="product-icon">✨</div>
+          <h3 class="product-name">Sticker Proof Path</h3>
+          <p class="product-tagline">Start with a buildable sticker mosaic proof</p>
           <div class="product-price">
-            <span class="from">from</span> $49
+            <span class="from">preview</span> free
           </div>
           <ul class="product-features">
-            <li>Hangs on your wall in 30 minutes</li>
-            <li>Swap out photos whenever you want</li>
-            <li>Magnetic board included—ready to display</li>
-            <li>Professional color matching (18+ colors)</li>
-            <li>Built-in storage—no pieces lost</li>
+            <li>Custom photo mosaic preview</li>
+            <li>Proof review before anything is made</li>
+            <li>Sticker-ready format reviewed first</li>
+            <li>Clear numbered layout for buildability</li>
             <li>Perfect for pet memorials & family photos</li>
           </ul>
-          <a href="./builder/?product=magnetic" class="btn btn-primary" style="width: 100%; text-decoration: none;">
+          <a href="./builder/?product=sticker" class="btn btn-primary" style="width: 100%; text-decoration: none;">
             <span>Preview Your Photo</span>
             <span class="btn-icon">→</span>
           </a>
         </div>
 
-        <!-- Brick Kits - UPSELL -->
         <div class="product-card">
-          <span class="product-badge">For LEGO Fans</span>
-          <div class="product-icon">🧱</div>
-          <h3 class="product-name">Brick Kits</h3>
-          <p class="product-tagline">A satisfying build experience</p>
+          <span class="product-badge">Future Physical Option</span>
+          <div class="product-icon">🧲</div>
+          <h3 class="product-name">Magnetic Proof Path</h3>
+          <p class="product-tagline">A reusable display option after proof review</p>
           <div class="product-price">
-            <span class="from">from</span> $59
+            <span class="from">reviewed</span> after proof
           </div>
           <ul class="product-features">
-            <li>Compatible with your LEGO collection</li>
-            <li>Professional color matching (20+ colors)</li>
-            <li>Everything included—baseplates & guide</li>
-            <li>Relaxing 2-4 hour build time</li>
-            <li>Display-worthy finished piece</li>
-            <li>Great for quality family time</li>
+            <li>Magnet mosaic concept reviewed after proof</li>
+            <li>Good for seasonal or rotating displays</li>
+            <li>Reviewed before any quote</li>
+            <li>No payment or physical-format promise today</li>
+            <li>Useful for family, pet, and gift designs</li>
           </ul>
-          <a href="./builder/?product=brick" class="btn btn-secondary" style="width: 100%; text-decoration: none;">
-            <span>Try Brick Builder</span>
+          <a href="./builder/?product=magnetic" class="btn btn-secondary" style="width: 100%; text-decoration: none;">
+            <span>Preview Magnetic Proof Path</span>
           </a>
         </div>
 
-        <!-- Sticker Packs - DOWNSELL -->
         <div class="product-card">
-          <span class="product-badge budget">Great for Gifts</span>
-          <div class="product-icon">✨</div>
-          <h3 class="product-name">Sticker Packs</h3>
-          <p class="product-tagline">Quick and affordable</p>
+          <span class="product-badge budget">Optional Quote</span>
+          <div class="product-icon">🖼️</div>
+          <h3 class="product-name">Premium Display Quote</h3>
+          <p class="product-tagline">A display-focused quote path after proof approval</p>
           <div class="product-price">
-            <span class="from">from</span> $12
+            <span class="from">quote</span> after proof
           </div>
           <ul class="product-features">
-            <li>All pieces pre-cut—just peel & stick</li>
-            <li>Easy numbered grid template</li>
-            <li>16 vibrant colors to choose from</li>
-            <li>Done in 30-60 minutes</li>
-            <li>No mess—safe for kids</li>
-            <li>Thoughtful gift under $20</li>
+            <li>Premium display mosaic reviewed separately</li>
+            <li>Proof approval before any next step</li>
+            <li>Useful for wall art and keepsake gifts</li>
+            <li>Physical format confirmed before quote</li>
+            <li>No physical format is started from the preview alone</li>
           </ul>
-          <a href="./builder/?product=sticker" class="btn btn-secondary" style="width: 100%; text-decoration: none;">
-            <span>Try Sticker Builder</span>
+          <a href="./builder/" class="btn btn-secondary" style="width: 100%; text-decoration: none;">
+            <span>Preview Display Quote Path</span>
           </a>
         </div>
       </div>
@@ -3484,78 +3544,77 @@
   <section id="comparison" class="comparison">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag gold">Compare Your Options</span>
-        <h2>DIY Templates vs <span class="text-accent">Ready-Made Kits</span></h2>
-        <p class="section-subtitle">Both paths use the same professional ΔE00 color matching. Choose what works best for you.</p>
+        <span class="section-tag gold">Preview First</span>
+        <h2>Start With a <span class="text-accent">Custom Mosaic Proof</span></h2>
+        <p class="section-subtitle">Preview your photo free, then request a proof before any physical format is reviewed.</p>
       </div>
 
       <div class="comparison-cards">
-        <!-- Ready-Made Kits Card (POD) -->
+        <!-- Custom Proof Paths Card -->
         <div class="compare-card featured-card">
           <div class="compare-badge">Most Popular</div>
 
           <div class="compare-hero">
             <div class="compare-hero-image">
-              <!-- Image Placeholder: Person smiling, holding up completed magnetic mosaic on fridge -->
               <div class="hero-placeholder" style="background: linear-gradient(135deg, #e91e8c 0%, #c61670 100%);">
-                <div class="placeholder-text">Delivered to your door</div>
+                <div class="placeholder-text">Proof reviewed first</div>
               </div>
             </div>
           </div>
 
           <div class="compare-content">
             <div class="compare-header">
-              <h3 class="compare-title">Ready-Made Kits</h3>
-              <p class="compare-tagline">Everything included. Just assemble and hang.</p>
+              <h3 class="compare-title">Sticker-Ready Proof</h3>
+              <p class="compare-tagline">A buildable mosaic preview reviewed before any next step.</p>
             </div>
 
             <div class="compare-price">
-              <span class="price-from">from</span>
-              <span class="price-amount">$12</span>
-              <span class="price-range">– $79</span>
+              <span class="price-from">preview</span>
+              <span class="price-amount">free</span>
+              <span class="price-range">today</span>
             </div>
 
             <ul class="compare-features">
               <li class="feature-highlight">
                 <span class="feature-icon">⚡</span>
                 <div>
-                  <strong>30 minutes total</strong>
-                  <p>Unbox, assemble, hang. Done.</p>
+                  <strong>Proof first</strong>
+                  <p>Upload a photo, crop it, and review a buildable mosaic preview.</p>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">✓</span>
                 <div>
-                  <strong>Ships in 2-5 days</strong>
-                  <p>Pre-cut magnetic sheets, ready to go</p>
+                  <strong>Sticker path reviewed first</strong>
+                  <p>Physical format options are confirmed only after proof review.</p>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">✓</span>
                 <div>
-                  <strong>Everything included</strong>
-                  <p>Magnetic pieces, instructions, hanging hardware</p>
+                  <strong>No payment collected today</strong>
+                  <p>Pricing and timing are not part of the preview step.</p>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">✓</span>
                 <div>
-                  <strong>No equipment needed</strong>
-                  <p>Pre-cut and ready. No cutting machine, no mess</p>
+                  <strong>Private proof request</strong>
+                  <p>Your proof request saves only the review details needed for follow-up.</p>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">✓</span>
                 <div>
-                  <strong>Reusable & magnetic</strong>
-                  <p>Change designs anytime. Sticks to any magnetic surface</p>
+                  <strong>Magnetic path after review</strong>
+                  <p>Magnetic formats can be discussed after proof approval.</p>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">✓</span>
                 <div>
-                  <strong>No wall damage</strong>
-                  <p>Magnetic mounting or removable adhesive strips</p>
+                  <strong>Premium display quote</strong>
+                  <p>Display formats stay optional until the mosaic proof is reviewed.</p>
                 </div>
               </li>
             </ul>
@@ -3571,76 +3630,75 @@
             </div>
 
             <a href="./builder/" class="btn btn-gold compare-cta">
-              <span>Preview Kit Options</span>
+              <span>Start Free Proof Preview</span>
               <span class="btn-icon">→</span>
             </a>
           </div>
         </div>
 
-        <!-- DIY Templates Card -->
+        <!-- Review Path Card -->
         <div class="compare-card">
           <div class="compare-hero">
             <div class="compare-hero-image">
-              <!-- Image Placeholder: Person at craft table with Cricut machine and materials -->
               <div class="hero-placeholder" style="background: linear-gradient(135deg, #0bbf92 0%, #089b76 100%);">
-                <div class="placeholder-text">Instant download</div>
+                <div class="placeholder-text">Proof review path</div>
               </div>
             </div>
           </div>
 
           <div class="compare-content">
             <div class="compare-header">
-              <h3 class="compare-title">DIY Templates</h3>
-              <p class="compare-tagline">Full creative control. Source your own materials.</p>
+              <h3 class="compare-title">Digital Review Path</h3>
+              <p class="compare-tagline">Use the preview builder to decide whether your photo is a good fit.</p>
             </div>
 
             <div class="compare-price">
-              <span class="price-from">from</span>
-              <span class="price-amount">$5</span>
-              <span class="price-range">– $15</span>
+              <span class="price-from">proof</span>
+              <span class="price-amount">review</span>
+              <span class="price-range">first</span>
             </div>
 
             <ul class="compare-features">
               <li class="feature-highlight">
                 <span class="feature-icon">⏱️</span>
                 <div>
-                  <strong>4-8 hours total</strong>
-                  <p>Sourcing materials + cutting + assembly</p>
+                  <strong>Free preview</strong>
+                  <p>See how the source photo translates before requesting a proof.</p>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">✓</span>
                 <div>
-                  <strong>Instant download</strong>
-                  <p>SVG files for any cutting machine, start immediately</p>
-                </div>
-              </li>
-              <li>
-                <span class="feature-icon">⚠️</span>
-                <div>
-                  <strong>You source materials</strong>
-                  <p>Buy vinyl, magnetic sheets, or cardstock separately</p>
-                </div>
-              </li>
-              <li>
-                <span class="feature-icon">⚠️</span>
-                <div>
-                  <strong>Cutting machine required</strong>
-                  <p>Need Cricut, Silhouette or similar + materials knowledge</p>
+                  <strong>Custom proof request</strong>
+                  <p>Submit your cropped preview for review when it looks right.</p>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">✓</span>
                 <div>
-                  <strong>Choose your materials</strong>
-                  <p>Vinyl, cardstock, magnetic sheets—your choice</p>
+                  <strong>Format review later</strong>
+                  <p>Sticker, magnetic, and display options are evaluated after proof approval.</p>
                 </div>
               </li>
               <li>
                 <span class="feature-icon">✓</span>
                 <div>
-                  <strong>Custom mounting</strong>
-                  <p>Frame it, stick it, or mount however you want</p>
+                  <strong>No payment here</strong>
+                  <p>The builder collects a proof request, not payment.</p>
+                </div>
+              </li>
+              <li>
+                <span class="feature-icon">✓</span>
+                <div>
+                  <strong>Proof review first</strong>
+                  <p>Physical formats remain reviewed paths after proof approval.</p>
+                </div>
+              </li>
+              <li>
+                <span class="feature-icon">✓</span>
+                <div>
+                  <strong>Clear follow-up</strong>
+                  <p>We respond after reviewing the proof request details.</p>
                 </div>
               </li>
             </ul>
@@ -3648,15 +3706,15 @@
             <div class="compare-best-for">
               <strong>Perfect for:</strong>
               <div class="tag-group">
-                <span class="tag">DIY enthusiasts</span>
-                <span class="tag">Cutting machine owners</span>
-                <span class="tag">Crafters</span>
-                <span class="tag">Custom projects</span>
+                <span class="tag">First proofs</span>
+                <span class="tag">Photo checks</span>
+                <span class="tag">Gift planning</span>
+                <span class="tag">Format review</span>
               </div>
             </div>
 
             <a href="./builder/" class="btn btn-secondary compare-cta">
-              <span>Preview Templates</span>
+              <span>Open Proof Builder</span>
               <span class="btn-icon">→</span>
             </a>
           </div>
@@ -3664,7 +3722,7 @@
       </div>
 
       <div class="comparison-note">
-        <p><strong>Still unsure?</strong> Try our free builder tool to preview both options with your photo. See exactly what you'll get before deciding. No signup required.</p>
+        <p><strong>Still unsure?</strong> Start with the free builder. No payment is collected in the preview builder, and physical formats are reviewed after proof approval.</p>
       </div>
     </div>
   </section>
@@ -3675,7 +3733,7 @@
       <div class="section-header">
         <span class="section-tag">Inspiration Gallery</span>
         <h2>See Mosaics in Real Settings</h2>
-        <p class="section-subtitle">From offices to kids' rooms—magnetic mosaics fit anywhere</p>
+        <p class="section-subtitle">Use these scenes as inspiration while you start with a proof-first preview.</p>
       </div>
 
       <div class="gallery-carousel">
@@ -3715,86 +3773,77 @@
 
       <div class="faq-grid">
         <div class="faq-item faq-featured">
-          <h3 class="faq-question">Can I create mosaics myself (DIY) or do I need to buy a kit?</h3>
-          <p class="faq-answer"><strong>Both options available!</strong> You can choose:</p>
+          <h3 class="faq-question">What happens after I preview my mosaic?</h3>
+          <p class="faq-answer"><strong>Start with a proof request.</strong> You can choose:</p>
           <ul class="faq-list">
-            <li><strong>Ready-Made Kits (Most Popular):</strong> Magnetic sheets delivered pre-cut. Assemble in 30 minutes, ships in 2-5 days. Perfect for gift givers and quick projects. From $12-79.</li>
-            <li><strong>DIY Templates:</strong> Download SVG templates instantly (works with Cricut, Silhouette & all cutting machines). Source your own materials (vinyl, magnetic sheets, cardstock). Great for crafters who want full creative control. From $5-15.</li>
+            <li><strong>Custom Proof Paths:</strong> Sticker-ready proofs come first. Magnetic and premium display formats can be reviewed after proof approval.</li>
+            <li><strong>Digital Review Path:</strong> Use the preview builder to decide whether the photo is a good fit before requesting review.</li>
           </ul>
-          <p class="faq-answer">Both paths use the same professional ΔE00 color matching. <a href="#comparison">Compare options here</a> or try our <a href="./builder/">free builder</a> to preview both.</p>
+          <p class="faq-answer">Both paths begin with the same preview. <a href="#comparison">Compare options here</a> or try our <a href="./builder/">free builder</a>.</p>
         </div>
 
         <div class="faq-item">
-          <h3 class="faq-question">How long does shipping take?</h3>
-          <p class="faq-answer">Ready-made kits ship within 2-5 business days. DIY templates are instant digital downloads—no shipping needed!</p>
+          <h3 class="faq-question">Are physical formats available from the preview alone?</h3>
+          <p class="faq-answer">No. Physical formats are reviewed after proof approval. Pricing and timing are not part of the preview step.</p>
         </div>
 
         <div class="faq-item">
           <h3 class="faq-question">What if I'm not satisfied with my mosaic?</h3>
-          <p class="faq-answer">We offer a 100% satisfaction guarantee. If you're not happy with your mosaic, return it within 30 days for a full refund—no questions asked.</p>
+          <p class="faq-answer">If a photo is not suitable for a clear mosaic proof, we will follow up before recommending any next step.</p>
         </div>
 
         <div class="faq-item">
-          <h3 class="faq-question">How difficult is it to assemble?</h3>
-          <p class="faq-answer">Magnetic mosaics take just 30 minutes and require no special skills. Brick kits take 2-4 hours and are similar to building with LEGO. Stickers are perfect for kids and take under an hour.</p>
+          <h3 class="faq-question">Is payment collected in the preview builder?</h3>
+          <p class="faq-answer">No. The builder creates a free preview and proof request. No payment is collected in the preview builder.</p>
         </div>
 
         <div class="faq-item">
           <h3 class="faq-question">What photo works best?</h3>
-          <p class="faq-answer">Photos with good contrast and clear subjects work best. Portraits, pets, and landscapes are ideal. Our free preview tool shows exactly how your photo will look before you order.</p>
+          <p class="faq-answer">Photos with good contrast and clear subjects work best. Portraits, pets, and landscapes are ideal. Our free preview tool shows how your photo can translate before you request a proof.</p>
         </div>
 
         <div class="faq-item">
-          <h3 class="faq-question">Can I really change the design on magnetic mosaics?</h3>
-          <p class="faq-answer">Yes! The magnetic pieces can be rearranged unlimited times. Order multiple designs and swap them out whenever you want—perfect for seasonal photos or rotating memories.</p>
+          <h3 class="faq-question">Can I review a magnetic format?</h3>
+          <p class="faq-answer">Magnetic formats can be discussed after proof approval. They are not started from the preview alone.</p>
         </div>
 
         <div class="faq-item">
-          <h3 class="faq-question">How much does shipping cost?</h3>
-          <p class="faq-answer">Standard shipping is $6.99 for orders under $50, FREE for orders over $50. Express shipping (2-3 days) available for $14.99.</p>
+          <h3 class="faq-question">When are pricing and timing confirmed?</h3>
+          <p class="faq-answer">Pricing and timing are not confirmed during the free preview step.</p>
         </div>
 
         <div class="faq-item">
-          <h3 class="faq-question">What's ΔE00 color matching?</h3>
-          <p class="faq-answer">ΔE00 is a professional color science formula used by photographers and designers. It ensures your mosaic colors match your photo as accurately as possible—way better than guessing.</p>
+          <h3 class="faq-question">How does color matching work?</h3>
+          <p class="faq-answer">MosaPack uses a professional color science workflow to map your photo into available mosaic colors more accurately than simple RGB guessing.</p>
         </div>
 
         <div class="faq-item">
-          <h3 class="faq-question">Are the brick kits compatible with LEGO?</h3>
-          <p class="faq-answer">Yes! Our bricks are 100% compatible with LEGO bricks, so you can integrate your mosaic with your existing collection or use it as a standalone display piece.</p>
+          <h3 class="faq-question">What physical formats can I review?</h3>
+          <p class="faq-answer">Start with a sticker-ready mosaic proof. Magnetic and premium display options can be discussed after the proof is reviewed.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Waitlist Section -->
-  <section id="waitlist" class="waitlist-section reveal-section">
+  <!-- Proof CTA Section -->
+  <section id="proof-start" class="waitlist-section reveal-section">
     <div class="container">
       <div class="waitlist-content">
         <div class="waitlist-text">
-          <span class="section-tag gold">Join the Waitlist</span>
-          <h2>Be First to Know When We Launch</h2>
-          <p>Get early access, exclusive launch discounts, and be among the first to turn your photos into magnetic mosaics.</p>
+          <span class="section-tag gold">Proof First</span>
+          <h2>Start With a Free Mosaic Proof</h2>
+          <p>Upload your photo, preview a buildable mosaic, and request a custom proof. Physical formats are reviewed only after proof approval.</p>
           <ul class="waitlist-benefits">
-            <li><span class="benefit-check">✓</span> 20% off launch discount (first 100 only)</li>
-            <li><span class="benefit-check">✓</span> Early access before public launch</li>
-            <li><span class="benefit-check">✓</span> Free shipping on first order</li>
-            <li><span class="benefit-check">✓</span> Exclusive design tips & tutorials</li>
+            <li><span class="benefit-check">✓</span> Free preview before proof request</li>
+            <li><span class="benefit-check">✓</span> Sticker-ready path reviewed first</li>
+            <li><span class="benefit-check">✓</span> No payment collected today</li>
+            <li><span class="benefit-check">✓</span> Follow-up after review</li>
           </ul>
         </div>
         <div class="waitlist-form">
-          <form id="waitlistForm" class="email-capture-form">
-            <h3>Save Your Spot</h3>
-            <input type="email" id="waitlistEmail" placeholder="Enter your email" required>
-            <button type="submit" class="btn btn-gold">Join the Waitlist</button>
-            <p class="form-privacy">No spam. Unsubscribe anytime. Your email is safe with us.</p>
-          </form>
-          <div class="waitlist-stats">
-            <div class="stat-item">
-              <div class="stat-number" id="waitlistCount">0</div>
-              <div class="stat-label">Waitlist paused</div>
-            </div>
-          </div>
+          <h3>Ready to preview?</h3>
+          <p class="form-privacy">The builder creates a proof request, not a purchase.</p>
+          <a href="./builder/" class="btn btn-gold" style="width: 100%; text-decoration: none;">Start Proof Builder</a>
         </div>
       </div>
     </div>
@@ -3806,23 +3855,23 @@
       <div class="trust-grid">
         <div class="trust-card">
           <div class="trust-badge-icon">🛡️</div>
-          <h4>30-Day Money Back</h4>
-          <p>Not satisfied? Get a full refund within 30 days. No questions asked.</p>
+          <h4>Proof Before Production</h4>
+          <p>Preview free, then confirm the design before any physical format is reviewed.</p>
         </div>
         <div class="trust-card">
           <div class="trust-badge-icon">🔒</div>
           <h4>Secure Preview Tool</h4>
-          <p>Your photos are never stored. All processing happens in your browser—100% private.</p>
+          <p>The current preview runs in your browser. Any future saved proof workflow will disclose photo retention before upload.</p>
         </div>
         <div class="trust-card">
           <div class="trust-badge-icon">📦</div>
-          <h4>Free Shipping Over $50</h4>
-          <p>Orders over $50 ship free. Fast 5-7 day delivery across the US.</p>
+          <h4>Proof Review First</h4>
+          <p>Custom physical options stay proof-based after proof approval.</p>
         </div>
         <div class="trust-card">
           <div class="trust-badge-icon">⚡</div>
-          <h4>Quality Guarantee</h4>
-          <p>Premium materials, professional color matching, satisfaction guaranteed or your money back.</p>
+          <h4>Design Review</h4>
+          <p>Preview your mosaic first, then request a custom proof before any physical format is reviewed.</p>
         </div>
       </div>
     </div>
@@ -3838,9 +3887,9 @@
           <a href="#compare" class="btn btn-secondary">Compare Options</a>
         </div>
         <div class="cta-card">
-          <h3>Shopping for a Gift?</h3>
-          <p>Discover which mosaic makes the most meaningful gift for your loved one.</p>
-          <a href="#products" class="btn btn-secondary">View Gift Ideas</a>
+          <h3>Making a Gift?</h3>
+          <p>Start with a meaningful photo and request a proof before choosing any physical format.</p>
+          <a href="#products" class="btn btn-secondary">Review Proof Paths</a>
         </div>
         <div class="cta-card">
           <h3>Need Photo Help?</h3>
@@ -3855,7 +3904,7 @@
   <div class="container">
     <section class="cta">
       <h2>Ready to See Your Photo as a Mosaic?</h2>
-      <p class="cta-subtitle">Upload any photo and get an instant preview in 3 seconds. Free, no signup required, works with any image.</p>
+      <p class="cta-subtitle">Upload any photo and preview a buildable mosaic. Free, no signup required, works with any image.</p>
       <a href="./builder/" class="btn btn-white">
         <span>Preview Your Photo Now</span>
         <span class="btn-icon">→</span>
@@ -3882,15 +3931,15 @@
             </div>
             <span>MosaPack</span>
           </div>
-          <p class="footer-description">Transform your photos into stunning mosaic art with professional-grade color matching and creative kits for all ages. From budget-friendly sticker packs to premium brick builds.</p>
+          <p class="footer-description">Transform meaningful photos into custom mosaic proofs with professional-grade color matching. Start with a sticker-ready preview, then review physical formats after proof approval.</p>
         </div>
-        
+
         <div class="footer-section">
           <h4>Products</h4>
-          <a href="#products" class="footer-link">Brick Kits</a>
-          <a href="#products" class="footer-link">Sticker Packs</a>
+          <a href="#products" class="footer-link">Sticker Proof Path</a>
+          <a href="#products" class="footer-link">Magnetic Proof Path</a>
           <a href="#products" class="footer-link">Custom Portraits</a>
-          <a href="" class="footer-link">Gift Cards</a>
+          <a href="#faq" class="footer-link">Photo Tips</a>
         </div>
 
         <div class="footer-section">
@@ -3906,18 +3955,18 @@
           <h4>Company</h4>
           <a href="/" class="footer-link">About Us</a>
           <a href="/contact/" class="footer-link">Contact</a>
-          <a href="/legal/returns.html" class="footer-link">Shipping & Returns</a>
+          <a href="/legal/returns.html" class="footer-link">Returns Policy</a>
           <a href="/legal/privacy.html" class="footer-link">Privacy Policy</a>
           <a href="/legal/terms.html" class="footer-link">Terms of Service</a>
         </div>
       </div>
-      
+
       <div class="footer-bottom">
-        <p>© 2025 MosaPack. All rights reserved. LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize, or endorse this site.</p>
+        <p>© 2025 MosaPack. All rights reserved.</p>
       </div>
     </div>
   </footer>
-  
+
   <!-- Scroll to Top Button -->
   <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">
     ↑
@@ -3933,50 +3982,56 @@
         nav.classList.remove('scrolled');
       }
     });
-    
+
     // Before/After Slider
     const slider = document.getElementById('comparison-slider');
     const divider = document.getElementById('slider-divider');
-    const beforeImage = slider.querySelector('.before');
-    let isDown = false;
-    
-    function updateSlider(x) {
-      const rect = slider.getBoundingClientRect();
-      const percent = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100));
-      divider.style.left = percent + '%';
-      beforeImage.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
+    if (slider && divider) {
+      const beforeImage = slider.querySelector('.before');
+      let isDown = false;
+
+      function updateSlider(x) {
+        const rect = slider.getBoundingClientRect();
+        const percent = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100));
+        divider.style.left = percent + '%';
+        if (beforeImage) {
+          beforeImage.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
+        }
+      }
+
+      divider.addEventListener('mousedown', () => isDown = true);
+      document.addEventListener('mouseup', () => isDown = false);
+      document.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        updateSlider(e.clientX);
+      });
+
+      divider.addEventListener('touchstart', (e) => {
+        isDown = true;
+        e.preventDefault();
+      });
+      document.addEventListener('touchend', () => isDown = false);
+      document.addEventListener('touchmove', (e) => {
+        if (!isDown) return;
+        updateSlider(e.touches[0].clientX);
+      });
+
+      // Auto-animate slider
+      let autoProgress = 50;
+      const autoSlide = setInterval(() => {
+        autoProgress += 0.4;
+        if (autoProgress > 70) autoProgress = 30;
+        divider.style.left = autoProgress + '%';
+        if (beforeImage) {
+          beforeImage.style.clipPath = `inset(0 ${100 - autoProgress}% 0 0)`;
+        }
+      }, 50);
+
+      slider.addEventListener('mouseenter', () => clearInterval(autoSlide));
+      slider.addEventListener('touchstart', () => clearInterval(autoSlide));
     }
-    
-    divider.addEventListener('mousedown', () => isDown = true);
-    document.addEventListener('mouseup', () => isDown = false);
-    document.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      updateSlider(e.clientX);
-    });
-    
-    divider.addEventListener('touchstart', (e) => {
-      isDown = true;
-      e.preventDefault();
-    });
-    document.addEventListener('touchend', () => isDown = false);
-    document.addEventListener('touchmove', (e) => {
-      if (!isDown) return;
-      updateSlider(e.touches[0].clientX);
-    });
-    
-    // Auto-animate slider
-    let autoProgress = 50;
-    const autoSlide = setInterval(() => {
-      autoProgress += 0.4;
-      if (autoProgress > 70) autoProgress = 30;
-      divider.style.left = autoProgress + '%';
-      beforeImage.style.clipPath = `inset(0 ${100 - autoProgress}% 0 0)`;
-    }, 50);
-    
-    slider.addEventListener('mouseenter', () => clearInterval(autoSlide));
-    slider.addEventListener('touchstart', () => clearInterval(autoSlide));
-    
+
     // Scroll to top
     const scrollTopBtn = document.getElementById('scrollTop');
     window.addEventListener('scroll', () => {
@@ -3986,11 +4041,11 @@
         scrollTopBtn.classList.remove('visible');
       }
     });
-    
+
     scrollTopBtn.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    
+
     // Smooth anchor scrolling
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
@@ -4004,13 +4059,13 @@
         }
       });
     });
-    
+
     // Intersection observer for scroll animations
     const observerOptions = {
       threshold: 0.1,
       rootMargin: '0px 0px -80px 0px'
     };
-    
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -4023,7 +4078,7 @@
         }
       });
     }, observerOptions);
-    
+
     // Add animation to cards with staggered delays for process steps
     document.querySelectorAll('.product-card, .testimonial-card').forEach(el => {
       el.style.opacity = '0';
@@ -4194,48 +4249,7 @@
       revealObserver.observe(section);
     });
 
-    // Waitlist Form Handler
-    const waitlistForm = document.getElementById("waitlistForm");
-    const waitlistEmail = document.getElementById("waitlistEmail");
-    const waitlistCount = document.getElementById("waitlistCount");
-
-    if (waitlistCount) {
-      waitlistCount.textContent = "--";
-    }
-
-    if (waitlistForm) {
-      const button = waitlistForm.querySelector("button");
-      if (button) {
-        button.textContent = "Waitlist Unavailable";
-        button.disabled = true;
-        button.style.background = "#6b7280";
-      }
-
-      waitlistForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        if (waitlistEmail) waitlistEmail.value = "";
-      });
-    }
-
-    // Dual-Path Process Tab Switching
-    document.querySelectorAll('.process-tab').forEach(tab => {
-      tab.addEventListener('click', function() {
-        const targetPath = this.dataset.path;
-
-        // Update active tab
-        document.querySelectorAll('.process-tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-
-        // Show corresponding content
-        document.querySelectorAll('.process-content').forEach(content => {
-          if (content.dataset.path === targetPath) {
-            content.classList.remove('hidden');
-          } else {
-            content.classList.add('hidden');
-          }
-        });
-      });
-    });
+    document.currentScript?.remove();
   </script>
 </body>
 </html>

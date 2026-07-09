@@ -1,0 +1,16 @@
+Status before report generation
+
+ M public/builder/index.html
+ M public/index.html
+ M scripts/verify-netlify-forms.sh
+ M scripts/verify-public-builder-hard-split.sh
+ M scripts/verify-public-builder-wizard.sh
+ M scripts/verify-public-proof-wizard-ux-v1.sh
+?? .claude/
+?? .playwright-cli/
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/PUBLIC_PROOF_FINAL_SURFACE_CLEANUP_REPORT.md
+?? docs/mosapack/qa/public-proof-final-surface-cleanup/
+?? scripts/verify-public-proof-final-surface-cleanup.sh
+
+Report files are generated after this status snapshot.

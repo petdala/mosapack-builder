@@ -1,0 +1,11 @@
+Diff before report generation
+
+ .../MOSAIC_CLEAN_CATEGORY_PROFILES_QA_REPORT.md    | 22 +++++++++++++++++++++-
+ docs/mosapack/MOSAIC_CLEAN_CATEGORY_PROFILES_V1.md | 16 +++++++++++++++-
+ docs/mosapack/MOSAIC_CLEAN_PREPROCESS_PROTOCOL.md  |  5 ++++-
+ .../MOSAIC_CLEAN_PROFILE_TUNING_V1_REPORT.md       | 10 +++++++++-
+ .../mosapack/MOSAPACK_TOOL_OPTIMIZATION_ROADMAP.md | 22 ++++++++++++++++++----
+ docs/mosapack/TOOL_FIT_OPTIMIZATION_DOCTRINE.md    | 12 ++++++++++--
+ 6 files changed, 77 insertions(+), 10 deletions(-)
+
+Report files are generated after this diff snapshot.

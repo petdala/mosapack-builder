@@ -1,0 +1,8 @@
+Diff before report generation
+
+ public/builder/index.html               | 97 ++++++++++++++++-----------------
+ scripts/verify-builder-upload-layout.sh |  5 +-
+ scripts/verify-public-builder-wizard.sh |  7 ++-
+ 3 files changed, 56 insertions(+), 53 deletions(-)
+
+Report files are generated after this diff snapshot.

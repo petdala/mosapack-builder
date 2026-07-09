@@ -1,0 +1,12 @@
+Status before report generation
+
+ M public/index.html
+ M scripts/verify-public-proof-final-surface-cleanup.sh
+?? .claude/
+?? .playwright-cli/
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/ROOT_ABOVE_FOLD_VISUAL_RENDER_FIX_REPORT.md
+?? docs/mosapack/qa/root-above-fold-visual-render-v1/
+?? scripts/verify-root-above-fold-visual-render.sh
+
+Report files are generated after this status snapshot.

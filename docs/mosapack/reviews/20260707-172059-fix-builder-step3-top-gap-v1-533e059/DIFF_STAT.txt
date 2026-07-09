@@ -1,0 +1,6 @@
+Diff before report generation
+
+ public/builder/index.html | 43 +++++++++++++++++++++++++++++++++----------
+ 1 file changed, 33 insertions(+), 10 deletions(-)
+
+Report files are generated after this diff snapshot.

@@ -1,0 +1,18 @@
+Status before report generation
+
+ M public/builder/index.html
+ M public/index.html
+ M scripts/verify-buildable-proof-output.sh
+ M scripts/verify-builder-public-copy.sh
+ M scripts/verify-builder-upload-layout.sh
+ M scripts/verify-builder-upload-simplification.sh
+ M scripts/verify-canonical-design-export.sh
+ M scripts/verify-public-builder-wizard.sh
+?? .claude/
+?? .playwright-cli/
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/PUBLIC_COPY_AND_OPS_GATING_CLEANUP_REPORT.md
+?? docs/mosapack/qa/public-copy-and-ops-gating-cleanup/
+?? scripts/verify-public-copy-and-ops-gating.sh
+
+Report files are generated after this status snapshot.

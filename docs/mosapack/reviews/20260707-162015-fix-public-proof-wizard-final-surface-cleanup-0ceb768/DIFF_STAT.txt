@@ -1,0 +1,11 @@
+Diff before report generation
+
+ public/builder/index.html                   |  46 ++---
+ public/index.html                           | 254 ++++++----------------------
+ scripts/verify-netlify-forms.sh             |   1 -
+ scripts/verify-public-builder-hard-split.sh |  31 +++-
+ scripts/verify-public-builder-wizard.sh     |   2 +-
+ scripts/verify-public-proof-wizard-ux-v1.sh |  28 ++-
+ 6 files changed, 124 insertions(+), 238 deletions(-)
+
+Report files are generated after this diff snapshot.

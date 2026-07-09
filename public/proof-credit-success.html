@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proof Request Saved - MosaPack</title>
+  <meta name="description" content="Your MosaPack proof request has been saved for manual review.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0bbf92;
+      --accent: #e91e8c;
+      --text: #172033;
+      --muted: #64748b;
+      --bg: #fafafa;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(100%, 680px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: clamp(1.5rem, 4vw, 3rem);
+      box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08);
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0.4rem 0 1rem;
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 1rem;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--primary);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="eyebrow">Custom Proof</span>
+    <h1>Proof Request Saved</h1>
+    <p>Your custom mosaic details have been saved for manual review. We will follow up with the next step after reviewing the photo, crop, format, and preview.</p>
+    <p>If your photo is not suitable for a production proof, we will let you know before anything is made.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="/builder/">Return to MosaPack</a>
+      <a class="btn" href="/contact/">Contact MosaPack</a>
+    </div>
+  </main>
+</body>
+</html>

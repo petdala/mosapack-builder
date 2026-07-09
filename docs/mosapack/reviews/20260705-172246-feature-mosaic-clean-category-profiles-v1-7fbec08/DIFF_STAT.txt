@@ -1,0 +1,7 @@
+Diff before report generation
+
+ .../MOSAIC_CLEAN_CATEGORY_PROFILES_QA_REPORT.md      | 20 ++++++++++++++++++++
+ docs/mosapack/MOSAIC_CLEAN_CATEGORY_PROFILES_V1.md   | 20 ++++++++++++++++++++
+ 2 files changed, 40 insertions(+)
+
+Report files are generated after this diff snapshot.

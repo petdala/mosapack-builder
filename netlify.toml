@@ -1,5 +1,6 @@
 [build]
   publish = "public"
+  command = ""
 
 [functions]
   directory = "netlify/functions"
@@ -8,3 +9,13 @@
   from = "/builder"
   to = "/builder/"
   status = 301
+
+[[redirects]]
+  from = "/core/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/dashboards/*"
+  to = "/404.html"
+  status = 404

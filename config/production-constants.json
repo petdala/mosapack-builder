@@ -1,0 +1,281 @@
+{
+  "$comment": "MosaPack shared production constants v1.1 \u2014 single source of truth for production physics. Repo home: config/production-constants.json (runtime-imported by web sheet math AND generator loaders). All linear dimensions in INCHES. No logic here; loaders validate.",
+  "schema_version": 1.1,
+  "updated": "2026-07-07",
+  "sheet_profiles": {
+    "OL2050": {
+      "$comment": "OnlineLabels OL2050-class pre-die-cut stock: 0.5in squares, 221-up on US Letter. Derived from published specs \u2014 RE-VERIFY against vendor template before first production print.",
+      "profile_id": "OL2050",
+      "verified": false,
+      "verification_status": "pending_measurement_record",
+      "page": "letter",
+      "page_w_in": 8.5,
+      "page_h_in": 11.0,
+      "cols": 13,
+      "rows": 17,
+      "pitch_in": 0.625,
+      "die_in": 0.5,
+      "margin_left_in": 0.25,
+      "margin_top_in": 0.25,
+      "gap_in": 0.125,
+      "stickers_per_sheet": 221
+    },
+    "OL5425": {
+      "$comment": "1in squares, 80-up (10x8). Candidate for future large-cell SKUs. Geometry UNVERIFIED \u2014 placeholder from catalog listing; verify before use.",
+      "profile_id": "OL5425",
+      "page": "letter",
+      "page_w_in": 8.5,
+      "page_h_in": 11.0,
+      "cols": 8,
+      "rows": 10,
+      "pitch_in": 1.0,
+      "die_in": 1.0,
+      "margin_left_in": 0.25,
+      "margin_top_in": 0.5,
+      "gap_in": 0.0,
+      "stickers_per_sheet": 80,
+      "verified": false,
+      "verification_status": "unverified_future_profile"
+    }
+  },
+  "default_profile": "OL2050",
+  "fulfillment_modes": {
+    "printed_mixed_sheets": {
+      "status": "implemented",
+      "default": true,
+      "description": "Custom per-design mixed sheets ordered by build sequence.",
+      "best_for": [
+        "premium",
+        "high-color",
+        "fine-control",
+        "made-to-order"
+      ]
+    },
+    "stock_color_sheets": {
+      "status": "internal_math_candidate",
+      "default": false,
+      "description": "Full pre-approved color sheets per palette color; extras included.",
+      "best_for": [
+        "low-color starter kits",
+        "supplier conversations",
+        "possible grayscale/simple kits"
+      ],
+      "max_palette_colors_launch_hint": 4,
+      "waste_warning": "Pure stock becomes inefficient when average placed per color is below about 150.",
+      "customer_extra_note": "Includes spare stickers in every color for mistakes, repairs, and finishing touches."
+    },
+    "hybrid_stock_plus_topoff": {
+      "status": "future",
+      "default": false,
+      "description": "Stock sheets for high-count colors plus mixed top-off sheet for rare colors.",
+      "stock_min_per_color_default": 150
+    }
+  },
+  "print": {
+    "bleed_in": 0.03,
+    "bleed_escalation_in": 0.05,
+    "bleed_ceiling_in": 0.0625,
+    "$comment": "bleed_ceiling = gap_in / 2 for OL2050. Registration pass: offset <= 0.5mm both axes across 3 consecutive sheets, zero visible liner slivers; escalate to bleed_escalation_in for repeatable 0.5-1.2mm offsets; vendor-print beyond that or for skew > 0.7mm corner differential."
+  },
+  "spares": {
+    "rate": 0.05,
+    "basis": "per_color_ceil_over_placed_cells",
+    "placement": "appended_after_main_sequence_grouped_by_color_desc"
+  },
+  "sections": {
+    "candidate_sizes": [
+      16,
+      12,
+      8,
+      6
+    ],
+    "rule": "first candidate that evenly divides grid; fallback = whole grid",
+    "order": "section_major_then_row_major_within_section"
+  },
+  "black_base": {
+    "trigger": "design.black_base == true",
+    "sparse_guide_threshold_placed": 700,
+    "$comment": "Exclusion keys on palette entry id=='ink_black' post-quantization, never on display name or luminance. Excluded cells remain in cell_map and manifests (on_base=true); only the sticker sequence omits them.",
+    "excluded_color_id": "ink_black"
+  },
+  "board": {
+    "bleed_in": 0.125,
+    "fill_hex": "#141518",
+    "grid_hairline_hex": "#2E3136",
+    "grid_major_hex": "#3A3E44",
+    "grid_major_every_cells": 6,
+    "label_hex": "#4A4E55"
+  },
+  "palettes": {
+    "standard_v1": [
+      {
+        "id": "snow_white",
+        "name": "Snow White",
+        "hex": "#ffffff"
+      },
+      {
+        "id": "soft_cream",
+        "name": "Soft Cream",
+        "hex": "#f6ead8"
+      },
+      {
+        "id": "warm_sand",
+        "name": "Warm Sand",
+        "hex": "#e3c9a3"
+      },
+      {
+        "id": "honey_tan",
+        "name": "Honey Tan",
+        "hex": "#cfa06a"
+      },
+      {
+        "id": "terracotta",
+        "name": "Terracotta",
+        "hex": "#b96a45"
+      },
+      {
+        "id": "cocoa_brown",
+        "name": "Cocoa Brown",
+        "hex": "#7a4a2e"
+      },
+      {
+        "id": "espresso",
+        "name": "Espresso",
+        "hex": "#4a2f22"
+      },
+      {
+        "id": "charcoal",
+        "name": "Charcoal",
+        "hex": "#2b2b30"
+      },
+      {
+        "id": "stone_gray",
+        "name": "Stone Gray",
+        "hex": "#9aa0a6"
+      },
+      {
+        "id": "mist_gray",
+        "name": "Mist Gray",
+        "hex": "#d7dade"
+      },
+      {
+        "id": "blush_pink",
+        "name": "Blush Pink",
+        "hex": "#f4b8c9"
+      },
+      {
+        "id": "hot_pink",
+        "name": "Hot Pink",
+        "hex": "#e91e8c"
+      },
+      {
+        "id": "brick_red",
+        "name": "Brick Red",
+        "hex": "#c23b3b"
+      },
+      {
+        "id": "sunflower",
+        "name": "Sunflower",
+        "hex": "#f2c24b"
+      },
+      {
+        "id": "amber",
+        "name": "Amber",
+        "hex": "#f59e0b"
+      },
+      {
+        "id": "leaf_green",
+        "name": "Leaf Green",
+        "hex": "#5aa858"
+      },
+      {
+        "id": "deep_teal",
+        "name": "Deep Teal",
+        "hex": "#0bbf92"
+      },
+      {
+        "id": "sky_blue",
+        "name": "Sky Blue",
+        "hex": "#6fb3e0"
+      },
+      {
+        "id": "deep_navy",
+        "name": "Deep Navy",
+        "hex": "#2c4a72"
+      },
+      {
+        "id": "plum",
+        "name": "Plum",
+        "hex": "#7a4a7d"
+      }
+    ],
+    "heirloom_v1": [
+      {
+        "id": "snow_white",
+        "name": "Snow White",
+        "hex": "#ffffff"
+      },
+      {
+        "id": "soft_cream",
+        "name": "Soft Cream",
+        "hex": "#f6ead8"
+      },
+      {
+        "id": "silver_mist",
+        "name": "Silver Mist",
+        "hex": "#d7dade"
+      },
+      {
+        "id": "stone_gray",
+        "name": "Stone Gray",
+        "hex": "#9aa0a6"
+      },
+      {
+        "id": "slate",
+        "name": "Slate",
+        "hex": "#5c6066"
+      },
+      {
+        "id": "charcoal",
+        "name": "Charcoal",
+        "hex": "#2b2b30"
+      },
+      {
+        "id": "ink_black",
+        "name": "Ink Black",
+        "hex": "#141518"
+      }
+    ],
+    "$comment": "Entries are objects with STABLE ids \u2014 production logic keys on id, never display name. Array order is significant: cell_map values are indices into this array. Hexes are sRGB design values; CMYK/ICC vendor mapping open (KI-9); proof per printer+material combo."
+  },
+  "skus": {
+    "pixel_portrait_12": {
+      "grid": 24,
+      "size_in": 12,
+      "palette_id": "standard_v1",
+      "black_base": false,
+      "status": "launch_mvp"
+    },
+    "gallery_16": {
+      "grid": 32,
+      "size_in": 16,
+      "palette_id": "standard_v1",
+      "black_base": false,
+      "status": "flagged_premium_proof_option"
+    },
+    "signature_24": {
+      "grid": 48,
+      "size_in": 24,
+      "palette_id": "standard_v1",
+      "black_base": false,
+      "status": "made_to_order_beta"
+    },
+    "first_hello_24": {
+      "grid": 48,
+      "size_in": 24,
+      "palette_id": "heirloom_v1",
+      "black_base": true,
+      "status": "sample_vehicle_then_campaign_2"
+    }
+  }
+}

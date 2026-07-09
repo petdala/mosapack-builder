@@ -1,0 +1,15 @@
+Diff before report generation
+
+ config/production-constants.json                   |  2 +-
+ docs/mosapack/FULFILLMENT_MODES_V1.md              | 15 ++++-
+ ...GENERATE_KIT_PACK_PORT_IMPLEMENTATION_REPORT.md |  2 +-
+ docs/mosapack/POD_SUPPLIER_RFQ_EMAIL_TEMPLATE.md   |  8 +--
+ docs/mosapack/POD_SUPPLIER_TECHNICAL_SPEC.md       | 30 +++++++--
+ docs/mosapack/POD_SUPPLIER_VALIDATION_PACKET_V1.md | 60 +++++++++++++-----
+ docs/mosapack/PRODUCTION_CONSTANTS_LOADER_PLAN.md  |  2 +-
+ docs/mosapack/STOCK_COLOR_SHEET_MATH_MODEL.md      |  2 +
+ scripts/verify-generate-kit-pack.sh                | 72 +++++++++++++++++++---
+ tools/kitpack/generate_kit_pack.py                 | 47 +++++++++++++-
+ 10 files changed, 201 insertions(+), 39 deletions(-)
+
+Report files are generated after this diff snapshot.

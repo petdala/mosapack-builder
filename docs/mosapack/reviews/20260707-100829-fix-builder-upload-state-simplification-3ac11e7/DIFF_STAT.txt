@@ -1,0 +1,13 @@
+Diff before report generation
+
+ .../BUILDER_UPLOAD_SIMPLIFICATION_REPORT.md        |  18 ++++++++++--------
+ .../desktop-upload-after.png                       | Bin 126823 -> 113962 bytes
+ .../mobile-upload-after.png                        | Bin 75385 -> 74453 bytes
+ .../ops-mode-advanced-tools.png                    | Bin 61124 -> 103366 bytes
+ .../preview-state-after.png                        | Bin 100898 -> 98126 bytes
+ .../tablet-upload-after.png                        | Bin 86807 -> 95173 bytes
+ public/builder/index.html                          |  11 ++++++-----
+ scripts/verify-builder-upload-simplification.sh    |   4 +++-
+ 8 files changed, 19 insertions(+), 14 deletions(-)
+
+Report files are generated after this diff snapshot.

@@ -1,0 +1,14 @@
+Diff before report generation
+
+ docs/mosapack/reviews/latest/ARTIFACTS.md       |  46 +-
+ docs/mosapack/reviews/latest/DIFF_STAT.txt      |   6 +-
+ docs/mosapack/reviews/latest/FILES_CHANGED.md   | 168 ++++-
+ docs/mosapack/reviews/latest/GIT_STATUS.txt     |   8 +-
+ docs/mosapack/reviews/latest/REVIEW_HANDOFF.md  |  25 +-
+ docs/mosapack/reviews/latest/VERIFICATION.md    |  64 +-
+ public/builder/index.html                       | 887 ++----------------------
+ scripts/verify-builder-focused-walkthrough.sh   |   3 +-
+ scripts/verify-builder-upload-simplification.sh |   5 +-
+ 9 files changed, 267 insertions(+), 945 deletions(-)
+
+Report files are generated after this diff snapshot.

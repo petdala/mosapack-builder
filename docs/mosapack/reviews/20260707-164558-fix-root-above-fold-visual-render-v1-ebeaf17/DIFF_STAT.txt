@@ -1,0 +1,7 @@
+Diff before report generation
+
+ public/index.html                                  | 450 +++++++++++++--------
+ .../verify-public-proof-final-surface-cleanup.sh   |   2 +-
+ 2 files changed, 276 insertions(+), 176 deletions(-)
+
+Report files are generated after this diff snapshot.

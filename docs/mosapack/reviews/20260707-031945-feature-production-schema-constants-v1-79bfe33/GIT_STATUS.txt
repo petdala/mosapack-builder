@@ -1,0 +1,6 @@
+Status before report generation
+
+?? docs/mosapack/GATE_A_ARTIFACT_REGENERATION_REPORT.md
+?? docs/mosapack/HANDOFF-addendum-1.md
+
+Report files are generated after this status snapshot.

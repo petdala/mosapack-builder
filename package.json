@@ -1,0 +1,10 @@
+{
+  "name": "mosapack-clean",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MosaPack clean static site with Netlify Functions for exact design save",
+  "scripts": {},
+  "dependencies": {
+    "@netlify/blobs": "^10.7.9"
+  }
+}

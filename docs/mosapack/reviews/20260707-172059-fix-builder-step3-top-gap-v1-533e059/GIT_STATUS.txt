@@ -1,0 +1,11 @@
+Status before report generation
+
+ M public/builder/index.html
+?? .claude/
+?? .playwright-cli/
+?? docs/mosapack/BUILDER_STEP3_TOP_GAP_FIX_REPORT.md
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/qa/builder-step3-top-gap-v1/
+?? scripts/verify-builder-step3-top-gap.sh
+
+Report files are generated after this status snapshot.

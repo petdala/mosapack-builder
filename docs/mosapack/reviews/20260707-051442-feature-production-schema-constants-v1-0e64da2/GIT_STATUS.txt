@@ -1,0 +1,20 @@
+Status before report generation
+
+ M config/production-constants.json
+ M docs/mosapack/BUILDABLE_OUTPUT_ARCHITECTURE_PLAN.md
+ M docs/mosapack/BUILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_SPEC.md
+ M docs/mosapack/GATE_A_PDF_MODE_IMPLEMENTATION_REPORT.md
+ M docs/mosapack/GENERATE_KIT_PACK_PORT_IMPLEMENTATION_REPORT.md
+ M docs/mosapack/PRODUCTION_CONSTANTS_LOADER_PLAN.md
+ M docs/mosapack/PRODUCTION_JSON_ADAPTER_PLAN.md
+ M docs/mosapack/SUPPLIER_SAMPLE_PACKET_CHECKLIST.md
+ M scripts/verify-generate-kit-pack.sh
+ M tools/kitpack/generate_kit_pack.py
+?? docs/mosapack/CELL_SIZE_GRID_PROFILE_STANDARD.md
+?? docs/mosapack/CELL_SIZE_PROFILE_DECISION_BRIEF.md
+?? docs/mosapack/FINE_CELL_SUPPLIER_QUESTIONS.md
+?? docs/mosapack/FULFILLMENT_MODES_V1.md
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/STOCK_COLOR_SHEET_MATH_MODEL.md
+
+Report files are generated after this status snapshot.

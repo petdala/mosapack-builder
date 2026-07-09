@@ -1,0 +1,17 @@
+Status before report generation
+
+ M docs/mosapack/CELL_SIZE_GRID_PROFILE_STANDARD.md
+ M docs/mosapack/FULFILLMENT_MODES_V1.md
+ M docs/mosapack/STOCK_COLOR_SHEET_MATH_MODEL.md
+ M docs/mosapack/SUPPLIER_RFQ_EXECUTION_TRACKER.md
+ M docs/mosapack/SUPPLIER_RFQ_TEMPLATES.md
+ M docs/mosapack/SUPPLIER_SAMPLE_PACKET_CHECKLIST.md
+?? docs/mosapack/GATE_A_PLAIN_PAPER_DRY_RUN_RESULTS.md
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/POD_SUPPLIER_COMPARISON_TRACKER.md
+?? docs/mosapack/POD_SUPPLIER_QUESTIONNAIRE.md
+?? docs/mosapack/POD_SUPPLIER_RFQ_EMAIL_TEMPLATE.md
+?? docs/mosapack/POD_SUPPLIER_TECHNICAL_SPEC.md
+?? docs/mosapack/POD_SUPPLIER_VALIDATION_PACKET_V1.md
+
+Report files are generated after this status snapshot.

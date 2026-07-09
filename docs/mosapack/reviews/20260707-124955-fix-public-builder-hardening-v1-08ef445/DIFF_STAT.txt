@@ -1,0 +1,10 @@
+Diff before report generation
+
+ public/builder/index.html                       |  73 ++++++++++--
+ public/index.html                               | 151 ++++++++++++------------
+ scripts/verify-builder-public-copy.sh           |  31 +++--
+ scripts/verify-builder-upload-simplification.sh |   5 +-
+ scripts/verify-public-copy-and-ops-gating.sh    |  26 ++--
+ 5 files changed, 176 insertions(+), 110 deletions(-)
+
+Report files are generated after this diff snapshot.

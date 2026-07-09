@@ -1,0 +1,16 @@
+Status before report generation
+
+ M public/builder/index.html
+ M scripts/verify-b2-design-save.sh
+ M scripts/verify-builder-focused-walkthrough.sh
+ M scripts/verify-mosaic-clean-category-profiles.sh
+ M scripts/verify-public-builder-hard-split.sh
+ M scripts/verify-public-builder-wizard.sh
+?? .claude/
+?? .playwright-cli/
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/PUBLIC_PROOF_WIZARD_UX_V1_REPORT.md
+?? docs/mosapack/qa/public-proof-wizard-ux-v1/
+?? scripts/verify-public-proof-wizard-ux-v1.sh
+
+Report files are generated after this status snapshot.

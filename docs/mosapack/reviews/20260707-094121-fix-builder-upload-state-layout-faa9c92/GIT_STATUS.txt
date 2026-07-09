@@ -1,0 +1,12 @@
+Status before report generation
+
+ M public/builder/index.html
+ M scripts/verify-builder-upload-layout.sh
+?? .claude/
+?? .playwright-cli/
+?? docs/mosapack/BUILDER_UPLOAD_SIMPLIFICATION_REPORT.md
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/qa/builder-upload-simplification/
+?? scripts/verify-builder-upload-simplification.sh
+
+Report files are generated after this status snapshot.

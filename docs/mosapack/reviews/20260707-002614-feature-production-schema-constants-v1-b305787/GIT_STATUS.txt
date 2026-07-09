@@ -1,0 +1,15 @@
+Status before report generation
+
+ M docs/mosapack/BUILDABLE_OUTPUT_ARCHITECTURE_PLAN.md
+ M docs/mosapack/BUILDABLE_PROOF_OUTPUT_EXECUTION_BOARD.md
+ M docs/mosapack/BUILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_SPEC.md
+?? config/
+?? docs/mosapack/GENERATE_KIT_PACK_REFERENCE_REVIEW.md
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/PRODUCTION_CONSTANTS_LOADER_PLAN.md
+?? docs/mosapack/PRODUCTION_JSON_ADAPTER_PLAN.md
+?? docs/mosapack/PRODUCTION_JSON_SCHEMA_DIFF_REPORT.md
+?? fixtures/
+?? scripts/verify-production-constants-schema.sh
+
+Report files are generated after this status snapshot.

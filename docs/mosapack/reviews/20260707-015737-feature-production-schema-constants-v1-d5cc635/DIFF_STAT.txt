@@ -1,0 +1,18 @@
+Diff before report generation
+
+ config/design-schema.v1.json                       |  5 +-
+ .../mosapack/BUILDABLE_OUTPUT_ARCHITECTURE_PLAN.md | 21 +++--
+ ...MAGNET_PROOF_OUTPUT_V1_IMPLEMENTATION_REPORT.md | 27 ++++++-
+ ...UILDABLE_STICKER_MAGNET_PROOF_OUTPUT_V1_SPEC.md | 32 +++++++-
+ .../CANONICAL_DESIGN_EXPORT_ADAPTER_V1_REPORT.md   | 23 +++---
+ .../mosapack/GENERATE_KIT_PACK_REFERENCE_REVIEW.md | 57 ++++++++------
+ docs/mosapack/PRODUCTION_JSON_ADAPTER_PLAN.md      | 28 ++++---
+ docs/mosapack/reviews/latest/ARTIFACTS.md          | 19 +----
+ docs/mosapack/reviews/latest/DIFF_STAT.txt         | 14 ++--
+ docs/mosapack/reviews/latest/FILES_CHANGED.md      | 61 ++++++++++-----
+ docs/mosapack/reviews/latest/GIT_STATUS.txt        | 11 ++-
+ docs/mosapack/reviews/latest/REVIEW_HANDOFF.md     | 19 +++--
+ docs/mosapack/reviews/latest/VERIFICATION.md       | 90 ++++++++++------------
+ 13 files changed, 248 insertions(+), 159 deletions(-)
+
+Report files are generated after this diff snapshot.

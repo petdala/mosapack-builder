@@ -1,0 +1,8 @@
+Diff before report generation
+
+ docs/mosapack/POD_SUPPLIER_RFQ_EMAIL_TEMPLATE.md   |  2 ++
+ docs/mosapack/POD_SUPPLIER_TECHNICAL_SPEC.md       | 19 +++++++++++++++++++
+ docs/mosapack/POD_SUPPLIER_VALIDATION_PACKET_V1.md | 12 +++++++++++-
+ 3 files changed, 32 insertions(+), 1 deletion(-)
+
+Report files are generated after this diff snapshot.

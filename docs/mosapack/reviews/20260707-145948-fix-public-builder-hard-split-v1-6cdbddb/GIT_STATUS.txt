@@ -1,0 +1,20 @@
+Status before report generation
+
+ M docs/mosapack/reviews/latest/ARTIFACTS.md
+ M docs/mosapack/reviews/latest/DIFF_STAT.txt
+ M docs/mosapack/reviews/latest/FILES_CHANGED.md
+ M docs/mosapack/reviews/latest/GIT_STATUS.txt
+ M docs/mosapack/reviews/latest/REVIEW_HANDOFF.md
+ M docs/mosapack/reviews/latest/VERIFICATION.md
+ M public/builder/index.html
+ M scripts/verify-builder-focused-walkthrough.sh
+ M scripts/verify-builder-upload-simplification.sh
+?? .claude/
+?? .playwright-cli/
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/PUBLIC_BUILDER_HARD_SPLIT_V1_REPORT.md
+?? docs/mosapack/qa/public-builder-hard-split-v1/
+?? docs/mosapack/reviews/20260707-145801-fix-public-builder-hard-split-v1-6cdbddb/
+?? scripts/verify-public-builder-hard-split.sh
+
+Report files are generated after this status snapshot.

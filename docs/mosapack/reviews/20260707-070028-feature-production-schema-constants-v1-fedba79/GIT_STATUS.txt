@@ -1,0 +1,10 @@
+Status before report generation
+
+ M docs/mosapack/POD_SUPPLIER_RFQ_EMAIL_TEMPLATE.md
+ M docs/mosapack/POD_SUPPLIER_TECHNICAL_SPEC.md
+ M docs/mosapack/POD_SUPPLIER_VALIDATION_PACKET_V1.md
+?? .claude/
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? docs/mosapack/POD_BASE_BOARD_AND_KIT_ASSEMBLY_QUESTIONS.md
+
+Report files are generated after this status snapshot.
