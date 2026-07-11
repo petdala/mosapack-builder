@@ -7,7 +7,7 @@ BUILDER="$ROOT/public/builder/index.html"
 PWCLI="${PWCLI:-$HOME/.codex/skills/playwright/scripts/playwright_cli.sh}"
 
 fail() {
-  echo "Builder Step 3 compaction verification failed: $*" >&2
+  echo "Builder target-state completion verification failed: $*" >&2
   exit 1
 }
 
@@ -68,6 +68,22 @@ grep -q "<title>MosaPack — Sticker-Ready Mosaic Proof Builder</title>" "$BUILD
 grep -q "product_interest\" id=\"saveProductInterest\" value=\"sticker_proof\"" "$BUILDER" || fail "product_interest default is not sticker_proof"
 grep -q "name=\"preview_tweaks\"" "$BUILDER" || fail "preview_tweaks hidden field missing"
 grep -q "preview_tweaks:" "$BUILDER" || fail "exact design payload missing preview_tweaks"
+grep -q "JPG or PNG · up to 20MB" "$BUILDER" || fail "upload file spec missing"
+grep -q "HEIC photos are not supported yet" "$BUILDER" || fail "HEIC rejection copy missing"
+grep -q "Please upload a JPG or PNG" "$BUILDER" || fail "unsupported file copy missing"
+grep -q "This photo is over 20MB" "$BUILDER" || fail "oversized file copy missing"
+grep -q "sample-photo-button.*Pet" "$BUILDER" || fail "Pet sample button missing"
+grep -q "sample-photo-button.*Family" "$BUILDER" || fail "Family sample button missing"
+grep -q "Baby / First Hello" "$BUILDER" || fail "Baby / First Hello sample button missing"
+grep -q "cropRotateButton" "$BUILDER" || fail "crop rotate control missing"
+grep -q "cropFillButton" "$BUILDER" || fail "crop fill control missing"
+grep -q "crop-thirds-grid" "$BUILDER" || fail "rule-of-thirds grid missing"
+grep -q "cropMiniMosaicCanvas" "$BUILDER" || fail "crop mini mosaic preview missing"
+grep -q "Protecting your subject’s details" "$BUILDER" || fail "generation stage copy missing"
+grep -q "Still working — big photos take a moment" "$BUILDER" || fail "slow generation copy missing"
+grep -q "previewSizeContext" "$BUILDER" || fail "scale context strip missing"
+grep -q "proof_ref" "$BUILDER" || fail "proof_ref field missing"
+grep -q "Copy reference" "$BUILDER" || fail "safe saved-state secondary action missing"
 
 PORT="$(python3 - <<'PY'
 import socket
@@ -223,6 +239,7 @@ async (page) => {
     await page.waitForFunction(() => document.body.classList.contains('wizard-state-crop'), null, { timeout: 15000 });
     await page.waitForTimeout(250);
     await page.click(width <= 600 ? '#wizardStickyButton' : '#cropGenerateButton');
+    await page.waitForFunction(() => !document.getElementById('generationStateCard')?.hidden, null, { timeout: 5000 });
     await page.waitForFunction(() => document.body.classList.contains('wizard-state-preview'), null, { timeout: 60000 });
     await page.waitForSelector('#postPreviewFlow:not([hidden])', { timeout: 60000 });
     await waitVisible('[data-testid="preview-step-card"]', 60000);
@@ -351,6 +368,65 @@ async (page) => {
   assert(builderAudit.leaks.length === 0, '/builder/ leaked blocked terms: ' + builderAudit.leaks.join(', '));
   assert(builderAudit.overflowX <= 1, '/builder/ overflow ' + builderAudit.overflowX);
 
+  await page.goto(baseUrl + '/builder/', { waitUntil: 'networkidle' });
+  const uploadState = await page.evaluate(() => ({
+    h1Count: Array.from(document.querySelectorAll('h1')).filter((node) => {
+      const box = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return box.width > 0 && box.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
+    }).length,
+    title: document.title,
+    fileSpec: document.body.innerText.includes('JPG or PNG · up to 20MB'),
+    sampleLabels: Array.from(document.querySelectorAll('.sample-photo-button')).map((node) => node.innerText.trim()),
+    categoryLabels: Array.from(document.querySelectorAll('#photoCategorySelect option')).map((node) => node.textContent.trim()),
+    opsTextMounted: document.body.innerText.includes('Proof Export Tools') || document.body.innerText.includes('Advanced Tools')
+  }));
+  assert(uploadState.h1Count === 1, 'builder must have exactly one visible H1');
+  assert(/Sticker-Ready Mosaic Proof Builder/.test(uploadState.title), 'builder title missing proof-builder phrase');
+  assert(uploadState.fileSpec, 'upload file spec not visible');
+  assert(['Pet', 'Family', 'Baby / First Hello'].every((label) => uploadState.sampleLabels.includes(label)), 'sample buttons missing: ' + uploadState.sampleLabels.join(', '));
+  assert(uploadState.categoryLabels.includes('Not sure — we’ll choose'), 'friendly default category label missing');
+  assert(!uploadState.categoryLabels.includes('Auto / Not sure'), 'internal category label leaked');
+  assert(!uploadState.opsTextMounted, 'operator tools mounted in normal builder');
+
+  await page.evaluate(() => {
+    const input = document.getElementById('fileInput');
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['heic-test'], 'iphone.heic', { type: 'image/heic' }));
+    input.files = transfer.files;
+    window.handleFileUpload(input);
+  });
+  await page.waitForFunction(() => document.getElementById('uploadError')?.innerText.includes('HEIC photos are not supported yet'), null, { timeout: 5000 });
+  const heicCopy = await page.textContent('#uploadError');
+  assert(/take a screenshot/.test(heicCopy || ''), 'HEIC workaround copy missing');
+
+  await page.click('.sample-photo-button[data-sample="family"]');
+  await page.waitForFunction(() => document.body.classList.contains('wizard-state-crop'), null, { timeout: 15000 });
+  const cropState = await page.evaluate(() => {
+    const visible = (selector) => {
+      const node = document.querySelector(selector);
+      if (!node) return false;
+      const box = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return box.width > 0 && box.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+    };
+    return {
+      rotate: visible('#cropRotateButton'),
+      zoom: visible('#cropZoomSlider'),
+      fit: visible('#cropFitButton'),
+      fill: visible('#cropFillButton'),
+      thirds: visible('.crop-thirds-grid'),
+      mini: visible('#cropMiniMosaicCanvas'),
+      advisory: document.querySelector('.crop-advisory-row')?.innerText || '',
+      railMounted: Boolean(document.getElementById('wizardSideStack')?.isConnected)
+    };
+  });
+  assert(cropState.rotate && cropState.zoom && cropState.fit && cropState.fill, 'crop controls incomplete');
+  assert(cropState.thirds, 'rule-of-thirds grid not visible');
+  assert(cropState.mini, 'crop mini mosaic preview not visible');
+  assert(cropState.advisory.includes('Subject is centered') && cropState.advisory.includes('Good contrast'), 'crop advisory checks missing');
+  assert(!cropState.railMounted, 'right rail mounted on crop step');
+
   await page.goto(baseUrl + '/builder/?ops=1', { waitUntil: 'networkidle' });
   const opsAudit = await page.evaluate(() => ({ isOps: document.body.classList.contains('is-ops-mode'), hasProofExport: document.body.textContent.includes('Proof Export Tools') }));
   assert(opsAudit.isOps && opsAudit.hasProofExport, '/builder/?ops=1 did not mount operator tools');
@@ -432,7 +508,51 @@ async (page) => {
   const darkColors = await colorMetrics();
   assert(darkColors.darkChromaRatio < 0.02, 'dark-field chroma speckle ratio too high: ' + darkColors.darkChromaRatio);
 
-  return JSON.stringify({ rootAudit, builderAudit, opsAudit, desktop, selectedState, expanded, afterTweaks, normalColors, mobile, darkColors }, null, 2);
+  await reachPreview(1440, 900);
+  await page.click('#requestProofButton');
+  await page.waitForFunction(() => !document.getElementById('emailGateOverlay')?.hidden, null, { timeout: 5000 });
+  const modal = await page.evaluate(() => {
+    const overlay = document.getElementById('emailGateOverlay');
+    const radios = Array.from(overlay.querySelectorAll('input[type="radio"]')).map((node) => node.name);
+    return {
+      active: !overlay.hidden,
+      summary: document.getElementById('proofRequestSummary')?.innerText || '',
+      nameRequired: document.getElementById('nameInput')?.required || false,
+      emailRequired: document.getElementById('emailInput')?.required || false,
+      consentRequired: document.getElementById('designStorageConsent')?.required || false,
+      radioNames: radios,
+      privacy: document.querySelector('.email-gate-privacy')?.innerText || '',
+      firstFocus: document.activeElement?.id || ''
+    };
+  });
+  assert(modal.active, 'proof modal did not open');
+  assert(modal.summary.includes('Sticker-ready proof') && modal.summary.includes('12″ Starter'), 'proof summary missing selected choices');
+  assert(modal.nameRequired && modal.emailRequired && modal.consentRequired, 'proof form required fields missing');
+  assert(modal.radioNames.length === 0, 'proof modal contains format radios: ' + modal.radioNames.join(', '));
+  assert(modal.privacy.includes('cropped preview') && modal.privacy.includes('original photo is not stored'), 'privacy copy does not match cropped-source storage behavior');
+  assert(modal.firstFocus === 'nameInput', 'modal first focus should be nameInput, got ' + modal.firstFocus);
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => document.getElementById('emailGateOverlay')?.hidden, null, { timeout: 5000 });
+
+  await page.evaluate(() => window.showProofNextStepCard?.({ projectId: 'test-project', proofRef: 'MP-TEST1' }));
+  const saved = await page.evaluate(() => ({
+    state: document.body.className,
+    text: document.getElementById('proofNextStepCard')?.innerText || '',
+    imageVisible: (() => {
+      const img = document.getElementById('proofSavedMosaicImage');
+      if (!img) return false;
+      const box = img.getBoundingClientRect();
+      return box.width > 0 && box.height > 0 && Boolean(img.getAttribute('src'));
+    })(),
+    copyButton: document.getElementById('proofCopyReferenceButton')?.innerText || ''
+  }));
+  assert(saved.state.includes('wizard-state-saved'), 'saved state class missing');
+  assert(saved.text.includes('Proof request received') && saved.text.includes('Reference: MP-TEST1'), 'saved state reference missing');
+  assert(saved.text.includes('Nothing is made or charged today'), 'saved state next-step copy missing');
+  assert(saved.imageVisible, 'saved state mosaic hero missing');
+  assert(saved.copyButton === 'Copy reference', 'safe saved secondary action missing');
+
+  return JSON.stringify({ rootAudit, builderAudit, uploadState, cropState, opsAudit, desktop, selectedState, expanded, afterTweaks, normalColors, mobile, darkColors, modal, saved }, null, 2);
 }
 JS
 
@@ -441,6 +561,7 @@ if [[ "$VERIFY_OUTPUT" == *"### Error"* ]]; then
   echo "$VERIFY_OUTPUT"
   fail "Playwright verification reported an error"
 fi
-printf '%s\n' "$VERIFY_OUTPUT" > /tmp/mosapack-builder-step3-compaction-verifier.json
+printf '%s\n' "$VERIFY_OUTPUT" > /tmp/mosapack-builder-target-state-completion-verifier.json
 
-echo "Builder Step 3 compaction verification passed."
+echo "Builder target-state completion verification passed."
+echo "Detailed verifier output: /tmp/mosapack-builder-target-state-completion-verifier.json"

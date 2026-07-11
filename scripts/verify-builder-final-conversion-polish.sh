@@ -150,7 +150,7 @@ TMP_JS="$(mktemp /tmp/mosapack-final-polish-XXXXXX.js)"
 cat > "$TMP_JS" <<JS
 async (page) => {
   const baseUrl = 'http://127.0.0.1:$PORT';
-  const imagePath = '$IMAGE';
+  const imagePath = 'sample:pet';
   const blocked = [
     'LEGO','LEGO-compatible','brick','bricks','Brick quote','Premium Brick','Total Bricks',
     'Build Time','Pack Efficiency','Advanced exports','BOM','PDF','canonical JSON',
@@ -228,7 +228,11 @@ async (page) => {
   async function reachPreview(width, height) {
     await page.setViewportSize({ width, height });
     await page.goto(baseUrl + '/builder/', { waitUntil: 'networkidle' });
-    await page.setInputFiles('#fileInput', imagePath);
+    if (String(imagePath).startsWith('sample:')) {
+      await page.click('.sample-photo-button[data-sample="' + imagePath.split(':')[1] + '"]');
+    } else {
+      await page.setInputFiles('#fileInput', imagePath);
+    }
     await page.waitForFunction(() => document.body.classList.contains('wizard-state-crop'), null, { timeout: 15000 });
     await page.waitForTimeout(300);
     if (width <= 600) {
@@ -443,9 +447,10 @@ async (page) => {
 JS
 
 VERIFY_OUTPUT="$("$PWCLI" run-code "$(cat "$TMP_JS")")"
-echo "$VERIFY_OUTPUT"
 if [[ "$VERIFY_OUTPUT" == *"### Error"* ]]; then
+  echo "$VERIFY_OUTPUT"
   fail "Playwright verification reported an error"
 fi
+printf '%s\n' "$VERIFY_OUTPUT" > /tmp/mosapack-builder-final-conversion-polish-verifier.json
 
 echo "Builder final conversion polish verification passed."

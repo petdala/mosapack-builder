@@ -52,7 +52,7 @@ require_rg '/\.netlify/functions/save-project' "$BUILDER" 'B2 save-project call'
 require_rg 'name="mosapack-save-design"' "$BUILDER" 'Netlify proof form'
 require_rg 'name="project_id"' "$BUILDER" 'project_id hidden field'
 require_rg 'id="designStorageConsent"' "$BUILDER" 'design storage consent checkbox'
-require_rg 'Raw image data is not submitted through our proof form' "$BUILDER" 'raw image privacy note'
+require_rg 'Your cropped preview and mosaic details are saved so a person can check your proof\. Your original photo is not stored\.' "$BUILDER" 'raw image privacy note'
 
 require_no_rg 'Pay \$10|Stripe|Payment Link|PUBLIC_STRIPE|buy\.stripe\.com' "$BUILDER" 'payment UI/copy'
 require_no_rg 'Costs & Checkout|Estimated total|Launch access disabled|Checkout disabled' "$BUILDER" 'active checkout/cost copy'

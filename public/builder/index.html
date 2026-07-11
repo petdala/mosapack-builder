@@ -116,11 +116,13 @@
       --mp-teal: #08b894;
       --mp-teal-dark: #007f72;
       --mp-pink: #f72573;
-      --mp-ink: #111318;
-      --mp-muted: #5c6470;
-      --mp-bg: #f7f8fa;
+      --mp-ink: #1A1C1F;
+      --mp-muted: #63676E;
+      --mp-subtle: #9B9FA6;
+      --mp-bg: #FAF9F7;
       --mp-card: #ffffff;
-      --mp-border: #dde3ea;
+      --mp-border: rgba(26, 28, 31, 0.14);
+      --mp-hairline: rgba(26, 28, 31, 0.08);
     }
 
     body {
@@ -147,15 +149,15 @@
     }
 
     .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
     }
 
     /* Header */
@@ -5523,6 +5525,61 @@
       box-shadow: 0 13px 30px rgba(8, 184, 148, 0.26);
     }
 
+    .upload-error {
+      margin: 0;
+      max-width: 440px;
+      color: #9f1239;
+      background: #fff1f2;
+      border: 1px solid rgba(244, 63, 94, 0.24);
+      border-radius: 12px;
+      padding: 0.55rem 0.7rem;
+      font-size: 0.86rem;
+      line-height: 1.35;
+      font-weight: 800;
+    }
+
+    .upload-error[hidden] {
+      display: none;
+    }
+
+    .sample-photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.45rem;
+      width: min(100%, 440px);
+      margin-top: 0.25rem;
+      padding: 0.55rem;
+      border: 1px solid rgba(26, 28, 31, 0.08);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .sample-photo-label {
+      grid-column: 1 / -1;
+      margin: 0;
+      color: var(--mp-muted);
+      font-size: 0.74rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .sample-photo-button {
+      min-height: 44px;
+      border: 1px solid rgba(8, 184, 148, 0.24);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--mp-teal-dark);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .sample-photo-button:hover,
+    .sample-photo-button:focus-visible {
+      background: rgba(232, 250, 245, 0.92);
+      border-color: rgba(8, 184, 148, 0.48);
+    }
+
     .public-wizard .photo-category-picker {
       margin-top: 0.45rem;
       width: min(100%, 390px);
@@ -5632,13 +5689,92 @@
       border-radius: 16px;
     }
 
+    .crop-thirds-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.34)) 33.333% 0 / 1px 100% no-repeat,
+        linear-gradient(rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.34)) 66.666% 0 / 1px 100% no-repeat,
+        linear-gradient(90deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.34)) 0 33.333% / 100% 1px no-repeat,
+        linear-gradient(90deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.34)) 0 66.666% / 100% 1px no-repeat;
+    }
+
+    .crop-advisory-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      width: min(100%, 620px);
+      margin: 0 auto;
+      color: var(--mp-teal-dark);
+      font-size: 0.8rem;
+      font-weight: 900;
+    }
+
+    .crop-advisory-row span {
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.24rem 0.55rem;
+      border: 1px solid rgba(8, 184, 148, 0.20);
+      border-radius: 999px;
+      background: rgba(232, 250, 245, 0.78);
+    }
+
+    .crop-lowres-advisory {
+      justify-self: center;
+      margin: 0;
+      padding: 0.35rem 0.7rem;
+      border: 1px solid rgba(245, 158, 11, 0.28);
+      border-radius: 999px;
+      background: #fffbeb;
+      color: #92400e;
+      font-size: 0.8rem;
+      font-weight: 900;
+    }
+
+    .crop-lowres-advisory[hidden] {
+      display: none;
+    }
+
     .public-wizard.wizard-state-crop .crop-controls,
     .public-wizard.wizard-state-crop .crop-warning {
       width: min(100%, 620px);
     }
 
     .public-wizard.wizard-state-crop .crop-controls {
-      grid-template-columns: auto minmax(160px, 1fr) auto auto;
+      grid-template-columns: auto minmax(160px, 1fr) repeat(4, auto);
+    }
+
+    .crop-mini-preview {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: center;
+      width: min(100%, 620px);
+      margin: 0 auto;
+      padding: 0.55rem;
+      border: 1px solid rgba(26, 28, 31, 0.08);
+      border-radius: 14px;
+      background: rgba(250, 249, 247, 0.82);
+    }
+
+    .crop-mini-preview canvas {
+      width: 58px;
+      height: 58px;
+      border: 1px solid rgba(26, 28, 31, 0.10);
+      border-radius: 10px;
+      image-rendering: pixelated;
+      background: #fff;
+    }
+
+    .crop-mini-preview p {
+      margin: 0;
+      color: var(--mp-muted);
+      font-size: 0.8rem;
+      line-height: 1.35;
+      font-weight: 700;
     }
 
     .public-wizard.wizard-state-crop .crop-actions {
@@ -5943,6 +6079,14 @@
       line-height: 1.35;
     }
 
+    .preview-size-context {
+      margin: -0.1rem 0 0;
+      color: var(--mp-teal-dark);
+      font-size: 0.82rem;
+      line-height: 1.35;
+      font-weight: 900;
+    }
+
     .format-interest-option,
     .preferred-size-option {
       position: relative;
@@ -6023,8 +6167,8 @@
       width: min(100%, 420px);
       min-height: 50px;
       border-radius: 999px;
-      background: var(--mp-teal-dark);
-      border-color: var(--mp-teal-dark);
+      background: linear-gradient(135deg, #0ECBA0 0%, #09A981 100%);
+      border-color: #09A981;
       box-shadow: 0 16px 34px rgba(8, 184, 148, 0.20);
     }
 
@@ -6052,6 +6196,79 @@
 
     .preview-loading-skeleton[hidden] {
       display: none;
+    }
+
+    .generation-state-card[hidden] {
+      display: none;
+    }
+
+    .public-wizard.is-generating-preview .proof-preview-step-card,
+    .public-wizard.is-generating-preview .preview-choices-card,
+    .public-wizard.is-generating-preview .preview-cta-block {
+      display: none;
+    }
+
+    .generation-state-card {
+      display: grid;
+      gap: 0.7rem;
+      place-items: center;
+      padding: 1rem;
+      border: 1px solid rgba(8, 184, 148, 0.18);
+      border-radius: 18px;
+      background: linear-gradient(135deg, #fff 0%, rgba(232, 250, 245, 0.84) 100%);
+      color: var(--mp-ink);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .generation-cell-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 12px);
+      gap: 5px;
+    }
+
+    .generation-cell-grid span {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      background: var(--mp-teal);
+      opacity: 0.42;
+      animation: generationPulse 1.1s infinite ease-in-out;
+    }
+
+    .generation-cell-grid span:nth-child(3n) {
+      background: var(--mp-pink);
+      animation-delay: 0.16s;
+    }
+
+    .generation-cell-grid span:nth-child(4n) {
+      animation-delay: 0.28s;
+    }
+
+    .generation-state-card p {
+      margin: 0;
+    }
+
+    .generation-slow-note {
+      color: var(--mp-muted);
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .generation-slow-note[hidden] {
+      display: none;
+    }
+
+    @keyframes generationPulse {
+      0%, 100% { opacity: 0.35; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-2px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .generation-cell-grid span,
+      .preview-skeleton-frame {
+        animation: none !important;
+      }
     }
 
     .preview-skeleton-frame {
@@ -6103,8 +6320,8 @@
     }
 
     .public-wizard.wizard-state-preview .preview-cta-block .btn-primary {
-      background: var(--mp-teal-dark);
-      border-color: var(--mp-teal-dark);
+      background: linear-gradient(135deg, #0ECBA0 0%, #09A981 100%);
+      border-color: #09A981;
       box-shadow: 0 16px 34px rgba(8, 184, 148, 0.20);
     }
 
@@ -6396,7 +6613,6 @@
       box-shadow: 0 12px 24px rgba(8, 184, 148, 0.22);
     }
 
-    .public-wizard.wizard-state-preview .wizard-sticky-cta button,
     .public-wizard.wizard-state-proof .wizard-sticky-cta button {
       background: var(--mp-pink);
       box-shadow: 0 12px 24px rgba(247, 37, 115, 0.22);
@@ -6422,6 +6638,39 @@
 
     .public-wizard.wizard-state-saved .recommended-format-card,
     .public-wizard.wizard-state-saved .proof-request-card {
+      display: none;
+    }
+
+    .saved-mosaic-hero {
+      margin: 0.75rem auto;
+      width: min(100%, 280px);
+    }
+
+    .saved-mosaic-hero img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border: 1px solid rgba(26, 28, 31, 0.10);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 16px 36px rgba(17, 19, 24, 0.08);
+    }
+
+    .proof-next-step-reference {
+      color: var(--mp-ink);
+      font-weight: 900;
+    }
+
+    .field-error {
+      margin: -0.35rem 0 0;
+      color: #9f1239;
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .field-error[hidden] {
       display: none;
     }
 
@@ -6584,6 +6833,17 @@
         min-height: 38px;
       }
 
+      .sample-photo-grid {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+        max-width: 320px;
+        padding: 0.48rem;
+      }
+
+      .sample-photo-label {
+        font-size: 0.68rem;
+      }
+
       .wizard-tips-grid {
         grid-template-columns: 1fr;
         gap: 0.35rem;
@@ -6638,6 +6898,24 @@
 
       .public-wizard .crop-card {
         padding: 0.85rem;
+      }
+
+      .public-wizard.wizard-state-crop .crop-controls {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .public-wizard.wizard-state-crop .crop-controls .crop-label,
+      .public-wizard.wizard-state-crop .crop-controls input[type="range"] {
+        grid-column: 1 / -1;
+      }
+
+      .crop-mini-preview {
+        grid-template-columns: 48px minmax(0, 1fr);
+      }
+
+      .crop-mini-preview canvas {
+        width: 48px;
+        height: 48px;
       }
 
       .public-wizard .crop-actions {
@@ -6833,10 +7111,11 @@
             
             <!-- Upload Overlay -->
             <div class="upload-overlay" id="uploadOverlay" onclick="document.getElementById('fileInput').click()">
-              <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(this)" aria-label="Upload photo">
+              <input type="file" id="fileInput" accept="image/jpeg,image/png" style="display:none" onchange="handleFileUpload(this)" aria-label="Upload photo">
               <div class="upload-icon" aria-hidden="true">Upload</div>
               <div class="upload-text">Drag a photo here or choose a photo</div>
-              <div class="upload-hint">JPG or PNG. Clear faces, pets, and portraits work best.</div>
+              <div class="upload-hint">JPG or PNG · up to 20MB. Clear faces, pets, and portraits work best.</div>
+              <p class="upload-error" id="uploadError" role="alert" hidden></p>
               <span class="upload-primary-action" aria-hidden="true">Choose a photo</span>
               <div class="photo-category-picker" onclick="event.stopPropagation()">
                 <label for="photoCategorySelect">What kind of photo is this?</label>
@@ -6853,25 +7132,43 @@
                 </select>
                 <p>This helps us tune your mosaic preview.</p>
               </div>
+              <div class="sample-photo-grid" aria-label="Try a demo photo" onclick="event.stopPropagation()">
+                <p class="sample-photo-label">Try a demo photo</p>
+                <button type="button" class="sample-photo-button" data-sample="pet">Pet</button>
+                <button type="button" class="sample-photo-button" data-sample="family">Family</button>
+                <button type="button" class="sample-photo-button" data-sample="first_hello">Baby / First Hello</button>
+              </div>
             </div>
             <!-- B1 Crop / Focal Control -->
             <div class="crop-editor" id="cropEditor">
               <div class="crop-card">
                 <h3 class="crop-heading">Position your photo</h3>
                 <p class="crop-subtitle">Center the face or main subject.</p>
+                <p class="crop-lowres-advisory" id="cropLowResAdvisory" hidden>Small photo — a person will check it.</p>
                 <div class="crop-frame" id="cropFrame" aria-label="Drag to center the subject">
                   <canvas id="cropCanvas" width="420" height="420" role="img" aria-label="Crop preview canvas. Drag the image to center the subject."></canvas>
                   <div class="crop-crosshair" aria-hidden="true"></div>
+                  <div class="crop-thirds-grid" aria-hidden="true"></div>
+                </div>
+                <div class="crop-advisory-row" aria-label="Crop guidance">
+                  <span id="cropCenteredCheck">✓ Subject is centered</span>
+                  <span id="cropContrastCheck">✓ Good contrast for mosaic</span>
                 </div>
                 <div class="crop-controls">
                   <label class="crop-label" for="cropZoomSlider">Zoom</label>
                   <input type="range" id="cropZoomSlider" min="1" max="3" step="0.01" value="1" aria-label="Zoom">
-                  <button type="button" class="crop-reset-btn" id="cropResetButton">Reset crop</button>
+                  <button type="button" class="crop-reset-btn" id="cropFitButton">Fit</button>
+                  <button type="button" class="crop-reset-btn" id="cropFillButton">Fill</button>
+                  <button type="button" class="crop-reset-btn" id="cropRotateButton">Rotate 90°</button>
                   <button type="button" class="crop-reset-btn" id="chooseDifferentPhotoButton">Choose different photo</button>
+                </div>
+                <div class="crop-mini-preview" aria-label="Live mini mosaic preview">
+                  <canvas id="cropMiniMosaicCanvas" width="72" height="72" role="img" aria-label="Small pixel preview of your current crop"></canvas>
+                  <p>Mini mosaic preview updates as you position the photo.</p>
                 </div>
                 <div class="crop-warning" id="cropWarning"></div>
                 <div class="crop-actions">
-                  <button type="button" class="btn btn-secondary" id="cropFitButton">Fit photo</button>
+                  <button type="button" class="btn btn-secondary" id="cropResetButton">Reset crop</button>
                   <button type="button" class="btn btn-primary" id="cropGenerateButton">Looks good — preview my mosaic</button>
                 </div>
               </div>
@@ -6882,6 +7179,15 @@
               <div class="preview-loading-skeleton" id="previewLoadingSkeleton" hidden aria-live="polite">
                 <div class="preview-skeleton-frame" aria-hidden="true"></div>
                 <p>Building your mosaic preview…</p>
+              </div>
+              <div class="generation-state-card" id="generationStateCard" hidden aria-live="polite" data-testid="generation-state">
+                <div class="generation-cell-grid" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span>
+                </div>
+                <p id="generationMessage">Protecting your subject’s details…</p>
+                <p class="generation-slow-note" id="generationSlowNote" hidden>Still working — big photos take a moment.</p>
               </div>
               <div class="proof-preview-step-card" id="proofPreviewStepCard" data-testid="preview-step-card">
                 <div class="proof-preview-heading">
@@ -6998,6 +7304,7 @@
                   </div>
                 </div>
                 <p class="preview-choice-helper">We confirm final options when we reply.</p>
+                <p class="preview-size-context" id="previewSizeContext">About the width of a laptop.</p>
               </section>
               <div class="preview-cta-block">
                 <button class="btn btn-primary" type="button" id="requestProofButton" data-testid="preview-primary-cta" onclick="requestCustomProof()">Request my free proof</button>
@@ -7006,12 +7313,15 @@
               <div class="proof-next-step-card" id="proofNextStepCard" hidden>
                 <span class="proof-next-step-eyebrow">Proof request received</span>
                 <h3>Proof request received</h3>
-                <p class="proof-next-step-body">We’ll review your design and follow up with the next step. Keep an eye on your email.</p>
+                <figure class="saved-mosaic-hero">
+                  <img id="proofSavedMosaicImage" alt="Saved mosaic preview">
+                </figure>
+                <p class="proof-next-step-body">A person checks your design.<br>We’ll email the next step.<br>Nothing is made or charged today.</p>
                 <p class="proof-next-step-reference" id="proofNextStepProjectRef"></p>
-                <p class="proof-next-step-status" id="proofNextStepStatus">If your photo needs adjustments for a proof, we’ll let you know before the next step.</p>
+                <p class="proof-next-step-status" id="proofNextStepStatus">Keep this reference for your records.</p>
                 <div class="proof-actions">
                   <button class="btn btn-primary" id="proofReturnToBuilderButton" type="button">Create another preview</button>
-                  <a class="btn btn-secondary" id="proofContactLink" href="/contact/">Contact MosaPack</a>
+                  <button class="btn btn-secondary" id="proofCopyReferenceButton" type="button">Copy reference</button>
                 </div>
               </div>
             </section>
@@ -8334,8 +8644,18 @@
     let currentPreviewTweaks = { brightness: 0, contrast: 0, background_simplify: 0, regen_count: 0 };
     let previewTweakRegenTimer = null;
     let isPreviewTweakRegen = false;
+    let generationMessageTimer = null;
+    let generationSlowTimer = null;
+    let generationStartedAt = 0;
     let lastRecommendedFormat = 'Sticker-ready proof';
     let lastProofTrigger = null;
+    const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+    const MIN_IMAGE_DIMENSION = 300;
+    const GENERATION_MESSAGES = [
+      'Protecting your subject’s details…',
+      'Matching real mosaic colors…',
+      'Building your preview…'
+    ];
 
     const FORMAT_INTEREST_OPTIONS = {
       sticker_ready: {
@@ -8375,9 +8695,9 @@
     }
 
     const PREFERRED_SIZE_OPTIONS = {
-      '12': { value: '12', label: '12″ Starter' },
-      '16': { value: '16', label: '16″ Gallery' },
-      '24': { value: '24', label: '24″ Statement' }
+      '12': { value: '12', label: '12″ Starter', context: 'About the width of a laptop.' },
+      '16': { value: '16', label: '16″ Gallery', context: 'Good for a shelf, desk, or small wall.' },
+      '24': { value: '24', label: '24″ Statement', context: 'Best for a wall display.' }
     };
 
     function getPreferredSizeOption(value = currentPreferredSizeIn) {
@@ -8400,7 +8720,13 @@
       });
       const hidden = document.getElementById('savePreferredSizeIn');
       if (hidden) hidden.value = next;
+      updateSizeContext();
       updateProofRequestSummary();
+    }
+
+    function updateSizeContext() {
+      const el = document.getElementById('previewSizeContext');
+      if (el) el.textContent = getPreferredSizeOption().context;
     }
 
     function getPreviewTweaksPayload() {
@@ -8559,6 +8885,38 @@
     function setPreviewSkeleton(visible) {
       const skeleton = document.getElementById('previewLoadingSkeleton');
       if (skeleton) skeleton.hidden = !visible;
+    }
+
+    function setGenerationState(visible) {
+      const card = document.getElementById('generationStateCard');
+      const message = document.getElementById('generationMessage');
+      const slow = document.getElementById('generationSlowNote');
+      if (!card) return;
+      card.hidden = !visible;
+      document.body.classList.toggle('is-generating-preview', Boolean(visible));
+      clearInterval(generationMessageTimer);
+      clearTimeout(generationSlowTimer);
+      if (!visible) {
+        if (slow) slow.hidden = true;
+        return;
+      }
+      generationStartedAt = Date.now();
+      let index = 0;
+      if (message) message.textContent = GENERATION_MESSAGES[index];
+      generationMessageTimer = setInterval(() => {
+        index = (index + 1) % GENERATION_MESSAGES.length;
+        if (message) message.textContent = GENERATION_MESSAGES[index];
+      }, window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 900 : 550);
+      generationSlowTimer = setTimeout(() => {
+        if (slow) slow.hidden = false;
+      }, 6000);
+    }
+
+    async function waitForMinimumGenerationTime() {
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+      const elapsed = Date.now() - generationStartedAt;
+      const remaining = Math.max(0, 1100 - elapsed);
+      if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
     }
     let lastSavedProofProjectId = '';
 
@@ -8748,16 +9106,22 @@
       showEmailGate('custom_proof');
     }
 
-    function showProofNextStepCard({ projectId = '' } = {}) {
+    function showProofNextStepCard({ projectId = '', proofRef = '' } = {}) {
       const card = document.getElementById('proofNextStepCard');
       if (!card) return;
       const reference = document.getElementById('proofNextStepProjectRef');
       const status = document.getElementById('proofNextStepStatus');
+      const savedImage = document.getElementById('proofSavedMosaicImage');
+      const customerRef = proofRef || generateProofRef(projectId);
 
       lastSavedProofProjectId = projectId || lastSavedProofProjectId;
       card.hidden = false;
-      if (reference) reference.textContent = lastSavedProofProjectId ? `Reference: ${lastSavedProofProjectId}` : '';
-      if (status) status.textContent = "If your photo needs adjustments for a proof, we’ll let you know before the next step.";
+      if (reference) reference.textContent = `Reference: ${customerRef}`;
+      if (status) status.textContent = "Keep this reference for your records.";
+      if (savedImage) {
+        const mosaicDataUrl = getMosaicThumbnailDataUrl();
+        if (mosaicDataUrl) savedImage.src = mosaicDataUrl;
+      }
       updateWizardState('saved', { status: 'Proof request received.', focusCard: true });
       updateBuildableProofExportState();
       trackBuilderEvent('builder_proof_saved');
@@ -8768,7 +9132,7 @@
       crop: { index: 2, title: 'Crop', heroTitle: 'Position your photo', heroLead: 'Center the face or main subject.', cardTitle: 'Position your photo', helper: 'Center the face or main subject. You can adjust this before requesting a proof.', cta: 'Preview my mosaic' },
       preview: { index: 3, title: 'Preview', heroTitle: 'Here’s your mosaic', heroLead: 'Every cell is a real mosaic color.', cardTitle: 'Here’s your mosaic', helper: 'Choose your proof preferences.', cta: 'Request my free proof' },
       proof: { index: 4, title: 'Request Proof', heroTitle: 'Request your free proof', heroLead: 'A person checks your design and emails the next step — free.', cardTitle: 'Request your free proof', helper: 'Share your contact details so MosaPack can follow up.', cta: 'Request my proof' },
-      saved: { index: 5, title: 'Received', heroTitle: 'Proof request received', heroLead: 'We’ll review your design and follow up with the next step. Keep an eye on your email.', cardTitle: 'Proof request received', helper: 'We’ll review your design and follow up with the next step.', cta: 'Create another preview' }
+      saved: { index: 5, title: 'Received', heroTitle: 'Proof request received', heroLead: 'A person checks your design. We’ll email the next step.', cardTitle: 'Proof request received', helper: 'A person checks your design and emails the next step.', cta: 'Create another preview' }
     };
 
     let currentWizardState = 'upload';
@@ -9059,6 +9423,11 @@
         stickyButton.dataset.bound = 'true';
         stickyButton.addEventListener('click', handleWizardPrimaryAction);
       }
+      document.querySelectorAll('.sample-photo-button').forEach((button) => {
+        if (button.dataset.bound) return;
+        button.dataset.bound = 'true';
+        button.addEventListener('click', () => loadDemoSample(button.dataset.sample));
+      });
       const chooseDifferentPhotoButton = document.getElementById('chooseDifferentPhotoButton');
       if (chooseDifferentPhotoButton && !chooseDifferentPhotoButton.dataset.bound) {
         chooseDifferentPhotoButton.dataset.bound = 'true';
@@ -9113,6 +9482,19 @@
         proofReturnButton.addEventListener('click', () => {
           resetBuilder();
           updateWizardState('upload', { status: 'Create another sticker-ready mosaic proof.', focusCard: true });
+        });
+      }
+      const proofCopyReferenceButton = document.getElementById('proofCopyReferenceButton');
+      if (proofCopyReferenceButton && !proofCopyReferenceButton.dataset.bound) {
+        proofCopyReferenceButton.dataset.bound = 'true';
+        proofCopyReferenceButton.addEventListener('click', async () => {
+          const refText = document.getElementById('proofNextStepProjectRef')?.textContent?.replace(/^Reference:\s*/i, '').trim() || generateProofRef(getProofProjectId());
+          try {
+            await navigator.clipboard?.writeText(refText);
+            showToast('Reference copied', 'success');
+          } catch {
+            showToast(`Reference: ${refText}`, 'success');
+          }
         });
       }
       applyPanelState();
@@ -9245,6 +9627,26 @@
         }
       });
 
+      const emailGateOverlay = document.getElementById('emailGateOverlay');
+      if (emailGateOverlay && !emailGateOverlay.dataset.focusTrapBound) {
+        emailGateOverlay.dataset.focusTrapBound = 'true';
+        emailGateOverlay.addEventListener('keydown', (event) => {
+          if (event.key !== 'Tab' || emailGateOverlay.hidden) return;
+          const focusable = Array.from(emailGateOverlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+            .filter((node) => !node.disabled && node.offsetParent !== null);
+          if (!focusable.length) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        });
+      }
+
       const zoomIndicator = document.getElementById('zoomLevel');
       if (zoomIndicator) {
         zoomIndicator.textContent = `${Math.round(zoomLevel * 100)}%`;
@@ -9312,6 +9714,35 @@
         const submitButton = emailForm.querySelector("button[type=submit]");
         const submitDefaultText = submitButton ? submitButton.textContent : "Request my proof";
         const emailInput = document.getElementById("emailInput");
+        const nameInput = document.getElementById("nameInput");
+        const consentInput = document.getElementById("designStorageConsent");
+        const nameErrorNode = document.getElementById("nameError");
+        const emailErrorNode = document.getElementById("emailError");
+        const consentErrorNode = document.getElementById("consentError");
+
+        if (nameInput && !nameInput.dataset.fieldBound) {
+          nameInput.dataset.fieldBound = 'true';
+          nameInput.addEventListener('blur', () => {
+            if (nameErrorNode) nameErrorNode.hidden = Boolean(nameInput.value.trim());
+          });
+        }
+
+        if (emailInput && !emailInput.dataset.fieldBound) {
+          emailInput.dataset.fieldBound = 'true';
+          emailInput.addEventListener('blur', () => {
+            if (emailErrorNode) {
+              emailErrorNode.textContent = 'Enter a valid email address.';
+              emailErrorNode.hidden = !emailInput.value.trim() || isValidEmail(emailInput.value.trim());
+            }
+          });
+        }
+
+        if (consentInput && !consentInput.dataset.fieldBound) {
+          consentInput.dataset.fieldBound = 'true';
+          consentInput.addEventListener('change', () => {
+            if (consentErrorNode) consentErrorNode.hidden = consentInput.checked;
+          });
+        }
 
         function setGateField(id, value) {
           const field = document.getElementById(id);
@@ -9492,9 +9923,14 @@
           const colorSummary = getColorCounts();
           const configuration = getCurrentConfiguration({ includePreview: false }) || {};
           const timestamp = new Date().toISOString();
+          const projectId = getCanonicalProjectId();
+          const proofRef = generateProofRef(projectId);
 
           return {
+            schema_version: "proof_request.v1",
             save_version: DESIGN_SAVE_VERSION,
+            project_id: projectId,
+            proof_ref: proofRef,
             consent_to_store_design: true,
             email,
             name,
@@ -9585,36 +10021,55 @@
           e.preventDefault();
 
           const email = emailInput ? emailInput.value.trim() : "";
-          if (!isValidEmail(email)) {
-            showToast("Enter a valid email address.", "error");
-            return;
-          }
-          if (isDisposableEmail(email)) {
-            showToast("Use a permanent email address so we can follow up on your proof.", "error");
-            return;
-          }
-
+          const nameInput = document.getElementById("nameInput");
+          const consent = document.getElementById("designStorageConsent");
+          const nameError = document.getElementById("nameError");
+          const emailError = document.getElementById("emailError");
+          const consentError = document.getElementById("consentError");
+          [nameError, emailError, consentError].forEach((node) => {
+            if (node) node.hidden = true;
+          });
           const requestType = pendingRequestType || "custom_proof";
           const formatInterest = currentFormatInterest || 'sticker_ready';
           const preferredSizeIn = currentPreferredSizeIn || '12';
           const recommendedFormat = getFormatInterestOption(formatInterest).label;
           const photoCategoryKey = getSelectedPhotoCategory();
           const resolvedProfile = getMosaicCleanProfileForCategory(photoCategoryKey);
-          const photoCategory = resolvedProfile.label;
-          const name = document.getElementById("nameInput")?.value?.trim() || "";
+          const photoCategory = getCustomerPhotoCategoryLabel(getRawSelectedPhotoCategory());
+          const name = nameInput?.value?.trim() || "";
           const note = document.getElementById("noteInput")?.value?.trim() || "";
-          const consent = document.getElementById("designStorageConsent");
 
           if (!processedData) {
             showToast("Generate a free preview before requesting a proof.", "error");
             return;
           }
+          if (navigator && navigator.onLine === false) {
+            showToast("You appear to be offline. Your proof request is still here — try again when connected.", "error");
+            return;
+          }
           if (!name) {
+            if (nameError) nameError.hidden = false;
             showToast("Enter your name so we can follow up on your proof.", "error");
-            document.getElementById("nameInput")?.focus();
+            nameInput?.focus();
+            return;
+          }
+          if (!isValidEmail(email)) {
+            if (emailError) emailError.hidden = false;
+            showToast("Enter a valid email address.", "error");
+            emailInput?.focus();
+            return;
+          }
+          if (isDisposableEmail(email)) {
+            if (emailError) {
+              emailError.textContent = "Use a permanent email address so we can follow up on your proof.";
+              emailError.hidden = false;
+            }
+            showToast("Use a permanent email address so we can follow up on your proof.", "error");
+            emailInput?.focus();
             return;
           }
           if (!consent?.checked) {
+            if (consentError) consentError.hidden = false;
             showToast("Confirm temporary design storage so we can review your custom proof.", "error");
             consent?.focus();
             return;
@@ -9626,6 +10081,7 @@
           setGateField("saveFormatInterest", formatInterest);
           setGateField("savePreferredSizeIn", getPreferredSizeOption(preferredSizeIn).value);
           setGateField("savePreviewTweaks", JSON.stringify(getPreviewTweaksPayload()));
+          setGateField("saveProofRef", generateProofRef(getCanonicalProjectId()));
           setGateField("saveProjectId", "");
           setGateField("saveProjectSaved", "false");
           setGateField("saveSaveVersion", "");
@@ -9661,6 +10117,7 @@
           let didSaveProject = false;
           try {
             const designPayload = buildExactDesignPayload({ email, name, note, requestType, recommendedFormat, photoCategory, formatInterest, preferredSizeIn });
+            setGateField("saveProofRef", designPayload.proof_ref);
             const saveResult = await saveExactDesign(designPayload);
             didSaveProject = true;
             setGateField("saveProjectId", saveResult.project_id);
@@ -9681,12 +10138,12 @@
             }
 
             const successMessage = requestType === "custom_proof"
-              ? "Proof request received. We'll review the design and follow up with the next step."
-              : "Proof request received. We'll review the design and follow up with the next step.";
+              ? "Proof request received. A person checks the design and emails the next step."
+              : "Proof request received. A person checks the design and emails the next step.";
             showStatus(successMessage);
             showToast(successMessage, "success");
             if (requestType === "custom_proof") {
-              showProofNextStepCard({ projectId: saveResult.project_id });
+              showProofNextStepCard({ projectId: saveResult.project_id, proofRef: designPayload.proof_ref });
             } else {
               hideProofNextStepCard();
             }
@@ -11554,13 +12011,51 @@
     // IMAGE PROCESSING
     // =====================================================
 
+    function setUploadError(message = '') {
+      const error = document.getElementById('uploadError');
+      if (!error) return;
+      error.textContent = message;
+      error.hidden = !message;
+      if (message) showStatus(message);
+    }
+
+    function validateUploadFile(file) {
+      const name = String(file?.name || '').toLowerCase();
+      const type = String(file?.type || '').toLowerCase();
+      if (!file) return 'Please upload a JPG or PNG.';
+      if (name.endsWith('.heic') || name.endsWith('.heif') || type.includes('heic') || type.includes('heif')) {
+        return 'HEIC photos are not supported yet. On iPhone, take a screenshot of the photo or export as JPG/PNG, then upload again.';
+      }
+      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(type) && !/\.(jpe?g|png)$/.test(name)) {
+        return 'Please upload a JPG or PNG.';
+      }
+      if (file.size > MAX_UPLOAD_BYTES) {
+        return 'This photo is over 20MB. Try a smaller copy or screenshot.';
+      }
+      return '';
+    }
+
     function handleFileUpload(input) {
       const file = input.files[0];
       if (!file) return;
 
+      const uploadProblem = validateUploadFile(file);
+      if (uploadProblem) {
+        setUploadError(uploadProblem);
+        input.value = '';
+        return;
+      }
+
+      setUploadError('');
       showLoading(true);
       showRegen(true);
       const reader = new FileReader();
+
+      reader.onerror = function() {
+        showLoading(false);
+        showRegen(false);
+        setUploadError('We couldn’t read that image. Try a different JPG or PNG.');
+      };
 
       reader.onload = function(e) {
         loadImageFromData(e.target.result);
@@ -11574,6 +12069,14 @@
       showLoading(true);
       const img = new Image();
       img.onload = function() {
+        const lowResAdvisory = document.getElementById('cropLowResAdvisory');
+        if (Math.min(img.naturalWidth || img.width || 0, img.naturalHeight || img.height || 0) < MIN_IMAGE_DIMENSION) {
+          setUploadError('');
+          if (lowResAdvisory) lowResAdvisory.hidden = false;
+        } else {
+          setUploadError('');
+          if (lowResAdvisory) lowResAdvisory.hidden = true;
+        }
         currentImage = img;
         processedData = null;
         window.mosapackPreviewProjectId = '';
@@ -11601,6 +12104,11 @@
         trackBuilderEvent('builder_photo_uploaded');
         trackBuilderEvent('builder_crop_opened');
       };
+      img.onerror = function() {
+        showLoading(false);
+        showRegen(false);
+        setUploadError('We couldn’t open that image. Try a different JPG or PNG.');
+      };
       img.src = dataUrl;
     }
 
@@ -11617,6 +12125,72 @@
 
     // Call on page load
     checkPreloadedImage();
+
+    function createDemoSampleDataUrl(sample = 'pet') {
+      const canvas = document.createElement('canvas');
+      canvas.width = 900;
+      canvas.height = 900;
+      const ctx = canvas.getContext('2d');
+      const palette = {
+        pet: ['#f7d7b5', '#8b5a3c', '#241816', '#ffffff', '#08b894'],
+        family: ['#f4c7ab', '#46312b', '#f7f0e8', '#c34a6c', '#0b7f72'],
+        first_hello: ['#f8fafc', '#d6d9dd', '#8b929b', '#3e444c', '#111318']
+      }[sample] || ['#f4c7ab', '#46312b', '#f7f0e8', '#08b894', '#f72573'];
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, palette[2]);
+      gradient.addColorStop(1, palette[4]);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      ctx.beginPath();
+      ctx.arc(450, 380, 210, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = palette[0];
+      ctx.beginPath();
+      ctx.arc(450, 390, 178, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = palette[1];
+      ctx.beginPath();
+      ctx.arc(385, 355, 22, 0, Math.PI * 2);
+      ctx.arc(515, 355, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = palette[3];
+      ctx.lineWidth = 18;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(375, 485);
+      ctx.quadraticCurveTo(450, 540, 525, 485);
+      ctx.stroke();
+      if (sample === 'first_hello') {
+        ctx.strokeStyle = palette[3];
+        ctx.lineWidth = 16;
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.arc(450, 455, 130 + i * 30, 0.2, Math.PI - 0.2);
+          ctx.stroke();
+        }
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.72)';
+        ctx.fillRect(250, 650, 400, 72);
+        ctx.fillStyle = palette[2];
+        ctx.font = '700 34px Inter, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(sample === 'pet' ? 'Demo pet photo' : 'Demo family photo', 450, 697);
+      }
+      return canvas.toDataURL('image/png');
+    }
+
+    function loadDemoSample(sample) {
+      const select = document.getElementById('photoCategorySelect');
+      const category = sample === 'first_hello' ? 'baby_kids' : sample === 'family' ? 'family' : 'pet';
+      if (select) {
+        select.value = category;
+        updatePhotoCategorySelection(category);
+      }
+      setUploadError('');
+      loadImageFromData(createDemoSampleDataUrl(sample));
+      trackBuilderEvent('builder_sample_photo_loaded');
+    }
 
 
     function initializeCropEditor(img) {
@@ -11741,6 +12315,31 @@
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(currentImage, rect.x, rect.y, rect.width, rect.height, 0, 0, canvas.width, canvas.height);
+      renderCropMiniMosaic();
+    }
+
+    function renderCropMiniMosaic() {
+      if (!currentImage) return;
+      const canvas = document.getElementById('cropMiniMosaicCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = getCropSourceRect();
+      const cells = 18;
+      const cellSize = Math.max(1, Math.floor(canvas.width / cells));
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(currentImage, rect.x, rect.y, rect.width, rect.height, 0, 0, cells, cells);
+      const data = ctx.getImageData(0, 0, cells, cells);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = false;
+      for (let y = 0; y < cells; y++) {
+        for (let x = 0; x < cells; x++) {
+          const i = (y * cells + x) * 4;
+          const nearest = findNearestColor({ r: data.data[i], g: data.data[i + 1], b: data.data[i + 2] }, PALETTES[currentPalette]);
+          ctx.fillStyle = `rgb(${nearest.r}, ${nearest.g}, ${nearest.b})`;
+          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        }
+      }
     }
 
     function updateCropWarning(rect = getCropSourceRect()) {
@@ -11764,6 +12363,8 @@
       const slider = document.getElementById('cropZoomSlider');
       const resetButton = document.getElementById('cropResetButton');
       const fitButton = document.getElementById('cropFitButton');
+      const fillButton = document.getElementById('cropFillButton');
+      const rotateButton = document.getElementById('cropRotateButton');
       const generateButton = document.getElementById('cropGenerateButton');
 
       if (slider && !slider.dataset.bound) {
@@ -11781,6 +12382,16 @@
         fitButton.addEventListener('click', fitCropToFrame);
       }
 
+      if (fillButton && !fillButton.dataset.bound) {
+        fillButton.dataset.bound = 'true';
+        fillButton.addEventListener('click', () => updateCropZoom(1.35));
+      }
+
+      if (rotateButton && !rotateButton.dataset.bound) {
+        rotateButton.dataset.bound = 'true';
+        rotateButton.addEventListener('click', rotatePhoto90);
+      }
+
       if (generateButton && !generateButton.dataset.bound) {
         generateButton.dataset.bound = 'true';
         generateButton.addEventListener('click', generateFromCrop);
@@ -11794,6 +12405,18 @@
         frame.addEventListener('pointercancel', endCropDrag);
         frame.addEventListener('lostpointercapture', endCropDrag);
       }
+    }
+
+    function rotatePhoto90() {
+      if (!currentImage) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = currentImage.naturalHeight || currentImage.height;
+      canvas.height = currentImage.naturalWidth || currentImage.width;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(currentImage, -currentImage.width / 2, -currentImage.height / 2);
+      loadImageFromData(canvas.toDataURL('image/png'));
     }
 
     function startCropDrag(event) {
@@ -11845,11 +12468,18 @@
         return;
       }
       setPreviewSkeleton(true);
+      setGenerationState(true);
       const proofFlow = document.getElementById('postPreviewFlow');
       if (proofFlow) proofFlow.hidden = false;
       showCropEditor(false);
       updateWizardState('preview', { status: 'Building your mosaic preview…', focusCard: true });
-      Promise.resolve(processImage()).catch((error) => console.error('Process image failed', error));
+      Promise.resolve(processImage())
+        .then(waitForMinimumGenerationTime)
+        .catch((error) => {
+          console.error('Process image failed', error);
+          showToast('We couldn’t build this preview. Try again or choose a different photo.', 'error');
+        })
+        .finally(() => setGenerationState(false));
     }
 
     function clampChannel(value) {
@@ -14634,6 +15264,9 @@
         resetAdjustments();
         
         document.getElementById('uploadOverlay').classList.remove('hidden');
+        setUploadError('');
+        const lowResAdvisory = document.getElementById('cropLowResAdvisory');
+        if (lowResAdvisory) lowResAdvisory.hidden = true;
         document.getElementById('fileInput').value = '';
         document.getElementById('numbersOverlay').classList.remove('show');
         document.getElementById('baseplateGrid').classList.remove('show');
@@ -15612,6 +16245,7 @@
         <input type="hidden" name="format_interest" id="saveFormatInterest" value="sticker_ready">
         <input type="hidden" name="preferred_size_in" id="savePreferredSizeIn" value="12">
         <input type="hidden" name="preview_tweaks" id="savePreviewTweaks" value="{&quot;brightness&quot;:0,&quot;contrast&quot;:0,&quot;background_simplify&quot;:0,&quot;regen_count&quot;:0}">
+        <input type="hidden" name="proof_ref" id="saveProofRef">
         <input type="hidden" name="project_id" id="saveProjectId">
         <input type="hidden" name="project_saved" id="saveProjectSaved" value="false">
         <input type="hidden" name="save_version" id="saveSaveVersion" value="">
@@ -15643,15 +16277,21 @@
           id="nameInput"
           name="name"
           placeholder="Name"
+          autocomplete="name"
+          aria-describedby="nameError"
           required
         />
+        <p class="field-error" id="nameError" hidden>Enter your name.</p>
         <input
           type="email"
           id="emailInput"
           name="email"
           placeholder="Email"
+          autocomplete="email"
+          aria-describedby="emailError"
           required
         />
+        <p class="field-error" id="emailError" hidden>Enter a valid email address.</p>
         <label class="sr-only" for="photoCategoryInput">What kind of photo is this?</label>
         <select
           id="photoCategoryInput"
@@ -15679,9 +16319,10 @@
           aria-hidden="true"
         ></textarea>
         <div class="design-storage-consent">
-          <input type="checkbox" id="designStorageConsent" required>
-          <label for="designStorageConsent">I’d like MosaPack to review my design and follow up by email. No payment is collected today, and my photo stays private.</label>
+          <input type="checkbox" id="designStorageConsent" required aria-describedby="consentError">
+          <label for="designStorageConsent">I’d like MosaPack to check my design and follow up by email. No payment is collected today.</label>
         </div>
+        <p class="field-error" id="consentError" hidden>Confirm this so MosaPack can check your proof request.</p>
         <div class="email-gate-actions">
           <button type="button" class="email-gate-secondary" id="proofBackToPreviewButton">Back to preview</button>
           <button type="submit" id="emailGateSubmit">Request my proof</button>
@@ -15689,7 +16330,7 @@
       </form>
 
       <p class="email-gate-privacy">
-        We store the approved cropped source and preview only after you request a proof. Raw image data is not submitted through our proof form.
+        Your cropped preview and mosaic details are saved so a person can check your proof. Your original photo is not stored.
       </p>
     </div>
   </div>
