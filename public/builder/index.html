@@ -5859,7 +5859,7 @@
     }
 
     .proof-preview-step-card {
-      --preview-frame-size: clamp(280px, 21vw, 300px);
+      --preview-frame-size: clamp(190px, 14vw, 220px);
       display: grid;
       gap: 0.7rem;
       padding: 0.85rem;
@@ -5903,6 +5903,128 @@
       border: 1px solid rgba(221, 227, 234, 0.94);
       border-radius: 16px;
       background: linear-gradient(135deg, #f8fafc, #fff);
+    }
+
+    .style-preset-section {
+      display: grid;
+      gap: 0.5rem;
+      padding: 0.72rem;
+      border: 1px solid rgba(221, 227, 234, 0.78);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 12px 28px rgba(17, 19, 24, 0.055);
+    }
+
+    .style-preset-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .style-preset-heading h4 {
+      margin: 0;
+      color: var(--mp-ink);
+      font-size: 0.95rem;
+      line-height: 1.15;
+      font-weight: 900;
+    }
+
+    .style-preset-heading p {
+      margin: 0;
+      color: var(--mp-muted);
+      font-size: 0.78rem;
+      line-height: 1.25;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .style-preset-options {
+      display: flex;
+      gap: 0.45rem;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      padding: 0.1rem 0.1rem 0.35rem;
+    }
+
+    .style-preset-option {
+      position: relative;
+      flex: 0 0 174px;
+      min-height: 44px;
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      align-items: center;
+      gap: 0.28rem;
+      padding: 0.38rem;
+      border: 1px solid rgba(221, 227, 234, 0.88);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--mp-muted);
+      text-align: left;
+      cursor: pointer;
+      scroll-snap-align: start;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    }
+
+    .style-preset-option:hover {
+      border-color: rgba(8, 184, 148, 0.34);
+      background: rgba(250, 249, 247, 0.96);
+    }
+
+    .style-preset-option[aria-checked="true"] {
+      border-color: rgba(8, 184, 148, 0.62);
+      background: rgba(232, 250, 245, 0.86);
+      box-shadow: inset 0 0 0 1px rgba(8, 184, 148, 0.18), 0 10px 22px rgba(8, 184, 148, 0.12);
+    }
+
+    .style-preset-option:focus-visible {
+      outline: 3px solid rgba(8, 184, 148, 0.32);
+      outline-offset: 3px;
+    }
+
+    .style-preset-option:disabled {
+      opacity: 0.62;
+      cursor: wait;
+    }
+
+    .style-preset-thumb {
+      grid-row: 1 / 3;
+      width: 54px;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid rgba(221, 227, 234, 0.75);
+      background: linear-gradient(135deg, #eef3f6, #fff);
+    }
+
+    .style-preset-thumb img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      image-rendering: pixelated;
+    }
+
+    .style-preset-thumb.is-loading {
+      background: linear-gradient(90deg, #eef3f6 0%, #fff 42%, #eef3f6 78%);
+      background-size: 220% 100%;
+      animation: preview-shimmer 1.2s ease-in-out infinite;
+    }
+
+    .style-preset-option strong {
+      color: var(--mp-ink);
+      font-size: 0.78rem;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .style-preset-option span {
+      color: var(--mp-muted);
+      font-size: 0.68rem;
+      line-height: 1.18;
+      font-weight: 700;
     }
 
     .proof-preview-toggle {
@@ -6935,10 +7057,43 @@
         display: none;
       }
 
+      .style-preset-section {
+        padding: 0.5rem 0.55rem;
+        gap: 0.34rem;
+      }
+
+      .style-preset-heading {
+        align-items: start;
+        flex-direction: column;
+        gap: 0.18rem;
+      }
+
+      .style-preset-heading p {
+        text-align: left;
+      }
+
+      .style-preset-options {
+        gap: 0.45rem;
+        padding: 0.1rem 0.1rem 0.35rem;
+      }
+
+      .style-preset-option {
+        flex: 0 0 168px;
+        grid-template-columns: 48px minmax(0, 1fr);
+      }
+
+      .style-preset-thumb {
+        width: 48px;
+      }
+
       .preview-choices-card,
       .proof-preview-step-card {
         padding: 0.82rem;
         border-radius: 16px;
+      }
+
+      .proof-preview-step-card {
+        gap: 0.48rem;
       }
 
       .preview-choice-row {
@@ -7208,6 +7363,13 @@
                     <img id="proofMosaicThumbnail" alt="Buildable mosaic preview">
                   </figure>
                 </div>
+                <section class="style-preset-section" id="stylePresetSection" aria-labelledby="stylePresetTitle">
+                  <div class="style-preset-heading">
+                    <h4 id="stylePresetTitle">Choose a mosaic style</h4>
+                    <p>Try a few looks before you request your proof.</p>
+                  </div>
+                  <div class="style-preset-options" id="stylePresetOptions" role="radiogroup" aria-labelledby="stylePresetTitle"></div>
+                </section>
                 <div class="preview-quiet-actions">
                   <button type="button" class="preview-quiet-action" id="previewFineTuneToggle" aria-expanded="false" aria-controls="previewFineTunePanel">Fine-tune this preview ▾</button>
                   <span aria-hidden="true">·</span>
@@ -7255,6 +7417,10 @@
                   </div>
                   <button type="button" class="preview-tweaks-reset" id="previewTweaksReset" hidden>Reset to Auto</button>
                 </div>
+              </div>
+              <div class="preview-cta-block">
+                <button class="btn btn-primary" type="button" id="requestProofButton" data-testid="preview-primary-cta" onclick="requestCustomProof()">Request my free proof</button>
+                <p class="preview-trust-line">Free · no payment today · a person checks every design · we reply by email</p>
               </div>
               <section class="preview-choices-card" id="previewChoices" aria-label="Your choices">
                 <div class="preview-choice-row format-interest-selector" id="formatInterestSelector">
@@ -7306,10 +7472,6 @@
                 <p class="preview-choice-helper">We confirm final options when we reply.</p>
                 <p class="preview-size-context" id="previewSizeContext">About the width of a laptop.</p>
               </section>
-              <div class="preview-cta-block">
-                <button class="btn btn-primary" type="button" id="requestProofButton" data-testid="preview-primary-cta" onclick="requestCustomProof()">Request my free proof</button>
-                <p class="preview-trust-line">Free · no payment today · a person checks every design · we reply by email</p>
-              </div>
               <div class="proof-next-step-card" id="proofNextStepCard" hidden>
                 <span class="proof-next-step-eyebrow">Proof request received</span>
                 <h3>Proof request received</h3>
@@ -8642,6 +8804,10 @@
     let currentFormatInterest = 'sticker_ready';
     let currentPreferredSizeIn = '12';
     let currentPreviewTweaks = { brightness: 0, contrast: 0, background_simplify: 0, regen_count: 0 };
+    let currentStylePresetId = 'true_color';
+    let currentDemoSample = '';
+    let styleThumbnailCache = new Map();
+    let isStylePresetRegen = false;
     let previewTweakRegenTimer = null;
     let isPreviewTweakRegen = false;
     let generationMessageTimer = null;
@@ -8656,6 +8822,52 @@
       'Matching real mosaic colors…',
       'Building your preview…'
     ];
+
+    const STYLE_PRESETS = {
+      true_color: {
+        id: 'true_color',
+        label: 'True Color',
+        helper: 'Balanced and natural.',
+        params: { brightness: 0, contrast: 0, background_simplify: 0, color_pop: 0, grayscale: false }
+      },
+      bright_pop: {
+        id: 'bright_pop',
+        label: 'Bright Pop',
+        helper: 'Colorful and playful.',
+        params: { brightness: 2, contrast: 2, background_simplify: 0, color_pop: 0.35, grayscale: false }
+      },
+      soft_heirloom: {
+        id: 'soft_heirloom',
+        label: 'Soft Heirloom',
+        helper: 'Warm and gentle.',
+        params: { brightness: 1, contrast: -1, background_simplify: 0, color_pop: -0.08, grayscale: false }
+      },
+      bold_graphic: {
+        id: 'bold_graphic',
+        label: 'Bold Graphic',
+        helper: 'Strong contrast.',
+        params: { brightness: 0, contrast: 2, background_simplify: 1, color_pop: 0.05, grayscale: false }
+      },
+      calm_background: {
+        id: 'calm_background',
+        label: 'Calm Background',
+        helper: 'Helps the subject stand out.',
+        params: { brightness: 0, contrast: 0, background_simplify: 2, color_pop: 0, grayscale: false }
+      },
+      mono_keepsake: {
+        id: 'mono_keepsake',
+        label: 'Mono Keepsake',
+        helper: 'Simple black-and-white feel.',
+        params: { brightness: 0, contrast: 1, background_simplify: 1, color_pop: 0, grayscale: true }
+      },
+      first_hello: {
+        id: 'first_hello',
+        label: 'First Hello',
+        helper: 'Soft grayscale keepsake.',
+        params: { brightness: 1, contrast: -1, background_simplify: 1, color_pop: 0, grayscale: true },
+        conditional: true
+      }
+    };
 
     const FORMAT_INTEREST_OPTIONS = {
       sticker_ready: {
@@ -8736,6 +8948,239 @@
         background_simplify: Number(currentPreviewTweaks.background_simplify) || 0,
         regen_count: Number(currentPreviewTweaks.regen_count) || 0
       };
+    }
+
+    function isFirstHelloStyleRelevant() {
+      const rawCategory = String(getRawSelectedPhotoCategory() || '').toLowerCase();
+      const normalized = getSelectedPhotoCategory();
+      return currentDemoSample === 'first_hello'
+        || normalized === 'baby_kids'
+        || rawCategory.includes('first')
+        || rawCategory.includes('sono');
+    }
+
+    function getVisibleStylePresets() {
+      return Object.values(STYLE_PRESETS).filter((preset) => !preset.conditional || isFirstHelloStyleRelevant());
+    }
+
+    function getStylePreset(id = currentStylePresetId) {
+      const preset = STYLE_PRESETS[id] || STYLE_PRESETS.true_color;
+      if (preset.conditional && !isFirstHelloStyleRelevant()) return STYLE_PRESETS.true_color;
+      return preset;
+    }
+
+    function getStylePresetParams(id = currentStylePresetId) {
+      return { ...getStylePreset(id).params };
+    }
+
+    function getStylePresetSnapshot(id = currentStylePresetId) {
+      const preset = getStylePreset(id);
+      return {
+        id: preset.id,
+        label: preset.label,
+        params: getStylePresetParams(preset.id),
+        alternate_style_ids: [],
+        style_variant_count: 1
+      };
+    }
+
+    function updateStylePresetFields() {
+      const snapshot = getStylePresetSnapshot();
+      const idField = document.getElementById('saveStylePresetId');
+      const labelField = document.getElementById('saveStylePresetLabel');
+      const paramsField = document.getElementById('saveStylePresetParams');
+      const alternateField = document.getElementById('saveAlternateStyleIds');
+      const countField = document.getElementById('saveStyleVariantCount');
+      if (idField) idField.value = snapshot.id;
+      if (labelField) labelField.value = snapshot.label;
+      if (paramsField) paramsField.value = JSON.stringify(snapshot.params);
+      if (alternateField) alternateField.value = JSON.stringify(snapshot.alternate_style_ids);
+      if (countField) countField.value = String(snapshot.style_variant_count);
+      updateProofRequestSummary();
+    }
+
+    function resetStyleThumbnailCache() {
+      styleThumbnailCache = new Map();
+    }
+
+    function getStyleThumbnailCacheKey(styleId) {
+      const rect = getCropSourceRect();
+      return [
+        styleId,
+        currentImage?.src?.slice(0, 48) || '',
+        Math.round(rect.x),
+        Math.round(rect.y),
+        Math.round(rect.width),
+        Math.round(rect.height),
+        getSelectedPhotoCategory(),
+        JSON.stringify(getPreviewTweaksPayload())
+      ].join('|');
+    }
+
+    function renderStylePresetOptions() {
+      const container = document.getElementById('stylePresetOptions');
+      if (!container) return;
+      const visiblePresets = getVisibleStylePresets();
+      if (!visiblePresets.some((preset) => preset.id === currentStylePresetId)) {
+        currentStylePresetId = 'true_color';
+      }
+      container.innerHTML = visiblePresets.map((preset) => {
+        const checked = preset.id === currentStylePresetId;
+        const cacheKey = getStyleThumbnailCacheKey(preset.id);
+        const cached = styleThumbnailCache.get(cacheKey);
+        return `
+          <button type="button"
+            class="style-preset-option"
+            role="radio"
+            aria-checked="${checked ? 'true' : 'false'}"
+            data-style-preset="${preset.id}"
+            aria-label="${preset.label} mosaic style preview">
+            <span class="style-preset-thumb${cached ? '' : ' is-loading'}" aria-hidden="true">
+              ${cached ? `<img src="${cached}" alt="">` : ''}
+            </span>
+            <strong>${preset.label}</strong>
+            <span>${preset.helper}</span>
+          </button>
+        `;
+      }).join('');
+      container.querySelectorAll('.style-preset-option').forEach((button) => {
+        button.addEventListener('click', () => setStylePreset(button.dataset.stylePreset));
+        button.addEventListener('keydown', (event) => {
+          if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+          event.preventDefault();
+          const options = Array.from(container.querySelectorAll('.style-preset-option'));
+          const index = options.indexOf(button);
+          const delta = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1;
+          const next = options[(index + delta + options.length) % options.length];
+          next?.focus();
+          next?.click();
+        });
+      });
+      updateStylePresetFields();
+    }
+
+    function applyStylePresetToImageData(imageData, presetId = currentStylePresetId) {
+      const params = getStylePresetParams(presetId);
+      if (!params.brightness && !params.contrast && !params.background_simplify && !params.color_pop && !params.grayscale) return imageData;
+      const data = imageData.data;
+      const brightnessOffset = (Number(params.brightness) || 0) * 8;
+      const contrastFactor = 1 + ((Number(params.contrast) || 0) * 0.08);
+      const simplifyStrength = Math.max(0, Number(params.background_simplify) || 0) * 0.14;
+      const colorPop = Number(params.color_pop) || 0;
+
+      for (let i = 0; i < data.length; i += 4) {
+        let r = (data[i] - 128) * contrastFactor + 128 + brightnessOffset;
+        let g = (data[i + 1] - 128) * contrastFactor + 128 + brightnessOffset;
+        let b = (data[i + 2] - 128) * contrastFactor + 128 + brightnessOffset;
+        const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+        if (params.grayscale) {
+          r = luma;
+          g = luma;
+          b = luma;
+        } else if (colorPop) {
+          const popFactor = 1 + colorPop;
+          r = luma + (r - luma) * popFactor;
+          g = luma + (g - luma) * popFactor;
+          b = luma + (b - luma) * popFactor;
+        }
+
+        if (simplifyStrength > 0) {
+          const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+          const backgroundWeight = Math.max(0, Math.min(1, (118 - luma) / 118)) * Math.max(0, Math.min(1, (88 - chroma) / 88));
+          const mix = simplifyStrength * backgroundWeight;
+          r = r * (1 - mix) + luma * mix;
+          g = g * (1 - mix) + luma * mix;
+          b = b * (1 - mix) + luma * mix;
+        }
+
+        data[i] = clampChannel(r);
+        data[i + 1] = clampChannel(g);
+        data[i + 2] = clampChannel(b);
+      }
+      return imageData;
+    }
+
+    function createStyleThumbnailDataUrl(styleId) {
+      if (!currentImage) return '';
+      const cacheKey = getStyleThumbnailCacheKey(styleId);
+      if (styleThumbnailCache.has(cacheKey)) return styleThumbnailCache.get(cacheKey);
+      try {
+        const thumbSize = 36;
+        const canvas = document.createElement('canvas');
+        canvas.width = thumbSize;
+        canvas.height = thumbSize;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const rect = getCropSourceRect();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(currentImage, rect.x, rect.y, rect.width, rect.height, 0, 0, thumbSize, thumbSize);
+        let imageData = ctx.getImageData(0, 0, thumbSize, thumbSize);
+        imageData = applyStylePresetToImageData(imageData, styleId);
+        imageData = applyStylePresetToImageData(imageData);
+        imageData = applyPreviewTweaksToImageData(imageData);
+        const previousDither = settings.dithering;
+        settings.dithering = 'ordered';
+        const mapped = mapToPalette(imageData);
+        settings.dithering = previousDither;
+        const output = ctx.createImageData(thumbSize, thumbSize);
+        for (let i = 0; i < mapped.mapped.length; i++) {
+          const color = mapped.palette[mapped.mapped[i]];
+          const rgb = hexToRgb(color?.hex || '#111318') || { r: 17, g: 19, b: 24 };
+          output.data[i * 4] = rgb.r;
+          output.data[i * 4 + 1] = rgb.g;
+          output.data[i * 4 + 2] = rgb.b;
+          output.data[i * 4 + 3] = 255;
+        }
+        ctx.putImageData(output, 0, 0);
+        const dataUrl = canvas.toDataURL('image/png');
+        styleThumbnailCache.set(cacheKey, dataUrl);
+        trackBuilderEvent('style_thumbnail_generated', { style_preset_id: styleId });
+        return dataUrl;
+      } catch (error) {
+        trackBuilderEvent('style_preset_regen_failed', { style_preset_id: styleId });
+        return '';
+      }
+    }
+
+    function generateStylePresetThumbnails() {
+      const container = document.getElementById('stylePresetOptions');
+      if (!container || !currentImage) return;
+      getVisibleStylePresets().forEach((preset) => {
+        const dataUrl = createStyleThumbnailDataUrl(preset.id);
+        const button = container.querySelector(`.style-preset-option[data-style-preset="${preset.id}"]`);
+        const thumb = button?.querySelector('.style-preset-thumb');
+        if (thumb && dataUrl) {
+          thumb.classList.remove('is-loading');
+          thumb.innerHTML = `<img src="${dataUrl}" alt="">`;
+        }
+      });
+      trackBuilderEvent('style_preset_viewed');
+    }
+
+    async function setStylePreset(id = 'true_color') {
+      const nextPreset = getStylePreset(id);
+      currentStylePresetId = nextPreset.id;
+      renderStylePresetOptions();
+      trackBuilderEvent('style_preset_selected', { style_preset_id: currentStylePresetId });
+      if (!processedData || !currentImage) return;
+      try {
+        isStylePresetRegen = true;
+        document.querySelectorAll('.style-preset-option').forEach((button) => {
+          button.disabled = true;
+        });
+        showStatus('Updating mosaic preview.');
+        let guard = 0;
+        while (isProcessing && guard < 40) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          guard += 1;
+        }
+        await processImage();
+      } finally {
+        isStylePresetRegen = false;
+        renderStylePresetOptions();
+        generateStylePresetThumbnails();
+      }
     }
 
     function hasPreviewTweaksChanged() {
@@ -8871,12 +9316,14 @@
       const category = document.getElementById('proofSummaryCategory');
       const interest = document.getElementById('proofSummaryInterest');
       const preferredSize = document.getElementById('proofSummaryPreferredSize');
+      const style = document.getElementById('proofSummaryStyle');
       const tweakSummary = document.getElementById('proofSummaryTweaks');
       const mosaicDataUrl = getMosaicThumbnailDataUrl();
       if (summaryThumb && mosaicDataUrl) summaryThumb.src = mosaicDataUrl;
       if (category) category.textContent = getCustomerPhotoCategoryLabel();
       if (interest) interest.textContent = getFormatInterestOption().summaryLabel || getFormatInterestOption().label;
       if (preferredSize) preferredSize.textContent = getPreferredSizeOption().label;
+      if (style) style.textContent = getStylePreset().label;
       if (tweakSummary) {
         tweakSummary.hidden = !hasPreviewTweaksChanged();
       }
@@ -9139,12 +9586,13 @@
     let wizardRailNode = null;
     let wizardRailPlaceholder = null;
 
-    function trackBuilderEvent(eventName) {
+    function trackBuilderEvent(eventName, details = {}) {
       if (typeof gtag !== 'undefined') {
         try {
           gtag('event', eventName, {
             event_category: 'builder_wizard',
-            event_label: 'public_guided_wizard'
+            event_label: 'public_guided_wizard',
+            ...details
           });
         } catch (error) { /* no-op */ }
       }
@@ -9699,6 +10147,7 @@
         }
       });
       setPreviewComparisonView('mosaic');
+      renderStylePresetOptions();
 
       const proofBackToPreviewButton = document.getElementById('proofBackToPreviewButton');
       if (proofBackToPreviewButton && !proofBackToPreviewButton.dataset.bound) {
@@ -9871,6 +10320,7 @@
               background: aiSettings.background,
               background_mode: aiSettings.backgroundMode
             },
+            style_preset: getStylePresetSnapshot(),
             view_mode: viewMode,
             show_grid: showGrid,
             show_numbers: showNumbers
@@ -9949,6 +10399,11 @@
             preferred_size_in: Number(getPreferredSizeOption(preferredSizeIn).value),
             preferred_size_label: getPreferredSizeOption(preferredSizeIn).label,
             preview_tweaks: getPreviewTweaksPayload(),
+            style_preset_id: getStylePresetSnapshot().id,
+            style_preset_label: getStylePresetSnapshot().label,
+            style_preset_params: getStylePresetSnapshot().params,
+            alternate_style_ids: getStylePresetSnapshot().alternate_style_ids,
+            style_variant_count: getStylePresetSnapshot().style_variant_count,
             product_interest: getSubmittedProductInterest(),
             request_type: requestType,
             crop_state: cropSnapshot,
@@ -9966,6 +10421,7 @@
               crop_state: cropSnapshot,
               render_settings: renderSnapshot,
               preview_tweaks: getPreviewTweaksPayload(),
+              style_preset: getStylePresetSnapshot(),
               preprocess: preprocessSnapshot,
               configuration,
               processed_data: processedSnapshot
@@ -10081,6 +10537,11 @@
           setGateField("saveFormatInterest", formatInterest);
           setGateField("savePreferredSizeIn", getPreferredSizeOption(preferredSizeIn).value);
           setGateField("savePreviewTweaks", JSON.stringify(getPreviewTweaksPayload()));
+          setGateField("saveStylePresetId", getStylePresetSnapshot().id);
+          setGateField("saveStylePresetLabel", getStylePresetSnapshot().label);
+          setGateField("saveStylePresetParams", JSON.stringify(getStylePresetSnapshot().params));
+          setGateField("saveAlternateStyleIds", JSON.stringify(getStylePresetSnapshot().alternate_style_ids));
+          setGateField("saveStyleVariantCount", String(getStylePresetSnapshot().style_variant_count));
           setGateField("saveProofRef", generateProofRef(getCanonicalProjectId()));
           setGateField("saveProjectId", "");
           setGateField("saveProjectSaved", "false");
@@ -10150,6 +10611,7 @@
             emailForm.reset();
             setFormatInterest(currentFormatInterest);
             setPreferredSize(currentPreferredSizeIn);
+            updateStylePresetFields();
             if (proofFormatSelect) proofFormatSelect.value = recommendedFormat;
             pendingRequestType = "custom_proof";
             hideEmailGate();
@@ -12047,6 +12509,9 @@
       }
 
       setUploadError('');
+      currentDemoSample = '';
+      currentStylePresetId = 'true_color';
+      resetStyleThumbnailCache();
       showLoading(true);
       showRegen(true);
       const reader = new FileReader();
@@ -12079,6 +12544,8 @@
         }
         currentImage = img;
         processedData = null;
+        resetStyleThumbnailCache();
+        renderStylePresetOptions();
         window.mosapackPreviewProjectId = '';
         window.mosapackProofRef = '';
         hasAutoFitOnce = false;
@@ -12181,6 +12648,9 @@
     }
 
     function loadDemoSample(sample) {
+      currentDemoSample = sample || '';
+      currentStylePresetId = 'true_color';
+      resetStyleThumbnailCache();
       const select = document.getElementById('photoCategorySelect');
       const category = sample === 'first_hello' ? 'baby_kids' : sample === 'family' ? 'family' : 'pet';
       if (select) {
@@ -12551,9 +13021,11 @@
 
         imageData = applyPreset(imageData);
         imageData = applyAdjustments(imageData);
-        imageData = applyPreviewTweaksToImageData(imageData);
         const mosaicCleanOptions = getMosaicCleanOptions();
         imageData = applyMosaicCleanPreprocess(imageData, mosaicCleanOptions);
+
+        imageData = applyStylePresetToImageData(imageData);
+        imageData = applyPreviewTweaksToImageData(imageData);
 
         imageData = applyAiFilters(imageData, procCanvas.width, procCanvas.height);
 
@@ -12575,6 +13047,8 @@
 
         renderMosaic();
         updateProofPreviewThumbnails();
+        renderStylePresetOptions();
+        generateStylePresetThumbnails();
         updateProofRequestSummary();
         updateStatistics();
         updateColorDistribution();
@@ -13925,6 +14399,11 @@
       const proofSelect = document.getElementById('photoCategoryInput');
       if (uploadSelect && uploadSelect.value !== category) uploadSelect.value = category === 'other' && value === 'auto' ? 'auto' : category;
       if (proofSelect && proofSelect.value !== category) proofSelect.value = category;
+      if (!isFirstHelloStyleRelevant() && currentStylePresetId === 'first_hello') {
+        currentStylePresetId = 'true_color';
+      }
+      resetStyleThumbnailCache();
+      renderStylePresetOptions();
       updateProofRequestSummary();
 
       if (currentImage && processedData) {
@@ -16230,6 +16709,10 @@
               <dt>Preferred size</dt>
               <dd id="proofSummaryPreferredSize">12″ Starter</dd>
             </div>
+            <div>
+              <dt>Style</dt>
+              <dd id="proofSummaryStyle">True Color</dd>
+            </div>
           </dl>
           <p class="proof-summary-note" id="proofSummaryTweaks" hidden>You fine-tuned this preview.</p>
           <p class="proof-summary-note">No payment today</p>
@@ -16245,6 +16728,11 @@
         <input type="hidden" name="format_interest" id="saveFormatInterest" value="sticker_ready">
         <input type="hidden" name="preferred_size_in" id="savePreferredSizeIn" value="12">
         <input type="hidden" name="preview_tweaks" id="savePreviewTweaks" value="{&quot;brightness&quot;:0,&quot;contrast&quot;:0,&quot;background_simplify&quot;:0,&quot;regen_count&quot;:0}">
+        <input type="hidden" name="style_preset_id" id="saveStylePresetId" value="true_color">
+        <input type="hidden" name="style_preset_label" id="saveStylePresetLabel" value="True Color">
+        <input type="hidden" name="style_preset_params" id="saveStylePresetParams" value="{&quot;brightness&quot;:0,&quot;contrast&quot;:0,&quot;background_simplify&quot;:0}">
+        <input type="hidden" name="alternate_style_ids" id="saveAlternateStyleIds" value="[]">
+        <input type="hidden" name="style_variant_count" id="saveStyleVariantCount" value="1">
         <input type="hidden" name="proof_ref" id="saveProofRef">
         <input type="hidden" name="project_id" id="saveProjectId">
         <input type="hidden" name="project_saved" id="saveProjectSaved" value="false">
