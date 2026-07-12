@@ -252,7 +252,7 @@ async (page) => {
       const step = document.querySelector('#postPreviewFlow');
       const stepText = step?.innerText || '';
       const stepRect = step?.getBoundingClientRect();
-      const ctaButtons = Array.from(document.querySelectorAll('#postPreviewFlow button')).filter((node) => isVisible(node) && node.innerText.trim() === 'Request my free proof');
+      const ctaButtons = Array.from(document.querySelectorAll('#postPreviewFlow button')).filter((node) => isVisible(node) && ['Request my free proof', 'Get my free proof'].includes(node.innerText.trim()));
       const filledButtons = Array.from(document.querySelectorAll('#postPreviewFlow button, #postPreviewFlow a')).filter((node) => {
         if (!isVisible(node)) return false;
         const style = getComputedStyle(node);

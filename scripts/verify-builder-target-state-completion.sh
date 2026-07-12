@@ -72,8 +72,8 @@ grep -q "JPG or PNG · up to 20MB" "$BUILDER" || fail "upload file spec missing"
 grep -q "HEIC photos are not supported yet" "$BUILDER" || fail "HEIC rejection copy missing"
 grep -q "Please upload a JPG or PNG" "$BUILDER" || fail "unsupported file copy missing"
 grep -q "This photo is over 20MB" "$BUILDER" || fail "oversized file copy missing"
-grep -q "sample-photo-button.*Pet" "$BUILDER" || fail "Pet sample button missing"
-grep -q "sample-photo-button.*Family" "$BUILDER" || fail "Family sample button missing"
+grep -q 'data-sample="pet"' "$BUILDER" || fail "Pet sample button missing"
+grep -q 'data-sample="family"' "$BUILDER" || fail "Family sample button missing"
 grep -q "Baby / First Hello" "$BUILDER" || fail "Baby / First Hello sample button missing"
 grep -q "cropRotateButton" "$BUILDER" || fail "crop rotate control missing"
 grep -q "cropFillButton" "$BUILDER" || fail "crop fill control missing"
@@ -269,7 +269,7 @@ async (page) => {
       const step = document.querySelector('#postPreviewFlow');
       const stepText = step?.innerText || '';
       const stepRect = step?.getBoundingClientRect();
-      const ctaButtons = Array.from(document.querySelectorAll('#postPreviewFlow button')).filter((node) => isVisible(node) && node.innerText.trim() === 'Request my free proof');
+      const ctaButtons = Array.from(document.querySelectorAll('#postPreviewFlow button')).filter((node) => isVisible(node) && ['Request my free proof', 'Get my free proof'].includes(node.innerText.trim()));
       const filledButtons = Array.from(document.querySelectorAll('#postPreviewFlow button, #postPreviewFlow a')).filter((node) => {
         if (!isVisible(node)) return false;
         const style = getComputedStyle(node);
@@ -377,14 +377,14 @@ async (page) => {
     }).length,
     title: document.title,
     fileSpec: document.body.innerText.includes('JPG or PNG · up to 20MB'),
-    sampleLabels: Array.from(document.querySelectorAll('.sample-photo-button')).map((node) => node.innerText.trim()),
+    sampleIds: Array.from(document.querySelectorAll('.sample-photo-button')).map((node) => node.dataset.sample),
     categoryLabels: Array.from(document.querySelectorAll('#photoCategorySelect option')).map((node) => node.textContent.trim()),
     opsTextMounted: document.body.innerText.includes('Proof Export Tools') || document.body.innerText.includes('Advanced Tools')
   }));
   assert(uploadState.h1Count === 1, 'builder must have exactly one visible H1');
   assert(/Sticker-Ready Mosaic Proof Builder/.test(uploadState.title), 'builder title missing proof-builder phrase');
   assert(uploadState.fileSpec, 'upload file spec not visible');
-  assert(['Pet', 'Family', 'Baby / First Hello'].every((label) => uploadState.sampleLabels.includes(label)), 'sample buttons missing: ' + uploadState.sampleLabels.join(', '));
+  assert(['pet', 'family', 'first_hello'].every((id) => uploadState.sampleIds.includes(id)), 'sample buttons missing: ' + uploadState.sampleIds.join(', '));
   assert(uploadState.categoryLabels.includes('Not sure — we’ll choose'), 'friendly default category label missing');
   assert(!uploadState.categoryLabels.includes('Auto / Not sure'), 'internal category label leaked');
   assert(!uploadState.opsTextMounted, 'operator tools mounted in normal builder');
@@ -547,8 +547,8 @@ async (page) => {
     copyButton: document.getElementById('proofCopyReferenceButton')?.innerText || ''
   }));
   assert(saved.state.includes('wizard-state-saved'), 'saved state class missing');
-  assert(saved.text.includes('Proof request received') && saved.text.includes('Reference: MP-TEST1'), 'saved state reference missing');
-  assert(saved.text.includes('Nothing is made or charged today'), 'saved state next-step copy missing');
+  assert(saved.text.includes('Your mosaic is with our team') && saved.text.includes('Reference: MP-TEST1'), 'saved state reference missing');
+  assert(saved.text.includes('Request received') && saved.text.includes('A person checks your design') && saved.text.includes('We email your proof'), 'saved state next-step copy missing');
   assert(saved.imageVisible, 'saved state mosaic hero missing');
   assert(saved.copyButton === 'Copy reference', 'safe saved secondary action missing');
 

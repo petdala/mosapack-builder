@@ -65,7 +65,7 @@ check_static_leaks "/" "$(static_visible_text "$ROOT_PAGE")"
 check_static_leaks "/builder/" "$(static_visible_text "$BUILDER")"
 
 grep -q "<title>MosaPack — Sticker-Ready Mosaic Proof Builder</title>" "$BUILDER" || fail "builder title is not the approved proof-builder title"
-grep -q "Create your sticker-ready mosaic proof" "$BUILDER" || fail "builder H1 copy missing"
+grep -q "See your photo as a sticker mosaic — free" "$BUILDER" || fail "builder H1 copy missing"
 grep -q "data-preview-view=\"mosaic\" aria-selected=\"true\" aria-pressed=\"true\"" "$BUILDER" || fail "mosaic preview toggle is not statically active"
 grep -q "name=\"preferred_size_in\" id=\"savePreferredSizeIn\" value=\"12\"" "$BUILDER" || fail "preferred_size_in hidden field missing"
 grep -q "value=\"premium_display_review\"" "$BUILDER" || fail "premium_display_review format interest missing"
@@ -280,7 +280,7 @@ async (page) => {
       const sourceToggle = document.querySelector('[data-preview-view="source"]');
       const stepText = document.querySelector('#postPreviewFlow')?.innerText || '';
       const primaryCtas = Array.from(document.querySelectorAll('button')).filter((node) => {
-        return isVisible(node) && node.innerText.trim() === 'Request my free proof';
+        return isVisible(node) && ['Request my free proof', 'Get my free proof'].includes(node.innerText.trim());
       }).map((node) => {
         const box = node.getBoundingClientRect();
         return { id: node.id, top: box.top, height: box.height, width: box.width };
@@ -366,7 +366,7 @@ async (page) => {
   assert(builderAudit.leaks.length === 0, '/builder/ leaked blocked terms: ' + builderAudit.leaks.join(', '));
   assert(builderAudit.title.includes('Sticker-Ready Mosaic Proof Builder'), 'builder title is wrong: ' + builderAudit.title);
   assert(builderAudit.visibleH1Count === 1, 'expected exactly one visible H1, got ' + builderAudit.visibleH1Count);
-  assert(builderAudit.visibleH1Text[0] === 'Create your sticker-ready mosaic proof', 'unexpected H1: ' + builderAudit.visibleH1Text.join(' | '));
+  assert(builderAudit.visibleH1Text[0] === 'See your photo as a sticker mosaic — free', 'unexpected H1: ' + builderAudit.visibleH1Text.join(' | '));
   assert(builderAudit.versionBadges === 0, 'normal builder mounted version badges');
   assert(builderAudit.productInterest !== 'bricks', 'product_interest defaults to bricks');
   assert(builderAudit.formatInterest === 'sticker_ready', 'format_interest default wrong: ' + builderAudit.formatInterest);

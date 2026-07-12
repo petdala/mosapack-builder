@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">MosaPack sticker mosaic proof preview</title>
+  <desc id="desc">Synthetic before and after mosaic card for MosaPack social sharing.</desc>
+  <rect width="1200" height="630" fill="#FAF9F7"/>
+  <circle cx="1010" cy="120" r="150" fill="#e8faf5"/>
+  <circle cx="122" cy="536" r="170" fill="#fff1f7"/>
+  <text x="82" y="112" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800" fill="#08b894">MosaPack</text>
+  <text x="82" y="174" font-family="Georgia, serif" font-size="64" font-weight="700" fill="#1A1C1F">See your photo as a sticker mosaic</text>
+  <text x="82" y="226" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="600" fill="#63676E">Free preview · custom proof · no payment today</text>
+  <g transform="translate(735 96)">
+    <rect x="0" y="0" width="170" height="170" rx="28" fill="#fff" stroke="rgba(26,28,31,.14)"/>
+    <rect x="230" y="0" width="170" height="170" rx="28" fill="#fff" stroke="rgba(26,28,31,.14)"/>
+    <text x="190" y="100" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="900" fill="#08b894">→</text>
+    <circle cx="85" cy="78" r="48" fill="#f4c7ab"/>
+    <circle cx="68" cy="70" r="8" fill="#111318"/>
+    <circle cx="102" cy="70" r="8" fill="#111318"/>
+    <path d="M58 102 Q85 124 112 102" fill="none" stroke="#111318" stroke-width="7" stroke-linecap="round"/>
+    <g transform="translate(250 20)">
+      <rect width="130" height="130" rx="18" fill="#fff"/>
+      <g>
+        <rect x="0" y="0" width="13" height="13" fill="#08b894"/>
+        <rect x="13" y="0" width="13" height="13" fill="#f72573"/>
+        <rect x="26" y="0" width="13" height="13" fill="#111318"/>
+        <rect x="39" y="0" width="13" height="13" fill="#f4c7ab"/>
+      </g>
+      <g transform="scale(10)">
+        <path d="M0 1h1v1H0zm2 0h1v1H2zm4 0h1v1H4zm6 0h1v1H6zm1 1h1v1H7zm-2 1h1v1H5zm-4 1h1v1H1zm6 1h1v1H7zm-5 1h1v1H2zm2 1h1v1H4zm2 1h1v1H6zm-6 1h1v1H0zm8 1h1v1H8zm-4 1h1v1H4z" fill="#08b894"/>
+        <path d="M1 0h1v1H1zm3 0h1v1H4zm2 0h1v1H6zm2 0h1v1H8zM0 3h1v1H0zm2 2h1v1H2zm4 1h1v1H6zm3 2h1v1H9z" fill="#f72573"/>
+        <path d="M2 3h1v1H2zm3 2h1v1H5zm3-2h1v1H8zm1 5h1v1H9zm-4 1h1v1H5z" fill="#111318"/>
+      </g>
+    </g>
+  </g>
+  <rect x="82" y="304" width="250" height="56" rx="28" fill="#0ECBA0"/>
+  <text x="207" y="341" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="900" fill="#fff">Start proof builder</text>
+</svg>

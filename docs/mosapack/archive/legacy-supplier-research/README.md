@@ -17,6 +17,8 @@ docs/mosapack/supplier-fulfillment-source-of-truth-v1.md
 
 Files in this archive are reference-only. They must not be used to justify public builder changes, checkout, pricing, shipping promises, supplier APIs, material configurators, Amazon affiliate flows, LEGO/brick positioning, or production claims.
 
+Old Shopify/cart, brick, dashboard, Printful, storefront, and configurator concepts in archived or missing files are not current implementation truth. Do not reintroduce them into the public builder without a new approved spec.
+
 ## Public Builder Doctrine
 
 The public builder remains proof-first:

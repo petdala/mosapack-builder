@@ -112,7 +112,7 @@ for file in "${raw_builder_files[@]}"; do
   fi
 done
 
-if rg -n -i "founder|prototype|beta|pilot|validation|test batch|interest-only|help us validate" "$ROOT/public/index.html" "$ROOT/public/builder/index.html" "$ROOT/public/contact/index.html" "$ROOT/public/legal" >/tmp/mosapack-public-startup-copy.txt; then
+if rg -n -i "founder|prototype|beta|pilot|validation|test batch|interest-only|help us validate" "$ROOT/public/index.html" "$ROOT/public/builder/index.html" "$ROOT/public/contact/index.html" "$ROOT/public/legal" | rg -v "proof_validation_error" >/tmp/mosapack-public-startup-copy.txt; then
   echo "FORBIDDEN startup-validation wording found in public files:"
   cat /tmp/mosapack-public-startup-copy.txt
   FAIL=1
@@ -133,7 +133,7 @@ if rg -n -i "quality score|museum quality score|94% match|gold quality|silver qu
 fi
 rm -f /tmp/mosapack-builder-public-quality.txt
 
-if ! rg -q "Request Your Custom Proof|Request your free custom proof|Request my free proof" "$BUILDER"; then
+if ! rg -q "Request Your Custom Proof|Request your free custom proof|Request my free proof|Get my free proof" "$BUILDER"; then
   echo "MISSING proof request CTA/copy in builder."
   FAIL=1
 fi

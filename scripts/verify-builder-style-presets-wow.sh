@@ -209,7 +209,7 @@ async (page) => {
         preferredSizeIn: document.getElementById('savePreferredSizeIn')?.value || '',
         tweaks: document.getElementById('savePreviewTweaks')?.value || '',
         filledButtons,
-        ctaCount: isVisible(proofCta) && proofCta?.innerText.trim() === 'Request my free proof' ? 1 : 0,
+        ctaCount: isVisible(proofCta) && ['Request my free proof', 'Get my free proof'].includes(proofCta?.innerText.trim()) ? 1 : 0,
         primaryCta: proofCta ? { text: proofCta.innerText.trim(), bg: getComputedStyle(proofCta).backgroundColor, image: getComputedStyle(proofCta).backgroundImage, height: proofCta.getBoundingClientRect().height } : null,
         topGap: card && stepper ? card.top - stepper.bottom : null,
         cardTop: card?.top || null,
