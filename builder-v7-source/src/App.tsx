@@ -13,10 +13,10 @@ import {
   STYLES, CropState, FineTune, MosaicResult, Saliency,
 } from '@/lib/mosaic'
 import { track, submitProofRequest } from '@/lib/api'
-import { PALETTE, TIERS, kitPrice } from '@/lib/palette'
+import { PALETTE, TIERS, PRICES, PANEL_SIZE_TILES, kitPrice } from '@/lib/palette'
 
 type Stage = 'upload' | 'preview' | 'done'
-const GRID_FOR_SIZE: Record<number, number> = { 12: 32, 16: 48, 24: 64 }
+const GRID_FOR_SIZE: Record<number, number> = { 6: 1, 12: 2, 18: 3, 24: 4 }
 const DRAFT_KEY = 'mosapack.builder.draft.v1'
 const MAX_DRAFT_PHOTO_BYTES = 2 * 1024 * 1024
 
@@ -82,6 +82,8 @@ export default function App() {
     mosaicSrc: string
     tileMap: number[]
     gridSize: number
+    panelGrid: number
+    panelSizeTiles: number
     paletteCount: number
   } | null>(null)
 
@@ -116,9 +118,14 @@ export default function App() {
   const croppedSrc = useMemo(() => cropped?.toDataURL('image/jpeg', 0.9) ?? '', [cropped])
 
   const style = STYLES.find((s) => s.id === styleId) ?? STYLES[0]
-  const gridSize = GRID_FOR_SIZE[sizeIn] ?? 48
+  const panelGrid = GRID_FOR_SIZE[sizeIn] ?? 2
+  const gridSize = panelGrid * PANEL_SIZE_TILES
   const paletteCount = TIERS.find((t) => t.id === tierId)?.colors ?? 12
   const price = kitPrice(sizeIn, tierId)
+
+  useEffect(() => {
+    if (PRICES[sizeIn]?.[tierId] == null) setTierId('balanced')
+  }, [sizeIn, tierId])
 
   const pushUndo = useCallback(() => {
     if (!crop) return
@@ -311,6 +318,8 @@ export default function App() {
       paletteColors: paletteCount,
       quotedPriceUsd: price,
       gridSize,
+      panelGrid,
+      panelSizeTiles: PANEL_SIZE_TILES,
       fineTune: tune,
       croppedSourceDataUrl: croppedSrc,
       previewImageDataUrl: mosaicSrc,
@@ -330,6 +339,8 @@ export default function App() {
         mosaicSrc,
         tileMap: [...mosaic.grid],
         gridSize: mosaic.gridSize,
+        panelGrid,
+        panelSizeTiles: PANEL_SIZE_TILES,
         paletteCount,
       })
       setStage('done')
@@ -429,6 +440,8 @@ export default function App() {
             tierId={tierId}
             onTier={changeTier}
             price={price}
+            panelGrid={panelGrid}
+            panelSizeTiles={PANEL_SIZE_TILES}
             onAdjustCrop={() => setCropOpen(true)}
             onRequest={openRequest}
             autoCropped={autoCropped}
@@ -442,6 +455,8 @@ export default function App() {
             simulated={done.simulated}
             tileMap={done.tileMap}
             gridSize={done.gridSize}
+            panelGrid={done.panelGrid}
+            panelSizeTiles={done.panelSizeTiles}
             paletteCount={done.paletteCount}
             onRestart={restart}
           />
@@ -452,7 +467,9 @@ export default function App() {
       {stage === 'preview' && !anyDialog && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white px-4 pt-3 md:hidden" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs text-neutral-500">{sizeIn}″ kit · {paletteCount} colors</span>
+            <span className="text-xs text-neutral-500">
+              {sizeIn}″ kit · {paletteCount} colors · {panelGrid * panelGrid === 1 ? '1 panel' : `${panelGrid * panelGrid} panels`}
+            </span>
             <span className="text-base font-extrabold tabular-nums">${price}.00</span>
           </div>
           <button

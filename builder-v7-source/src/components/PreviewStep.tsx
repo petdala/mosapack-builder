@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { STYLES, FineTune, MosaicResult } from '@/lib/mosaic'
-import { PALETTE, TIERS } from '@/lib/palette'
+import { PALETTE, TIERS, PRICES } from '@/lib/palette'
 import { track } from '@/lib/api'
 import { TrustLine } from './TrustLine'
 
@@ -11,8 +11,9 @@ export const FORMATS = [
 ] as const
 
 export const SIZES = [
+  { in: 6, label: '6″ Mini', note: 'fridge magnet', recommended: false },
   { in: 12, label: '12″ Starter', note: 'about the width of a laptop', recommended: true },
-  { in: 16, label: '16″ Gallery', note: 'poster size', recommended: false },
+  { in: 18, label: '18″ Gallery', note: 'poster size', recommended: false },
   { in: 24, label: '24″ Statement', note: 'wall-art scale', recommended: false },
 ] as const
 
@@ -39,9 +40,35 @@ interface Props {
   tierId: string
   onTier: (t: string) => void
   price: number
+  panelGrid: number
+  panelSizeTiles: number
   onAdjustCrop: () => void
   onRequest: () => void
   autoCropped: boolean
+}
+
+function mosaicWithPanelSeams(mosaic: MosaicResult, panelGrid: number, panelSizeTiles: number): string {
+  if (panelGrid <= 1) return mosaic.canvas.toDataURL('image/png')
+  const canvas = document.createElement('canvas')
+  canvas.width = mosaic.canvas.width
+  canvas.height = mosaic.canvas.height
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(mosaic.canvas, 0, 0)
+  const tilePx = canvas.width / mosaic.gridSize
+  ctx.save()
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'
+  ctx.lineWidth = 1
+  for (let panel = 1; panel < panelGrid; panel++) {
+    const pos = Math.round(panel * panelSizeTiles * tilePx) + 0.5
+    ctx.beginPath()
+    ctx.moveTo(pos, 0)
+    ctx.lineTo(pos, canvas.height)
+    ctx.moveTo(0, pos)
+    ctx.lineTo(canvas.width, pos)
+    ctx.stroke()
+  }
+  ctx.restore()
+  return canvas.toDataURL('image/png')
 }
 
 function StepperControl({ label, hint, value, onChange }: { label: string; hint: string; value: number; onChange: (v: number) => void }) {
@@ -75,6 +102,14 @@ function StepperControl({ label, hint, value, onChange }: { label: string; hint:
 export function PreviewStep(p: Props) {
   const [view, setView] = useState<'mosaic' | 'photo'>('mosaic')
   const [tuneOpen, setTuneOpen] = useState(false)
+  const previewSrc = useMemo(
+    () => (p.mosaic ? mosaicWithPanelSeams(p.mosaic, p.panelGrid, p.panelSizeTiles) : ''),
+    [p.mosaic, p.panelGrid, p.panelSizeTiles]
+  )
+  const availableTiers = TIERS.filter((t) => PRICES[p.sizeIn]?.[t.id] != null)
+  const panelCount = p.panelGrid * p.panelGrid
+  const panelCopy = panelCount === 1 ? '1 panel' : `${panelCount} panels`
+  const sittingCopy = panelCount === 1 ? '1 sitting' : `${panelCount} sittings`
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -117,7 +152,7 @@ export function PreviewStep(p: Props) {
           {view === 'mosaic' ? (
             p.mosaic ? (
               <img
-                src={p.mosaic.canvas.toDataURL('image/png')}
+                src={previewSrc}
                 alt={`Mosaic preview, ${p.mosaic.gridSize} by ${p.mosaic.gridSize} tiles`}
                 className="block w-full"
                 style={{ imageRendering: 'pixelated' }}
@@ -226,7 +261,7 @@ export function PreviewStep(p: Props) {
           <p className="text-sm font-bold text-ink">Colors in your kit</p>
           <p className="text-xs text-neutral-500">More colors = richer photo, more sticker rolls</p>
           <div className="mt-2 grid grid-cols-2 gap-2">
-            {TIERS.map((t) => (
+            {availableTiers.map((t) => (
               <button
                 key={t.id}
                 type="button"
@@ -309,6 +344,7 @@ export function PreviewStep(p: Props) {
           <span className="text-xs leading-5 text-neutral-500">
             <span className="block text-sm font-bold text-ink">{p.sizeIn}″ Sticker kit</span>
             {p.mosaic ? `${p.mosaic.gridSize * p.mosaic.gridSize} tiles` : '—'} · {TIERS.find((t) => t.id === p.tierId)?.colors} colors
+            <span className="block">{panelCopy} · builds in {sittingCopy}</span>
           </span>
           <span className="text-right">
             <span className="block text-2xl font-extrabold tracking-tight tabular-nums">${p.price}.00</span>

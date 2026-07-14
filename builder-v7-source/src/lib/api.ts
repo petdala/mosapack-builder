@@ -22,6 +22,8 @@ export interface ProofRequest {
   paletteColors: number
   quotedPriceUsd: number
   gridSize: number
+  panelGrid: number
+  panelSizeTiles: number
   fineTune: { brightness: number; contrast: number; background: number }
   croppedSourceDataUrl: string
   previewImageDataUrl: string
@@ -68,6 +70,8 @@ export async function submitProofRequest(p: ProofRequest): Promise<{ ok: boolean
     quoted_price_usd: p.quotedPriceUsd,
     request_type: 'custom_proof',
     grid_size: `${p.gridSize}x${p.gridSize}`,
+    panel_grid: p.panelGrid,
+    panel_size_tiles: p.panelSizeTiles,
     preview_shape: 'mosaic',
     cropped_source_data_url: p.croppedSourceDataUrl,
     preview_image_data_url: p.previewImageDataUrl,
@@ -78,6 +82,8 @@ export async function submitProofRequest(p: ProofRequest): Promise<{ ok: boolean
       total_tiles: p.gridSize * p.gridSize,
       unique_colors: Object.keys(p.colorCounts).length,
       grid_size: `${p.gridSize}x${p.gridSize}`,
+      panel_grid: p.panelGrid,
+      panel_size_tiles: p.panelSizeTiles,
     },
     source_file_metadata: { stored_source: 'cropped_approved_source_only', full_original_saved: false },
     utm: { source: q('utm_source'), medium: q('utm_medium'), campaign: q('utm_campaign') },

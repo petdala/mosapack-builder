@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MosaPack Mosaic Lab — remix a seed, make it real</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Anthropic Brand Colors */
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #0bbf92;
+            --anthropic-blue: #089b76;
+            --anthropic-green: #e91e8c;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+        }
+        .container { display: flex; min-height: 100vh; padding: 20px; gap: 20px; }
+        .sidebar {
+            width: 320px; flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            overflow-y: auto; overflow-x: hidden;
+        }
+        .sidebar h1 { font-family: 'Inter', sans-serif; font-weight: 800; letter-spacing: -0.5px; font-size: 24px; font-weight: 500; color: var(--anthropic-dark); margin-bottom: 8px; }
+        .sidebar .subtitle { color: var(--anthropic-mid-gray); font-size: 14px; margin-bottom: 32px; line-height: 1.4; }
+        .control-section { margin-bottom: 32px; }
+        .control-section h3 {
+            font-size: 16px; font-weight: 600; color: var(--anthropic-dark);
+            margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+        }
+        .control-section h3::before { content: '•'; color: var(--anthropic-orange); font-weight: bold; }
+        .seed-input {
+            width: 100%; background: var(--anthropic-light); padding: 12px; border-radius: 8px;
+            font-family: 'Courier New', monospace; font-size: 14px; margin-bottom: 12px;
+            border: 1px solid var(--anthropic-light-gray); text-align: center;
+        }
+        .seed-input:focus { outline: none; border-color: var(--anthropic-orange); box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1); background: white; }
+        .seed-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .regen-button { margin-bottom: 0; }
+        .control-group { margin-bottom: 20px; }
+        .control-group label { display: block; font-size: 14px; font-weight: 500; color: var(--anthropic-dark); margin-bottom: 8px; }
+        .slider-container { display: flex; align-items: center; gap: 12px; }
+        .slider-container input[type="range"] {
+            flex: 1; height: 4px; background: var(--anthropic-light-gray); border-radius: 2px; outline: none; -webkit-appearance: none;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px; background: var(--anthropic-orange);
+            border-radius: 50%; cursor: pointer; transition: all 0.2s ease;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); background: #089b76; }
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 16px; height: 16px; background: var(--anthropic-orange); border-radius: 50%; border: none; cursor: pointer;
+        }
+        .value-display { font-family: 'Courier New', monospace; font-size: 12px; color: var(--anthropic-mid-gray); min-width: 60px; text-align: right; }
+        .button {
+            background: var(--anthropic-orange); color: white; border: none; padding: 10px 16px;
+            border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; width: 100%;
+        }
+        .button:hover { background: #089b76; transform: translateY(-1px); }
+        .button:active { transform: translateY(0); }
+        .button.secondary { background: var(--anthropic-blue); }
+        .button.secondary:hover { background: #064e3b; }
+        .button.tertiary { background: var(--anthropic-green); }
+        .button.tertiary:hover { background: #c61670; }
+        .button-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .button-row .button { flex: 1; }
+        .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; min-width: 0; }
+        #canvas-container {
+            width: 100%; max-width: 1000px; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1); background: white;
+        }
+        #canvas-container canvas { display: block; width: 100% !important; height: auto !important; }
+        .loading { display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--anthropic-mid-gray); padding: 60px 0; }
+        .footnote { font-size: 11px; color: var(--anthropic-mid-gray); line-height: 1.5; margin-top: 8px; }
+        @media (max-width: 600px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .canvas-area { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>🧩 MosaPack Mosaic Lab</h1>
+            <div class="subtitle">Every seed grows a new mosaic in real MosaPack tile colors. Remix it, share your seed, or turn your own photo into the real thing.</div>
+
+            <!-- Seed Section (ALWAYS KEEP THIS) -->
+            <div class="control-section">
+                <h3>Seed</h3>
+                <input type="number" id="seed-input" class="seed-input" value="32" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                    <button class="button secondary" onclick="nextSeed()">Next →</button>
+                </div>
+                <button class="button tertiary regen-button" onclick="randomSeedAndUpdate()">↻ Random</button>
+            </div>
+
+            <!-- Parameters -->
+            <div class="control-section">
+                <h3>Census Parameters</h3>
+                <div class="control-group">
+                    <label>Grid (tiles per side)</label>
+                    <div class="slider-container">
+                        <input type="range" id="grid" min="24" max="72" step="4" value="48" oninput="updateParam('grid', this.value)">
+                        <span class="value-display" id="grid-value">48</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Subject Focus (attention radius)</label>
+                    <div class="slider-container">
+                        <input type="range" id="focus" min="0.15" max="0.60" step="0.01" value="0.34" oninput="updateParam('focus', this.value)">
+                        <span class="value-display" id="focus-value">0.34</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Background Calm (peripheral consensus)</label>
+                    <div class="slider-container">
+                        <input type="range" id="calm" min="0" max="1" step="0.05" value="0.75" oninput="updateParam('calm', this.value)">
+                        <span class="value-display" id="calm-value">0.75</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Subject Dither (detail appetite)</label>
+                    <div class="slider-container">
+                        <input type="range" id="dither" min="0" max="1" step="0.05" value="0.5" oninput="updateParam('dither', this.value)">
+                        <span class="value-display" id="dither-value">0.5</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Palette (real tile colors)</label>
+                    <div class="slider-container">
+                        <input type="range" id="palette" min="6" max="25" step="1" value="25" oninput="updateParam('palette', this.value)">
+                        <span class="value-display" id="palette-value">25</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Tile Relief (seam + glaze)</label>
+                    <div class="slider-container">
+                        <input type="range" id="relief" min="0" max="1" step="0.05" value="0.6" oninput="updateParam('relief', this.value)">
+                        <span class="value-display" id="relief-value">0.6</span>
+                    </div>
+                </div>
+                <p class="footnote">Palette slider draws from the 25 real supplier colors in the production builder, ordered for coverage — at 6 you get the mono-keepsake neutrals plus two accents.</p>
+            </div>
+
+            <!-- Actions (ALWAYS KEEP THIS) -->
+            <div class="control-section">
+                <h3>Actions</h3>
+                <div class="button-row">
+                    <button class="button" onclick="regenerate()">Regenerate</button>
+                    <button class="button" onclick="resetParameters()">Reset</button>
+                </div>
+                <button class="button secondary" onclick="downloadPNG()">Download PNG</button>
+                <button class="button secondary" onclick="shareSeed()" style="margin-top:8px">Share this seed</button>
+                <a href="/builder/" style="display:block;text-decoration:none;margin-top:8px"><button class="button" style="background:#e91e8c">Make this real — from $29</button></a>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container">
+                <div class="loading">Initializing generative art...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════════
+        // SALIENT CENSUS — attention-weighted quantization as generative art.
+        // The same principles as the MosaPack v7 engine: perceptual matching
+        // against a closed physical palette, fidelity budgeted by saliency.
+        // ═══════════════════════════════════════════════════════════════════
+
+        const _u = new URLSearchParams(location.search); let params = { seed: parseInt(_u.get('s')) || 32, grid: 48, focus: 0.34, calm: 0.75, dither: 0.5, palette: 25, relief: 0.6 };
+        let defaultParams = { ...params };
+
+        // Real MosaPack supplier tile colors (premium set), ordered for coverage:
+        // neutrals first (mono subset), then hue families.
+        const TILES = [
+            '#1B1B1B', '#F4F4F4', '#7A838C', '#BFC5CA', '#4D5661', '#A0A5A9', // neutrals
+            '#C91A09', '#0055BF', // primary accents (palette=8 point)
+            '#F2CD37', '#237841', '#E4CD9E', '#D09168',
+            '#FC97AC', '#0BBF92', '#58AB41', '#720E0F',
+            '#FE8A18', '#923978', '#5A93DB', '#DFEEA5',
+            '#3F3691', '#F8BB3D', '#C870A0', '#9BA19D', '#582A12'
+        ];
+
+        const CANVAS = 1152;
+        let world = null;       // p5.Graphics: the seeded subject-in-weather
+        let subject = null;     // {x, y} in 0..1 world coordinates
+        let palLin = [];        // linearized palette for perceptual matching
+
+        function hexRGB(h) { return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]; }
+        // perceptual-ish distance: luma-weighted RGB (fast stand-in for ΔE00 at 60fps scale)
+        function cdist(a, b) {
+            const dr = a[0]-b[0], dg = a[1]-b[1], db = a[2]-b[2];
+            const rr = (a[0]+b[0])/2;
+            return (2 + rr/256)*dr*dr + 4*dg*dg + (2 + (255-rr)/256)*db*db;
+        }
+
+        function setup() {
+            const canvas = createCanvas(CANVAS, CANVAS);
+            canvas.parent('canvas-container');
+            pixelDensity(1);
+            noLoop();
+            initializeSystem();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function initializeSystem() {
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+            growWorld();
+            redraw();
+        }
+
+        // ── Grow a seeded world: layered color-weather + one luminous subject ──
+        function growWorld() {
+            const W = 192;
+            world = createGraphics(W, W);
+            world.pixelDensity(1);
+            world.noStroke();
+
+            // color-weather: two seeded hue anchors blended through noise octaves
+            const hueA = random(360), hueB = (hueA + random(90, 200)) % 360;
+            world.colorMode(HSB, 360, 100, 100);
+            for (let y = 0; y < W; y++) {
+                for (let x = 0; x < W; x++) {
+                    const n1 = noise(x * 0.015, y * 0.015);
+                    const n2 = noise(x * 0.06 + 300, y * 0.06 + 300) * 0.35;
+                    const t = constrain(n1 * 0.8 + n2, 0, 1);
+                    const h = lerp(hueA, hueB, t);
+                    const s = 28 + 34 * noise(x * 0.03 + 900, y * 0.03);
+                    const b = 34 + 48 * t;
+                    world.fill(h % 360, s, b);
+                    world.rect(x, y, 1, 1);
+                }
+            }
+
+            // the subject: a warm organic form, seeded position off golden-ratio center
+            subject = { x: 0.5 + random(-0.14, 0.14), y: 0.42 + random(-0.1, 0.12) };
+            const cx = subject.x * W, cy = subject.y * W;
+            const R = W * random(0.20, 0.27);
+            const warmth = random(18, 42); // seeded subject hue: nougat → amber
+            for (let r = R; r > 0; r -= 1) {
+                const t = r / R;
+                const wobble = 1 + 0.13 * noise(r * 0.08, params.seed % 97) - 0.065;
+                world.fill(warmth, 46 - 18 * (1 - t), 96 - 34 * t, 100);
+                world.ellipse(cx, cy + (1 - t) * R * 0.12, r * 2 * wobble, r * 2.14 * wobble);
+            }
+            // two quiet features + rim light: enough structure to read as a portrait ghost
+            world.fill((warmth + 200) % 360, 30, 18);
+            const eo = R * 0.34, ey = cy - R * 0.12, es = R * 0.13;
+            world.ellipse(cx - eo, ey, es, es * 1.15);
+            world.ellipse(cx + eo, ey, es, es * 1.15);
+            world.fill(warmth, 20, 100, 55);
+            world.arc(cx, cy - R * 0.1, R * 2.05, R * 2.2, PI + 0.5, TWO_PI - 0.5);
+            world.colorMode(RGB, 255);
+            world.loadPixels();
+        }
+
+        // ── The census: attention-weighted quantization ──
+        function draw() {
+            background(233, 231, 226); // seam paper
+            const N = params.grid;
+            const W = world.width;
+            const px = world.pixels;
+
+            // active palette subset, linearized
+            palLin = TILES.slice(0, params.palette).map(hexRGB);
+
+            // deterministic per-render RNG (dither must be seed-stable)
+            let rs = params.seed * 7919 + 17;
+            const rnd = () => ((rs = (rs * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+
+            // sample world at cell resolution
+            const cell = [];
+            const step = W / N;
+            for (let gy = 0; gy < N; gy++) {
+                for (let gx = 0; gx < N; gx++) {
+                    let r = 0, g = 0, b = 0, n = 0;
+                    const x0 = Math.floor(gx * step), y0 = Math.floor(gy * step);
+                    for (let sy = 0; sy < step; sy += 2) for (let sx = 0; sx < step; sx += 2) {
+                        const i = ((y0 + Math.floor(sy)) * W + x0 + Math.floor(sx)) * 4;
+                        r += px[i]; g += px[i+1]; b += px[i+2]; n++;
+                    }
+                    cell.push([r/n, g/n, b/n]);
+                }
+            }
+
+            // attention field
+            const wgt = new Float32Array(N * N);
+            for (let gy = 0; gy < N; gy++) for (let gx = 0; gx < N; gx++) {
+                const d = Math.hypot((gx + 0.5) / N - subject.x, (gy + 0.5) / N - subject.y);
+                wgt[gy * N + gx] = Math.max(0, Math.min(1, 1.12 - d / params.focus));
+            }
+
+            // peripheral consensus: background cells confer with neighbors
+            const conf = [];
+            for (let gy = 0; gy < N; gy++) for (let gx = 0; gx < N; gx++) {
+                const i = gy * N + gx;
+                const mix = (1 - wgt[i]) * params.calm;
+                if (mix < 0.05) { conf.push(cell[i]); continue; }
+                const rad = mix > 0.7 ? 2 : 1;
+                let r = 0, g = 0, b = 0, n = 0;
+                for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++) {
+                    const yy = gy + dy, xx = gx + dx;
+                    if (yy < 0 || xx < 0 || yy >= N || xx >= N) continue;
+                    const c = cell[yy * N + xx];
+                    r += c[0]; g += c[1]; b += c[2]; n++;
+                }
+                const k = Math.min(1, mix), c0 = cell[i];
+                conf.push([c0[0] + (r/n - c0[0]) * k, c0[1] + (g/n - c0[1]) * k, c0[2] + (b/n - c0[2]) * k]);
+            }
+
+            // the count: perceptual match; dither only where attention lives
+            const ts = CANVAS / N;
+            const gap = Math.max(0.5, ts * 0.08 * params.relief);
+            noStroke();
+            for (let gy = 0; gy < N; gy++) for (let gx = 0; gx < N; gx++) {
+                const i = gy * N + gx;
+                const c = conf[i];
+                let b1 = 0, b2 = 0, d1 = Infinity, d2 = Infinity;
+                for (let p = 0; p < palLin.length; p++) {
+                    const d = cdist(c, palLin[p]);
+                    if (d < d1) { d2 = d1; b2 = b1; d1 = d; b1 = p; }
+                    else if (d < d2) { d2 = d; b2 = p; }
+                }
+                let pick = b1;
+                if (wgt[i] > 0.4 && params.dither > 0) {
+                    const w2 = d1 / (d1 + d2 + 1e-9);
+                    if (w2 > 0.4 && rnd() < w2 * params.dither * 1.1) pick = b2;
+                }
+                const col = palLin[pick];
+                const j = (rnd() - 0.5) * 12 * params.relief; // hand-glazed luminance variance
+                const x0 = gx * ts + gap / 2, y0 = gy * ts + gap / 2, s = ts - gap;
+                fill(col[0] + j, col[1] + j, col[2] + j);
+                rect(x0, y0, s, s, s * 0.06);
+                if (params.relief > 0.05) {
+                    fill(255, 255, 255, 34 * params.relief);
+                    rect(x0, y0, s, Math.max(1, s * 0.14), s * 0.06);
+                    fill(0, 0, 0, 22 * params.relief);
+                    rect(x0, y0 + s * 0.9, s, s * 0.1, s * 0.06);
+                }
+            }
+        }
+
+        // ── UI handlers ──
+        function updateParam(name, value) {
+            params[name] = name === 'grid' || name === 'palette' ? parseInt(value) : parseFloat(value);
+            document.getElementById(name + '-value').textContent = params[name];
+            redraw();
+        }
+        function regenerate() { initializeSystem(); }
+        function downloadPNG() { saveCanvas('salient-census-seed-' + params.seed, 'png'); }
+
+        // ── Seed controls (fixed) ──
+        function updateSeedDisplay() { document.getElementById('seed-input').value = params.seed;
+            try { history.replaceState(null, '', '?s=' + params.seed); } catch(e) {} }
+        async function shareSeed() {
+            const url = location.origin + location.pathname + '?s=' + params.seed;
+            if (navigator.share) { try { await navigator.share({ title: 'MosaPack Mosaic Lab — seed ' + params.seed, url }); return } catch(e) {} }
+            try { await navigator.clipboard.writeText(url); alert('Seed link copied!'); } catch(e) { prompt('Copy this link:', url); }
+        }
+        function updateSeed() {
+            const v = parseInt(document.getElementById('seed-input').value);
+            if (v && v > 0) { params.seed = v; initializeSystem(); } else updateSeedDisplay();
+        }
+        function previousSeed() { params.seed = Math.max(1, params.seed - 1); updateSeedDisplay(); initializeSystem(); }
+        function nextSeed() { params.seed = params.seed + 1; updateSeedDisplay(); initializeSystem(); }
+        function randomSeedAndUpdate() { params.seed = Math.floor(Math.random() * 999999) + 1; updateSeedDisplay(); initializeSystem(); }
+        function resetParameters() {
+            params = { ...defaultParams };
+            for (const k of ['grid', 'focus', 'calm', 'dither', 'palette', 'relief']) {
+                document.getElementById(k).value = params[k];
+                document.getElementById(k + '-value').textContent = params[k];
+            }
+            updateSeedDisplay();
+            initializeSystem();
+        }
+        window.addEventListener('load', updateSeedDisplay);
+    </script>
+</body>
+</html>

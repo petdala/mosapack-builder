@@ -1,3 +1,7 @@
+// Physical system constants: 0.375" tile pitch on fixed 16 x 16 panels.
+export const TILE_PITCH_IN = 0.375
+export const PANEL_SIZE_TILES = 16
+
 // Real supplier colors (MyGobricks / Webrick) — extracted from production builder.
 // MASTER ORDER matters: palette tiers are NESTED PREFIXES of this list
 // (Simple-8 ⊂ Balanced-12 ⊂ Rich-18 ⊂ Studio-25), so roll inventory is
@@ -45,11 +49,12 @@ export const TIERS: PaletteTier[] = [
 ]
 
 // ── Price matrix (USD) — edit here; the LivePriceBar and proof payload read this ──
-export const PRICES: Record<number, Record<string, number>> = {
+export const PRICES: Record<number, Partial<Record<string, number>>> = {
+  6: { simple: 19, balanced: 24 },
   12: { simple: 29, balanced: 35, rich: 42, studio: 49 },
-  16: { simple: 45, balanced: 52, rich: 59, studio: 69 },
+  18: { simple: 45, balanced: 52, rich: 59, studio: 69 },
   24: { simple: 69, balanced: 79, rich: 89, studio: 99 },
 }
 export function kitPrice(sizeIn: number, tierId: string): number {
-  return PRICES[sizeIn]?.[tierId] ?? PRICES[12].balanced
+  return PRICES[sizeIn]?.[tierId] ?? PRICES[sizeIn]?.balanced ?? PRICES[12].balanced ?? 35
 }
