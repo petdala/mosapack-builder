@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>MosaPack — Turn Your Photo Into a Mosaic (Free Preview)</title>
+    <meta name="description" content="Upload a photo, preview your mosaic instantly, and get a free design check by email. No payment, no signup. Real supplier colors, professional ΔE00 color matching." />
+    <meta name="theme-color" content="#0bbf92" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230bbf92'/%3E%3Crect x='12' y='12' width='8' height='8' rx='1' fill='%23e91e8c'/%3E%3C/svg%3E" />
+    <!-- Open Graph (audit P5) -->
+    <meta property="og:title" content="MosaPack — Turn Your Photo Into a Mosaic" />
+    <meta property="og:description" content="See your photo as a buildable mosaic in seconds. Free preview, free design check, no signup." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mosapack.com/builder/" />
+    <meta property="og:image" content="https://mosapack.com/og-mosaic.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- GA4 — wizard funnel events fire via lib/api.ts track() -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RE97PTJPWE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-RE97PTJPWE');
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
