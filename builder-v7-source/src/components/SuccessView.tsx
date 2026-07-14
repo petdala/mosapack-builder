@@ -1,17 +1,92 @@
 // Success screen keeps the excitement warm during the wait (audit U10).
+import { PALETTE } from '@/lib/palette'
+
 interface Props {
   mosaicSrc: string
   proofRef: string
   email: string
   simulated: boolean
+  tileMap: number[]
+  gridSize: number
+  paletteCount: number
   onRestart: () => void
 }
 
-export function SuccessView({ mosaicSrc, proofRef, email, simulated, onRestart }: Props) {
+function buildMapPng(tileMap: number[], gridSize: number, paletteCount: number): string {
+  const size = 2400
+  const label = 128
+  const gridPx = size - label - 32
+  const tilePx = gridPx / gridSize
+  const gap = Math.max(1, tilePx * 0.08)
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
+
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, size, size)
+  ctx.fillStyle = '#171717'
+  ctx.font = '700 30px Inter, Arial, sans-serif'
+  ctx.fillText('MosaPack build map', 32, 50)
+  ctx.font = '500 18px Inter, Arial, sans-serif'
+  ctx.fillStyle = '#737373'
+  ctx.fillText(`${gridSize} x ${gridSize} tiles · ${paletteCount} colors · start at the green corner`, 32, 82)
+
+  ctx.fillStyle = '#0bbf92'
+  ctx.beginPath()
+  ctx.moveTo(label - 18, label - 18)
+  ctx.lineTo(label + tilePx * 2.4, label - 18)
+  ctx.lineTo(label - 18, label + tilePx * 2.4)
+  ctx.closePath()
+  ctx.fill()
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '800 17px Inter, Arial, sans-serif'
+  ctx.fillText('START', label - 8, label + 19)
+
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = '700 16px Inter, Arial, sans-serif'
+  for (let i = 0; i < gridSize; i += 4) {
+    const pos = label + i * tilePx + tilePx / 2
+    const text = String(i + 1)
+    ctx.fillStyle = '#404040'
+    ctx.fillText(text, pos, label - 28)
+    ctx.fillText(text, label - 28, pos)
+    ctx.strokeStyle = 'rgba(23,23,23,0.12)'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(pos - tilePx / 2, label)
+    ctx.lineTo(pos - tilePx / 2, label + gridPx)
+    ctx.moveTo(label, pos - tilePx / 2)
+    ctx.lineTo(label + gridPx, pos - tilePx / 2)
+    ctx.stroke()
+  }
+
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      const idx = tileMap[y * gridSize + x]
+      ctx.fillStyle = PALETTE[Math.min(idx, PALETTE.length - 1)]?.hex ?? '#ffffff'
+      ctx.fillRect(label + x * tilePx + gap / 2, label + y * tilePx + gap / 2, tilePx - gap, tilePx - gap)
+    }
+  }
+
+  ctx.strokeStyle = '#171717'
+  ctx.lineWidth = 2
+  ctx.strokeRect(label, label, gridPx, gridPx)
+  return canvas.toDataURL('image/png')
+}
+
+export function SuccessView({ mosaicSrc, proofRef, email, simulated, tileMap, gridSize, paletteCount, onRestart }: Props) {
   const download = () => {
     const a = document.createElement('a')
     a.href = mosaicSrc
     a.download = `mosapack-preview-${proofRef}.png`
+    a.click()
+  }
+  const downloadBuildMap = () => {
+    const a = document.createElement('a')
+    a.href = buildMapPng(tileMap, gridSize, paletteCount)
+    a.download = `mosapack-build-map-${proofRef}.png`
     a.click()
   }
   const copyRef = async () => {
@@ -40,6 +115,13 @@ export function SuccessView({ mosaicSrc, proofRef, email, simulated, onRestart }
           className="min-h-[48px] rounded-full bg-brand px-6 text-sm font-semibold text-white hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark"
         >
           Download preview PNG
+        </button>
+        <button
+          type="button"
+          onClick={downloadBuildMap}
+          className="min-h-[48px] rounded-full bg-brand px-6 text-sm font-semibold text-white hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark"
+        >
+          Download build map (PDF-ready PNG)
         </button>
         <button
           type="button"

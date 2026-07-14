@@ -75,7 +75,15 @@ export default function App() {
   const [reqOpen, setReqOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
-  const [done, setDone] = useState<{ ref: string; email: string; simulated: boolean; mosaicSrc: string } | null>(null)
+  const [done, setDone] = useState<{
+    ref: string
+    email: string
+    simulated: boolean
+    mosaicSrc: string
+    tileMap: number[]
+    gridSize: number
+    paletteCount: number
+  } | null>(null)
 
   useEffect(() => {
     track('builder_view')
@@ -315,7 +323,15 @@ export default function App() {
       track('proof_confirmed', { ref: res.proofRef, simulated: res.simulated })
       clearDraft()
       setReqOpen(false)
-      setDone({ ref: res.proofRef, email, simulated: res.simulated, mosaicSrc })
+      setDone({
+        ref: res.proofRef,
+        email,
+        simulated: res.simulated,
+        mosaicSrc,
+        tileMap: [...mosaic.grid],
+        gridSize: mosaic.gridSize,
+        paletteCount,
+      })
       setStage('done')
       window.scrollTo({ top: 0 })
     } else {
@@ -424,6 +440,9 @@ export default function App() {
             proofRef={done.ref}
             email={done.email}
             simulated={done.simulated}
+            tileMap={done.tileMap}
+            gridSize={done.gridSize}
+            paletteCount={done.paletteCount}
             onRestart={restart}
           />
         )}
