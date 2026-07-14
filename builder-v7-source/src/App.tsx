@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Undo2 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Stepper } from '@/components/Stepper'
 import { UploadStep } from '@/components/UploadStep'
@@ -27,6 +28,13 @@ interface BuilderDraft {
   format: string
   category: string
   photoDataUrl?: string
+}
+
+interface UndoSnapshot {
+  crop: CropState
+  styleId: string
+  tierId: string
+  tune: FineTune
 }
 
 function readDraft(): BuilderDraft | null {
@@ -58,6 +66,8 @@ export default function App() {
   const [tierId, setTierId] = useState<string>('balanced')
   const [photoDataUrl, setPhotoDataUrl] = useState<string>('')
   const [resumeDraft, setResumeDraft] = useState<BuilderDraft | null>(null)
+  const undoStack = useRef<UndoSnapshot[]>([])
+  const [undoDepth, setUndoDepth] = useState(0)
   const [mosaic, setMosaic] = useState<MosaicResult | null>(null)
   const [rendering, setRendering] = useState(false)
   const [styleThumbs, setStyleThumbs] = useState<Record<string, string>>({})
@@ -101,6 +111,78 @@ export default function App() {
   const gridSize = GRID_FOR_SIZE[sizeIn] ?? 48
   const paletteCount = TIERS.find((t) => t.id === tierId)?.colors ?? 12
   const price = kitPrice(sizeIn, tierId)
+
+  const pushUndo = useCallback(() => {
+    if (!crop) return
+    const snapshot: UndoSnapshot = { crop, styleId, tierId, tune }
+    const last = undoStack.current[undoStack.current.length - 1]
+    if (
+      last &&
+      last.styleId === snapshot.styleId &&
+      last.tierId === snapshot.tierId &&
+      last.tune.brightness === snapshot.tune.brightness &&
+      last.tune.contrast === snapshot.tune.contrast &&
+      last.tune.background === snapshot.tune.background &&
+      last.crop.cx === snapshot.crop.cx &&
+      last.crop.cy === snapshot.crop.cy &&
+      last.crop.scale === snapshot.crop.scale &&
+      last.crop.rotation === snapshot.crop.rotation
+    ) return
+    undoStack.current.push(snapshot)
+    setUndoDepth(undoStack.current.length)
+  }, [crop, styleId, tierId, tune])
+
+  const undoLast = useCallback(() => {
+    const snapshot = undoStack.current.pop()
+    if (!snapshot) return
+    setCrop(snapshot.crop)
+    setStyleId(snapshot.styleId)
+    setTierId(snapshot.tierId)
+    setTune(snapshot.tune)
+    setAutoCropped(false)
+    setMosaic(null)
+    setStyleThumbs({})
+    setUndoDepth(undoStack.current.length)
+  }, [])
+
+  const changeCrop = useCallback((next: CropState) => {
+    pushUndo()
+    setCrop(next)
+    setAutoCropped(false)
+  }, [pushUndo])
+
+  const changeStyle = useCallback((next: string) => {
+    if (next === styleId) return
+    pushUndo()
+    setStyleId(next)
+  }, [pushUndo, styleId])
+
+  const changeTier = useCallback((next: string) => {
+    if (next === tierId) return
+    pushUndo()
+    setTierId(next)
+  }, [pushUndo, tierId])
+
+  const changeTune = useCallback((next: FineTune) => {
+    if (
+      next.brightness === tune.brightness &&
+      next.contrast === tune.contrast &&
+      next.background === tune.background
+    ) return
+    pushUndo()
+    setTune(next)
+  }, [pushUndo, tune])
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
+        event.preventDefault()
+        undoLast()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [undoLast])
 
   // main mosaic render — deferred a tick so the UI never blocks
   const renderSeq = useRef(0)
@@ -156,6 +238,8 @@ export default function App() {
       setAutoCropped(true)
       setMosaic(null)
       setStyleThumbs({})
+      undoStack.current = []
+      setUndoDepth(0)
       setStage('preview')
       track('crop_confirmed', { mode: 'auto' })
       window.scrollTo({ top: 0 })
@@ -179,6 +263,8 @@ export default function App() {
       setAutoCropped(false)
       setMosaic(null)
       setStyleThumbs({})
+      undoStack.current = []
+      setUndoDepth(0)
       setResumeDraft(null)
       setStage('preview')
       window.scrollTo({ top: 0 })
@@ -243,6 +329,8 @@ export default function App() {
     setStage('upload')
     setImg(null); setCrop(null); setMosaic(null); setStyleThumbs({})
     setPhotoDataUrl('')
+    undoStack.current = []
+    setUndoDepth(0)
     setTune({ brightness: 0, contrast: 0, background: 0 })
     setStyleId('true_color'); setCategory(CATEGORIES[0]); setFormat(FORMATS[0].id); setSizeIn(12); setTierId('balanced')
     setDone(null)
@@ -265,7 +353,19 @@ export default function App() {
             <Logo />
             <span className="text-lg font-extrabold tracking-tight">MosaPack</span>
           </a>
-          <Stepper current={stepIndex} onGoTo={goTo} />
+          <div className="flex items-center gap-2">
+            <Stepper current={stepIndex} onGoTo={goTo} />
+            <button
+              type="button"
+              onClick={undoLast}
+              disabled={undoDepth === 0}
+              aria-label="Undo last builder change"
+              title="Undo"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-700 transition-colors hover:border-neutral-300 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark"
+            >
+              <Undo2 className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -301,9 +401,9 @@ export default function App() {
             rendering={rendering}
             styleThumbs={styleThumbs}
             styleId={styleId}
-            onStyle={setStyleId}
+            onStyle={changeStyle}
             tune={tune}
-            onTune={setTune}
+            onTune={changeTune}
             category={category}
             onCategory={setCategory}
             format={format}
@@ -311,7 +411,7 @@ export default function App() {
             sizeIn={sizeIn}
             onSize={setSizeIn}
             tierId={tierId}
-            onTier={setTierId}
+            onTier={changeTier}
             price={price}
             onAdjustCrop={() => setCropOpen(true)}
             onRequest={openRequest}
@@ -364,7 +464,7 @@ export default function App() {
         onOpenChange={setCropOpen}
         img={img}
         crop={crop ?? { cx: 0, cy: 0, scale: 1, rotation: 0 }}
-        onApply={(c) => { setCrop(c); setAutoCropped(false); track('crop_confirmed', { mode: 'manual' }) }}
+        onApply={(c) => { changeCrop(c); track('crop_confirmed', { mode: 'manual' }) }}
       />
       <RequestDialog
         open={reqOpen}
