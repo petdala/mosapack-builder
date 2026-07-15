@@ -24,7 +24,7 @@ function tileHex(index: number): string {
 
 function drawRegistrationCross(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
   ctx.save()
-  ctx.strokeStyle = '#171717'
+  ctx.strokeStyle = '#0bbf92'
   ctx.lineWidth = 3
   ctx.beginPath()
   ctx.moveTo(x - size, y)
@@ -38,8 +38,8 @@ function drawRegistrationCross(ctx: CanvasRenderingContext2D, x: number, y: numb
 function drawManifestLine(ctx: CanvasRenderingContext2D, counts: Record<number, number>, x: number, y: number, maxWidth: number) {
   const parts = Object.entries(counts)
     .sort((a, b) => Number(a[0]) - Number(b[0]))
-    .map(([idx, count]) => `${Number(idx) + 1} ${PALETTE[Number(idx)]?.name ?? 'Color'}:${count}`)
-  const text = parts.join('  ·  ')
+    .map(([idx, count]) => `${count}×${String(Number(idx) + 1).padStart(2, '0')}`)
+  const text = `This panel needs: ${parts.join(' · ')}`
   ctx.fillStyle = '#525252'
   ctx.font = '500 18px Inter, Arial, sans-serif'
   let line = ''
@@ -132,17 +132,25 @@ function drawPanelPage(
   panelRow: number,
   panelCol: number,
   pageTop: number,
-  pageSize: number
+  pageSize: number,
+  pageNumber: number,
+  totalPanelPages: number
 ) {
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, pageTop, pageSize, pageSize)
   const id = panelId(panelRow, panelCol)
   ctx.fillStyle = '#171717'
   ctx.font = '800 36px Inter, Arial, sans-serif'
-  ctx.fillText(`Panel ${id}`, 80, pageTop + 92)
+  ctx.fillText(totalPanelPages === 1 ? 'MosaPack 6-inch build map' : `Panel ${id} of ${totalPanelPages}`, 80, pageTop + 92)
   ctx.font = '500 18px Inter, Arial, sans-serif'
   ctx.fillStyle = '#737373'
-  ctx.fillText(`${panelSizeTiles}×${panelSizeTiles} tiles · row ${panelRow + 1} of ${panelGrid} · column ${panelCol + 1} of ${panelGrid}`, 80, pageTop + 126)
+  ctx.fillText(
+    totalPanelPages === 1
+      ? `${panelSizeTiles}×${panelSizeTiles} tiles · single panel`
+      : `${panelSizeTiles}×${panelSizeTiles} tiles · row ${panelRow + 1} of ${panelGrid} · column ${panelCol + 1} of ${panelGrid}`,
+    80,
+    pageTop + 126
+  )
 
   const left = 180
   const top = pageTop + 250
@@ -154,6 +162,19 @@ function drawPanelPage(
   drawRegistrationCross(ctx, left + mapSize + 38, top - 38, 22)
   drawRegistrationCross(ctx, left - 38, top + mapSize + 38, 22)
   drawRegistrationCross(ctx, left + mapSize + 38, top + mapSize + 38, 22)
+
+  if (pageNumber === 1) {
+    ctx.fillStyle = '#0bbf92'
+    ctx.beginPath()
+    ctx.moveTo(left - 18, top - 18)
+    ctx.lineTo(left + tilePx * 2.8, top - 18)
+    ctx.lineTo(left - 18, top + tilePx * 2.8)
+    ctx.closePath()
+    ctx.fill()
+    ctx.fillStyle = '#ffffff'
+    ctx.font = '900 18px Inter, Arial, sans-serif'
+    ctx.fillText('START', left + 26, top + 24)
+  }
 
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
@@ -174,7 +195,7 @@ function drawPanelPage(
       ctx.lineWidth = 1
       ctx.strokeRect(cellX, cellY, tilePx, tilePx)
       ctx.fillStyle = '#171717'
-      ctx.fillText(String(idx + 1), cellX + tilePx / 2, cellY + tilePx / 2)
+      ctx.fillText(String(idx + 1).padStart(2, '0'), cellX + tilePx / 2, cellY + tilePx / 2)
     }
   }
   ctx.textAlign = 'left'
@@ -184,92 +205,43 @@ function drawPanelPage(
   ctx.strokeRect(left, top, mapSize, mapSize)
   ctx.fillStyle = '#171717'
   ctx.font = '800 24px Inter, Arial, sans-serif'
-  ctx.fillText(`Color manifest · ${id}`, 80, pageTop + pageSize - 120)
+  ctx.fillText(totalPanelPages === 1 ? 'Color manifest' : `Color manifest · ${id}`, 80, pageTop + pageSize - 120)
   drawManifestLine(ctx, counts, 80, pageTop + pageSize - 84, pageSize - 160)
 }
 
-function buildMapPng(tileMap: number[], gridSize: number, paletteCount: number): string {
-  const size = 2400
-  const label = 128
-  const gridPx = size - label - 32
-  const tilePx = gridPx / gridSize
-  const gap = Math.max(1, tilePx * 0.08)
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')!
-
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(0, 0, size, size)
-  ctx.fillStyle = '#171717'
-  ctx.font = '700 30px Inter, Arial, sans-serif'
-  ctx.fillText('MosaPack build map', 32, 50)
-  ctx.font = '500 18px Inter, Arial, sans-serif'
-  ctx.fillStyle = '#737373'
-  ctx.fillText(`${gridSize} x ${gridSize} tiles · ${paletteCount} colors · start at the green corner`, 32, 82)
-
-  ctx.fillStyle = '#0bbf92'
-  ctx.beginPath()
-  ctx.moveTo(label - 18, label - 18)
-  ctx.lineTo(label + tilePx * 2.4, label - 18)
-  ctx.lineTo(label - 18, label + tilePx * 2.4)
-  ctx.closePath()
-  ctx.fill()
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '800 17px Inter, Arial, sans-serif'
-  ctx.fillText('START', label - 8, label + 19)
-
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.font = '700 16px Inter, Arial, sans-serif'
-  for (let i = 0; i < gridSize; i += 4) {
-    const pos = label + i * tilePx + tilePx / 2
-    const text = String(i + 1)
-    ctx.fillStyle = '#404040'
-    ctx.fillText(text, pos, label - 28)
-    ctx.fillText(text, label - 28, pos)
-    ctx.strokeStyle = 'rgba(23,23,23,0.12)'
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    ctx.moveTo(pos - tilePx / 2, label)
-    ctx.lineTo(pos - tilePx / 2, label + gridPx)
-    ctx.moveTo(label, pos - tilePx / 2)
-    ctx.lineTo(label + gridPx, pos - tilePx / 2)
-    ctx.stroke()
-  }
-
-  for (let y = 0; y < gridSize; y++) {
-    for (let x = 0; x < gridSize; x++) {
-      const idx = tileMap[y * gridSize + x]
-      ctx.fillStyle = PALETTE[Math.min(idx, PALETTE.length - 1)]?.hex ?? '#ffffff'
-      ctx.fillRect(label + x * tilePx + gap / 2, label + y * tilePx + gap / 2, tilePx - gap, tilePx - gap)
-    }
-  }
-
-  ctx.strokeStyle = '#171717'
-  ctx.lineWidth = 2
-  ctx.strokeRect(label, label, gridPx, gridPx)
-  return canvas.toDataURL('image/png')
-}
-
 function buildPanelMapPng(tileMap: number[], gridSize: number, paletteCount: number, panelGrid: number, panelSizeTiles: number): string {
-  if (panelGrid <= 1) return buildMapPng(tileMap, gridSize, paletteCount)
   const pageSize = 1800
-  const pageCount = 1 + panelGrid * panelGrid
+  const totalPanelPages = panelGrid * panelGrid
+  const pageCount = panelGrid === 1 ? 1 : 1 + totalPanelPages
   const canvas = document.createElement('canvas')
   canvas.width = pageSize
   canvas.height = pageSize * pageCount
   const ctx = canvas.getContext('2d')!
-  drawOverviewPage(ctx, tileMap, gridSize, panelGrid, panelSizeTiles, pageSize)
+  if (panelGrid > 1) drawOverviewPage(ctx, tileMap, gridSize, panelGrid, panelSizeTiles, pageSize)
   for (let row = 0; row < panelGrid; row++) {
     for (let col = 0; col < panelGrid; col++) {
-      const pageIndex = 1 + row * panelGrid + col
-      drawPanelPage(ctx, tileMap, gridSize, panelGrid, panelSizeTiles, row, col, pageIndex * pageSize, pageSize)
+      const panelNumber = row * panelGrid + col + 1
+      const pageIndex = panelGrid === 1 ? 0 : panelNumber
+      drawPanelPage(
+        ctx,
+        tileMap,
+        gridSize,
+        panelGrid,
+        panelSizeTiles,
+        row,
+        col,
+        pageIndex * pageSize,
+        pageSize,
+        panelNumber,
+        totalPanelPages
+      )
     }
   }
-  ctx.fillStyle = '#737373'
-  ctx.font = '500 18px Inter, Arial, sans-serif'
-  ctx.fillText(`${gridSize} x ${gridSize} tiles · ${paletteCount} colors · start at the green corner`, 80, 132)
+  if (panelGrid > 1) {
+    ctx.fillStyle = '#737373'
+    ctx.font = '500 18px Inter, Arial, sans-serif'
+    ctx.fillText(`${gridSize} x ${gridSize} tiles · ${paletteCount} colors · start at the green corner`, 80, 132)
+  }
   return canvas.toDataURL('image/png')
 }
 
