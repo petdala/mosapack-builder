@@ -43,6 +43,9 @@ function readDraft(): BuilderDraft | null {
     if (!raw) return null
     const draft = JSON.parse(raw) as BuilderDraft
     if (!draft.crop || !draft.photoDataUrl) return null
+    if (draft.sizeIn === 16) draft.sizeIn = 18
+    if (!GRID_FOR_SIZE[draft.sizeIn]) draft.sizeIn = 12
+    if (PRICES[draft.sizeIn]?.[draft.tierId] == null) draft.tierId = 'balanced'
     return draft
   } catch {
     return null
@@ -177,6 +180,15 @@ export default function App() {
     pushUndo()
     setTierId(next)
   }, [pushUndo, tierId])
+
+  const changeSize = useCallback((next: number) => {
+    setSizeIn(next)
+    track('size_changed', {
+      size_in: next,
+      panel_grid: GRID_FOR_SIZE[next] ?? 2,
+      panel_size_tiles: PANEL_SIZE_TILES,
+    })
+  }, [])
 
   const changeTune = useCallback((next: FineTune) => {
     if (
@@ -436,7 +448,7 @@ export default function App() {
             format={format}
             onFormat={setFormat}
             sizeIn={sizeIn}
-            onSize={setSizeIn}
+            onSize={changeSize}
             tierId={tierId}
             onTier={changeTier}
             price={price}
