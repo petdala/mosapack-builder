@@ -140,7 +140,7 @@ export function PreviewStep(p: Props) {
           {view === 'mosaic' ? (
             p.mosaic ? (
               <img
-                src={p.mosaic.canvas.toDataURL('image/png')}
+                src={p.mosaic.displayCanvas.toDataURL('image/png')}
                 alt={`Mosaic preview, ${p.mosaic.gridSize} by ${p.mosaic.gridSize} tiles`}
                 className="block w-full"
                 style={{ imageRendering: 'pixelated' }}

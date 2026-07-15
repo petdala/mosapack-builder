@@ -131,7 +131,10 @@ export function renderCrop(img: HTMLImageElement, crop: CropState, out = 640): H
 
 // ---------- the mosaic itself ----------
 export interface MosaicResult {
+  /** Clean mosaic surface for payloads, downloads, and future exports. */
   canvas: HTMLCanvasElement
+  /** Customer-visible preview surface with tile seams and glaze. */
+  displayCanvas: HTMLCanvasElement
   counts: Record<string, number>
   grid: number[] // palette indices
   gridSize: number
@@ -240,29 +243,41 @@ export function renderMosaic(
     counts[nm] = (counts[nm] || 0) + 1
   }
 
-  // draw tiles with seams + glaze (physical product feel)
-  const GAP = Math.max(1, Math.round(tilePx * 0.09))
+  // Clean export canvas: no tile or panel seams. Payload/downloads read this surface.
   const c = document.createElement('canvas')
   c.width = N * tilePx; c.height = N * tilePx
   const ctx = c.getContext('2d')!
-  ctx.fillStyle = '#e9e7e2'
-  ctx.fillRect(0, 0, c.width, c.height)
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const p = palRgb[grid[y * N + x]]
+      ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`
+      ctx.fillRect(x * tilePx, y * tilePx, tilePx, tilePx)
+    }
+  }
+
+  // Presentation canvas: tile seams + glaze for on-screen physical product feel.
+  const GAP = Math.max(1, Math.round(tilePx * 0.09))
+  const displayCanvas = document.createElement('canvas')
+  displayCanvas.width = c.width; displayCanvas.height = c.height
+  const displayCtx = displayCanvas.getContext('2d')!
+  displayCtx.fillStyle = '#e9e7e2'
+  displayCtx.fillRect(0, 0, displayCanvas.width, displayCanvas.height)
   for (let y = 0; y < N; y++) {
     for (let x = 0; x < N; x++) {
       const p = palRgb[grid[y * N + x]]
       const x0 = x * tilePx + GAP / 2
       const y0 = y * tilePx + GAP / 2
       const s = tilePx - GAP
-      ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`
-      ctx.fillRect(x0, y0, s, s)
+      displayCtx.fillStyle = `rgb(${p.r},${p.g},${p.b})`
+      displayCtx.fillRect(x0, y0, s, s)
       // glaze highlight
-      ctx.fillStyle = `rgba(255,255,255,0.16)`
-      ctx.fillRect(x0, y0, s, Math.max(1, Math.round(s * 0.14)))
-      ctx.fillStyle = `rgba(0,0,0,0.10)`
-      ctx.fillRect(x0, y0 + s - Math.max(1, Math.round(s * 0.1)), s, Math.max(1, Math.round(s * 0.1)))
+      displayCtx.fillStyle = `rgba(255,255,255,0.16)`
+      displayCtx.fillRect(x0, y0, s, Math.max(1, Math.round(s * 0.14)))
+      displayCtx.fillStyle = `rgba(0,0,0,0.10)`
+      displayCtx.fillRect(x0, y0 + s - Math.max(1, Math.round(s * 0.1)), s, Math.max(1, Math.round(s * 0.1)))
     }
   }
-  return { canvas: c, counts, grid, gridSize: N }
+  return { canvas: c, displayCanvas, counts, grid, gridSize: N }
 }
 
 export function loadImage(src: string): Promise<HTMLImageElement> {

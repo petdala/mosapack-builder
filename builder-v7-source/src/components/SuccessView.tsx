@@ -205,8 +205,8 @@ function drawPanelPage(
   ctx.strokeRect(left, top, mapSize, mapSize)
   ctx.fillStyle = '#171717'
   ctx.font = '800 24px Inter, Arial, sans-serif'
-  ctx.fillText(totalPanelPages === 1 ? 'Color manifest' : `Color manifest · ${id}`, 80, pageTop + pageSize - 120)
-  drawManifestLine(ctx, counts, 80, pageTop + pageSize - 84, pageSize - 160)
+  ctx.fillText(totalPanelPages === 1 ? 'Color manifest' : `Color manifest · ${id}`, 120, pageTop + pageSize - 170)
+  drawManifestLine(ctx, counts, 120, pageTop + pageSize - 132, pageSize - 240)
 }
 
 function buildPanelMapPng(tileMap: number[], gridSize: number, paletteCount: number, panelGrid: number, panelSizeTiles: number): string {

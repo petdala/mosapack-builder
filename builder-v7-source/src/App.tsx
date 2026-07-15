@@ -248,7 +248,7 @@ export default function App() {
       if (cancelled || i >= STYLES.length) return
       const s = STYLES[i]
       const m = renderMosaic(zoom, 26, s, { brightness: 0, contrast: 0, background: 0 }, zsal, 5, paletteCount)
-      thumbs[s.id] = m.canvas.toDataURL('image/png')
+      thumbs[s.id] = m.displayCanvas.toDataURL('image/png')
       setStyleThumbs({ ...thumbs })
       setTimeout(() => run(i + 1), 16)
     }
@@ -519,7 +519,7 @@ export default function App() {
         open={reqOpen}
         onOpenChange={setReqOpen}
         summary={{
-          thumb: mosaic?.canvas.toDataURL('image/png') ?? '',
+          thumb: mosaic?.displayCanvas.toDataURL('image/png') ?? '',
           category,
           formatLabel: FORMATS.find((f) => f.id === format)?.label ?? '',
           sizeLabel: SIZES.find((s) => s.in === sizeIn)?.label ?? '',

@@ -22,7 +22,7 @@ export function UploadStep({ onPhoto }: { onPhoto: (src: string, demo?: string) 
         const crop = autoCrop(img, sal)
         const src = renderCrop(img, crop, 320)
         const m = renderMosaic(src, 40, STYLES[0], { brightness: 0, contrast: 0, background: 0 }, computeSaliency(src), 8)
-        if (on) setPair({ before: src.toDataURL('image/jpeg', 0.85), after: m.canvas.toDataURL('image/png') })
+        if (on) setPair({ before: src.toDataURL('image/jpeg', 0.85), after: m.displayCanvas.toDataURL('image/png') })
       } catch { /* example strip is decorative — never block upload */ }
     })()
     return () => { on = false }
