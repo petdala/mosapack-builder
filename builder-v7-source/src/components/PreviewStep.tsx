@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { STYLES, FineTune, MosaicResult } from '@/lib/mosaic'
 import { PALETTE, TIERS, PRICES } from '@/lib/palette'
 import { track } from '@/lib/api'
@@ -41,34 +41,26 @@ interface Props {
   onTier: (t: string) => void
   price: number
   panelGrid: number
-  panelSizeTiles: number
   onAdjustCrop: () => void
   onRequest: () => void
   autoCropped: boolean
 }
 
-function mosaicWithPanelSeams(mosaic: MosaicResult, panelGrid: number, panelSizeTiles: number): string {
-  if (panelGrid <= 1) return mosaic.canvas.toDataURL('image/png')
-  const canvas = document.createElement('canvas')
-  canvas.width = mosaic.canvas.width
-  canvas.height = mosaic.canvas.height
-  const ctx = canvas.getContext('2d')!
-  ctx.drawImage(mosaic.canvas, 0, 0)
-  const tilePx = canvas.width / mosaic.gridSize
-  ctx.save()
-  ctx.strokeStyle = 'rgba(255,255,255,.35)'
-  ctx.lineWidth = 1
-  for (let panel = 1; panel < panelGrid; panel++) {
-    const pos = Math.round(panel * panelSizeTiles * tilePx) + 0.5
-    ctx.beginPath()
-    ctx.moveTo(pos, 0)
-    ctx.lineTo(pos, canvas.height)
-    ctx.moveTo(0, pos)
-    ctx.lineTo(canvas.width, pos)
-    ctx.stroke()
-  }
-  ctx.restore()
-  return canvas.toDataURL('image/png')
+function PanelSeamOverlay({ panelGrid }: { panelGrid: number }) {
+  if (panelGrid <= 1) return null
+  return (
+    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+      {Array.from({ length: panelGrid - 1 }, (_, i) => {
+        const offset = `${((i + 1) / panelGrid) * 100}%`
+        return (
+          <span key={i}>
+            <span className="absolute bottom-0 top-0 w-px bg-white/35" style={{ left: offset }} />
+            <span className="absolute left-0 right-0 h-px bg-white/35" style={{ top: offset }} />
+          </span>
+        )
+      })}
+    </div>
+  )
 }
 
 function StepperControl({ label, hint, value, onChange }: { label: string; hint: string; value: number; onChange: (v: number) => void }) {
@@ -102,10 +94,6 @@ function StepperControl({ label, hint, value, onChange }: { label: string; hint:
 export function PreviewStep(p: Props) {
   const [view, setView] = useState<'mosaic' | 'photo'>('mosaic')
   const [tuneOpen, setTuneOpen] = useState(false)
-  const previewSrc = useMemo(
-    () => (p.mosaic ? mosaicWithPanelSeams(p.mosaic, p.panelGrid, p.panelSizeTiles) : ''),
-    [p.mosaic, p.panelGrid, p.panelSizeTiles]
-  )
   const availableTiers = TIERS.filter((t) => PRICES[p.sizeIn]?.[t.id] != null)
   const panelCount = p.panelGrid * p.panelGrid
   const panelCopy = panelCount === 1 ? '1 panel' : `${panelCount} panels`
@@ -152,7 +140,7 @@ export function PreviewStep(p: Props) {
           {view === 'mosaic' ? (
             p.mosaic ? (
               <img
-                src={previewSrc}
+                src={p.mosaic.canvas.toDataURL('image/png')}
                 alt={`Mosaic preview, ${p.mosaic.gridSize} by ${p.mosaic.gridSize} tiles`}
                 className="block w-full"
                 style={{ imageRendering: 'pixelated' }}
@@ -172,6 +160,7 @@ export function PreviewStep(p: Props) {
               </span>
             </div>
           )}
+          {view === 'mosaic' && p.mosaic && <PanelSeamOverlay panelGrid={p.panelGrid} />}
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-4">

@@ -441,7 +441,6 @@ export default function App() {
             onTier={changeTier}
             price={price}
             panelGrid={panelGrid}
-            panelSizeTiles={PANEL_SIZE_TILES}
             onAdjustCrop={() => setCropOpen(true)}
             onRequest={openRequest}
             autoCropped={autoCropped}
