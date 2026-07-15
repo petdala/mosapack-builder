@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Undo2 } from 'lucide-react'
+import { Undo2, X } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Stepper } from '@/components/Stepper'
 import { UploadStep } from '@/components/UploadStep'
@@ -59,6 +59,7 @@ function clearDraft() {
 }
 
 export default function App() {
+  const [classicBannerVisible, setClassicBannerVisible] = useState(() => new URLSearchParams(window.location.search).has('classic'))
   const [stage, setStage] = useState<Stage>('upload')
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [crop, setCrop] = useState<CropState | null>(null)
@@ -412,6 +413,20 @@ export default function App() {
 
       {/* pb clears the mobile sticky bar (audit C1) */}
       <main className="mx-auto max-w-6xl px-4 pb-32 pt-8 sm:px-6 md:pb-16">
+        {classicBannerVisible && (
+          <div className="mb-6 flex items-start justify-between gap-4 rounded-xl border border-brand/30 bg-brand-pale px-4 py-3 text-sm text-brand-deep" role="status">
+            <p><span className="font-bold">Pre-made kits are coming soon.</span> You can still make a custom mosaic from your own photo today.</p>
+            <button
+              type="button"
+              onClick={() => setClassicBannerVisible(false)}
+              aria-label="Dismiss pre-made kit notice"
+              title="Dismiss"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-brand-deep hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        )}
         {stage === 'upload' && <UploadStep onPhoto={onPhoto} />}
         {stage === 'upload' && resumeDraft && (
           <div className="mt-6 rounded-xl border border-brand bg-brand-pale p-4">

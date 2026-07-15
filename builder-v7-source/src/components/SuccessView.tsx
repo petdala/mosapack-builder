@@ -153,7 +153,7 @@ function drawPanelPage(
   )
 
   const left = 180
-  const top = pageTop + 250
+  const top = pageTop + 190
   const mapSize = pageSize - 360
   const tilePx = mapSize / panelSizeTiles
   const counts: Record<number, number> = {}
@@ -205,8 +205,8 @@ function drawPanelPage(
   ctx.strokeRect(left, top, mapSize, mapSize)
   ctx.fillStyle = '#171717'
   ctx.font = '800 24px Inter, Arial, sans-serif'
-  ctx.fillText(totalPanelPages === 1 ? 'Color manifest' : `Color manifest · ${id}`, 120, pageTop + pageSize - 170)
-  drawManifestLine(ctx, counts, 120, pageTop + pageSize - 132, pageSize - 240)
+  ctx.fillText(totalPanelPages === 1 ? 'Color manifest' : `Color manifest · ${id}`, 120, pageTop + pageSize - 70)
+  drawManifestLine(ctx, counts, 120, pageTop + pageSize - 32, pageSize - 240)
 }
 
 function buildPanelMapPng(tileMap: number[], gridSize: number, paletteCount: number, panelGrid: number, panelSizeTiles: number): string {
