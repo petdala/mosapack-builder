@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Classics Collection - MosaPack</title>
+  <meta name="description" content="Fixed-design public-domain mosaic kits from MosaPack.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230bbf92'/%3E%3Crect x='11' y='11' width='10' height='10' rx='2' fill='%23e91e8c'/%3E%3C/svg%3E">
+  <script>
+    window.MOSAPACK_GA_ID = 'G-RE97PTJPWE';
+  </script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RE97PTJPWE"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', window.MOSAPACK_GA_ID);
+  </script>
+  <style>
+    :root{--p:#0bbf92;--pd:#006b5f;--pale:#e8faf5;--pop:#e91e8c;--pop-ink:#b31268;--ink:#171717;--lt:#404040;--mut:#737373;--bd:#e5e5e5;--bg:#fafafa}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
+    a{color:inherit}
+    .nav{background:#fff;border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+    .brand{display:inline-flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font-weight:800;letter-spacing:-.3px}
+    .logo{width:26px;height:26px;border-radius:6px;background:var(--p);position:relative;flex:0 0 auto}
+    .logo::after{content:'';position:absolute;inset:9px;background:var(--pop);border-radius:2px}
+    .hero{max-width:1080px;margin:0 auto;padding:52px 28px 8px;text-align:center}
+    .kick{display:inline-block;background:var(--pale);color:var(--pd);font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:99px;margin-bottom:14px}
+    h1{font-size:clamp(1.7rem,4vw,2.6rem);font-weight:800;letter-spacing:-1.2px;line-height:1.08}
+    .hero p{color:var(--lt);max-width:620px;margin:10px auto 0;font-size:.95rem}
+    .filters{max-width:1080px;margin:26px auto 6px;padding:0 28px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .chip{border:1px solid var(--bd);background:#fff;border-radius:99px;padding:6px 16px;font-size:.8rem;font-weight:600;color:var(--lt);cursor:pointer;font-family:inherit;line-height:1.2}
+    .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+    .chip:focus-visible,.btn:focus-visible,.brand:focus-visible{outline:3px solid rgba(11,191,146,.35);outline-offset:3px}
+    .grid{max-width:1080px;margin:22px auto 0;padding:0 28px 70px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px}
+    .card{background:#fff;border:1px solid var(--bd);border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;flex-direction:column;transition:transform .15s, box-shadow .15s}
+    .card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.1)}
+    .card[hidden]{display:none}
+    .thumb{position:relative;background:#f4f4f5;aspect-ratio:1/1;overflow:hidden}
+    .thumb canvas,.thumb img{display:block;width:100%;height:100%;image-rendering:pixelated;object-fit:cover}
+    .pd{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);color:var(--pd);font-size:.62rem;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:99px;text-transform:uppercase}
+    .seas{position:absolute;top:10px;right:10px;background:#713f12;color:#fef3c7;font-size:.62rem;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:99px;text-transform:uppercase}
+    .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+    .seg7{font-size:.66rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--pop-ink)}
+    .body h2{font-size:1rem;font-weight:800;letter-spacing:-.3px;line-height:1.2}
+    .meta{font-size:.78rem;color:var(--mut)}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:12px}
+    .price{font-weight:800;font-size:1.05rem;white-space:nowrap}
+    .price small{font-weight:600;color:var(--mut);font-size:.72rem}
+    .btn{background:var(--pop-ink);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-size:.82rem;font-weight:700;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:38px}
+    .btn:hover{filter:brightness(1.06)}
+    .note{max-width:1080px;margin:0 auto;padding:0 28px 60px;text-align:center;font-size:.8rem;color:var(--mut)}
+    .note a{color:var(--pd);font-weight:600}
+    @media (max-width: 560px){
+      .nav{padding:12px 18px}
+      .hero{padding:40px 20px 4px}
+      .filters{padding:0 20px;justify-content:flex-start}
+      .grid{grid-template-columns:1fr;padding:0 20px 54px}
+      .row{align-items:stretch;flex-direction:column}
+      .btn{width:100%}
+      .note{padding:0 20px 48px}
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" aria-label="Primary">
+    <a class="brand" href="/">
+      <span class="logo" aria-hidden="true"></span>
+      <span>MosaPack</span>
+    </a>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <span class="kick">The Classics Collection</span>
+      <h1>Masterpieces you build yourself</h1>
+      <p>Iconic public-domain art, film, and photography mapped tile-by-tile into ready-to-build mosaic kits. Fixed designs, clear prices, and a custom-builder path when you want to use your own photo.</p>
+    </section>
+
+    <div class="filters" aria-label="Filter classics by segment">
+      <button class="chip on" type="button" data-filter="All" aria-pressed="true">All</button>
+      <button class="chip" type="button" data-filter="Art" aria-pressed="false">Art</button>
+      <button class="chip" type="button" data-filter="Cartoon" aria-pressed="false">Cartoon</button>
+      <button class="chip" type="button" data-filter="Kids" aria-pressed="false">Kids</button>
+      <button class="chip" type="button" data-filter="Space" aria-pressed="false">Space</button>
+      <button class="chip" type="button" data-filter="Vintage" aria-pressed="false">Vintage</button>
+      <button class="chip" type="button" data-filter="Comedy" aria-pressed="false">Comedy</button>
+      <button class="chip" type="button" data-filter="Gothic" aria-pressed="false">Gothic</button>
+    </div>
+
+    <div class="grid" id="grid" aria-live="polite"></div>
+
+    <p class="note">Every design in this collection is in the United States public domain. Want your own photo instead? <a href="/builder/">Try the custom builder</a></p>
+  </main>
+
+  <script>
+    // Procedural 48x48 mosaic thumbnails - placeholder art until real tile maps are rendered by the engine.
+    const K=[
+      {slug:'starry-night',t:'The Starry Night',a:'Vincent van Gogh, 1889',s:'Art',size:'18″ Gallery · 9 panels',tier:'Rich · 18 colors',price:59,gen:'starry',src:''},
+      {slug:'great-wave',t:'The Great Wave',a:'Hokusai, c. 1831',s:'Art',size:'18″ Gallery · 9 panels',tier:'Balanced · 12 colors',price:52,gen:'wave',src:''},
+      {slug:'the-scream',t:'The Scream',a:'Edvard Munch, 1893',s:'Art',size:'12″ Starter · 4 panels',tier:'Balanced · 12 colors',price:35,gen:'scream',src:''},
+      {slug:'steamboat-classic',t:'Steamboat Classic',a:'1928 animation still',s:'Cartoon',size:'12″ Starter · 4 panels',tier:'Simple · 8 colors',price:29,gen:'steam',src:''},
+      {slug:'lucky-cat',t:'The Lucky Cat',a:'1920s animation',s:'Cartoon',size:'6″ Mini · fridge magnet',tier:'Simple · 8 colors',price:19,gen:'luckycat',src:''},
+      {slug:'earthrise',t:'Earthrise',a:'NASA · Apollo 8, 1968',s:'Space',size:'12″ Starter · 4 panels',tier:'Balanced · 12 colors',price:35,gen:'earth',src:''},
+      {slug:'yellowstone-falls',t:'Yellowstone Falls',a:'WPA poster, c. 1938',s:'Vintage',size:'18″ Gallery · 9 panels',tier:'Simple · 8 colors',price:45,gen:'wpa',src:''},
+      {slug:'man-on-a-clock',t:'Man on a Clock',a:'Silent film still, 1923',s:'Comedy',size:'12″ Starter · 4 panels',tier:'Simple · 8 colors',price:29,gen:'clock',src:''},
+      {slug:'vampires-shadow',t:'The Vampire’s Shadow',a:'Silent film still, 1922',s:'Gothic',size:'12″ Starter · 4 panels',tier:'Simple · 8 colors',price:29,gen:'nos',src:'',seasonal:true},
+    ];
+    const G=48,P=6;
+    function px(x,y,c,ctx){ctx.fillStyle=c;ctx.fillRect(x*P+0.5,y*P+0.5,P-1,P-1)}
+    function n(x,y){const v=Math.sin(x*12.9898+y*78.233)*43758.5453;return v-Math.floor(v)}
+    const GEN={
+      starry(ctx){for(let y=0;y<G;y++)for(let x=0;x<G;x++){let sw=Math.sin(x*.28+Math.sin(y*.3)*2.4)+Math.cos(y*.22+x*.08);let c=sw>0.9?'#f5d76e':sw>0.4?'#7ea8d8':sw>-0.4?'#274b8f':'#12275c';if(y>38&&x<14)c=n(x,y)>.4?'#0d1b2a':'#1b3a2a';if(((x-38)**2+(y-8)**2)<9)c='#f7e08b';px(x,y,c,ctx)}},
+      wave(ctx){for(let y=0;y<G;y++)for(let x=0;x<G;x++){let h=26+Math.sin(x*.3)*7-x*.15;let c=y<12?'#e8dcc8':y<h?'#1d4e89':(n(x,y)>.6&&y<h+3)?'#f0ead6':'#12325e';if(y>h&&Math.sin(x*.9+y*.7)>0.6)c='#e8f1f5';if(y>40)c='#0d2447';if(((x-36)**2+(y-34)**2)<20)c='#c9b896';px(x,y,c,ctx)}},
+      scream(ctx){for(let y=0;y<G;y++)for(let x=0;x<G;x++){let c=y<8?'#e8542e':y<14?'#f0842e':y<20?'#d8622e':'#3a5a78';if(y>=20&&Math.sin(x*.5+y*.4)>.3)c='#2a4058';let dx=x-24,dy=y-32;if(dx*dx*1.4+dy*dy<70)c='#d8cba8';if(dx*dx+ (dy+2)**2<8)c='#3a3226';if(y>38&&Math.abs(dx)<7)c='#3a3226';px(x,y,c,ctx)}},
+      steam(ctx){for(let y=0;y<G;y++)for(let x=0;x<G;x++){let c='#e8e8e8';let dx=x-24,dy=y-22;if(dx*dx+dy*dy<120)c='#1a1a1a';if((dx-9)**2+(dy-9)**2<28||(dx+9)**2+(dy-9)**2<28)c=(dx*dx+dy*dy<120)?'#1a1a1a':'#1a1a1a';if(dx*dx+(dy+2)**2<40)c='#f0f0f0';if((dx-3)**2+(dy+4)**2<3||(dx+3)**2+(dy+4)**2<3)c='#1a1a1a';if(y>40)c='#8a8a8a';px(x,y,c,ctx)}},
+      luckycat(ctx){for(let y=0;y<G;y++)for(let x=0;x<G;x++){let c='#f5f0e6';let dx=x-24,dy=y-26;if(dx*dx*.8+dy*dy<150)c='#141414';if(Math.abs(dx)>7&&Math.abs(dx)<13&&dy<-8&&dy>-16)c='#141414';if(dx*dx+(dy+3)**2<45&&dy<-1)c='#fff';if((dx-3.5)**2+(dy+5)**2<4||(dx+3.5)**2+(dy+5)**2<4)c='#141414';px(x,y,c,ctx)}},
+      earth(ctx){for(let y=0;y<G;y++)for(let x=0;x<G;x++){let c='#0a0a12';if(y>34)c=n(x,y)>.5?'#8a8a8a':'#6e6e6e';let dx=x-30,dy=y-16;if(dx*dx+dy*dy<90){c=n(x,y)>.62?'#e8e8e8':n(x,y)>.3?'#2d6cb5':'#1a4a8a';if(dx>4)c='#0d2447'}px(x,y,c,ctx)}},
+      wpa(ctx){for(let y=0;y<G;y++)for(let x=0;x<G;x++){let c=y<10?'#f2c94c':y<16?'#e8974c':'#2d6a4f';if(y>=16&&y<34&&Math.abs(x-22)<5-((y-16)*.1))c='#f5f0e6';if(y>=16&&Math.abs(x-22)>=6&&Math.sin(x*.5+y*.3)>.4)c='#1b4332';if(y>40)c='#14532d';px(x,y,c,ctx)}},
+      clock(ctx){for(let y=0;y<G;y++)for(let x=0;x<G;x++){let c=n(x,y)>.7?'#c8bfae':'#b8ae9c';if(y<6)c='#8a8272';let dx=x-22,dy=y-20;let r=dx*dx+dy*dy;if(r<180)c='#f5f0e6';if(r<180&&r>150)c='#3a3226';if(Math.abs(dx)<1.5&&dy<0&&dy>-11)c='#3a3226';if(Math.abs(dy)<1.5&&dx>0&&dx<9)c='#3a3226';if(x>28&&x<34&&y>28&&y<42)c='#1a1a1a';if((x-31)**2+(y-27)**2<5)c='#d8cba8';px(x,y,c,ctx)}},
+      nos(ctx){for(let y=0;y<G;y++)for(let x=0;x<G;x++){let c=x<30?'#c9b896':'#b8a886';for(let s=0;s<8;s++){if(y>6+s*5&&y<8+s*5&&x>20)c='#8a7a5e'}let sx=14+y*.35;if(x>sx&&x<sx+7-y*.05&&y>4)c='#1a1226';if(y>10&&y<22&&x>sx+5&&x<sx+13&&Math.abs(y-16)<5-(x-sx-5))c='#1a1226';px(x,y,c,ctx)}},
+    };
+    const grid=document.getElementById('grid');
+    function track(event, params){
+      if(typeof window.gtag === 'function'){
+        window.gtag('event', event, params || {});
+      }
+    }
+    function renderCard(k){
+      const card=document.createElement('article');
+      card.className='card';
+      card.dataset.segment=k.s;
+      card.dataset.slug=k.slug;
+      card.innerHTML=`<div class="thumb" data-src="${k.src || ''}"><span class="pd">Public domain</span>${k.seasonal?'<span class="seas">Halloween</span>':''}</div>
+      <div class="body"><span class="seg7">${k.s}</span><h2>${k.t}</h2><div class="meta">${k.a}</div><div class="meta">${k.size} · ${k.tier}</div>
+      <div class="row"><span class="price">$${k.price}<small>.00</small></span><a class="btn" href="/builder/?classic=${encodeURIComponent(k.slug)}" data-slug="${k.slug}">Build this kit</a></div></div>`;
+      const thumb=card.querySelector('.thumb');
+      const src=thumb.dataset.src;
+      if(src){
+        const img=document.createElement('img');
+        img.src=src;
+        img.alt='';
+        img.loading='lazy';
+        thumb.prepend(img);
+      }else{
+        const cv=document.createElement('canvas');
+        cv.width=G*P;
+        cv.height=G*P;
+        cv.setAttribute('aria-hidden','true');
+        thumb.prepend(cv);
+        GEN[k.gen](cv.getContext('2d'));
+      }
+      card.querySelector('.btn').addEventListener('click',()=>track('classics_kit_click',{slug:k.slug}));
+      return card;
+    }
+    K.forEach(k=>grid.appendChild(renderCard(k)));
+    document.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click',()=>{
+        const filter=chip.dataset.filter;
+        document.querySelectorAll('.chip').forEach(button=>{
+          const selected=button===chip;
+          button.classList.toggle('on', selected);
+          button.setAttribute('aria-pressed', String(selected));
+        });
+        document.querySelectorAll('.card').forEach(card=>{
+          card.hidden=filter!=='All' && card.dataset.segment!==filter;
+        });
+      });
+    });
+    track('classics_view',{count:K.length});
+  </script>
+</body>
+</html>
