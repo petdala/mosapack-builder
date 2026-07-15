@@ -83,6 +83,13 @@ export function UploadStep({ onPhoto }: { onPhoto: (src: string, demo?: string) 
           <p className="mt-1 text-sm text-neutral-500">
             JPG or PNG · up to {MAX_MB}MB · clear faces, pets and portraits work best
           </p>
+          <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-neutral-500">
+            Upload photos you took or have the right to use. We can&apos;t print copyrighted
+            characters, logos, or artwork you don&apos;t own.{' '}
+            <a href="/terms/#content" className="font-semibold text-brand-deep underline underline-offset-2">
+              learn more
+            </a>
+          </p>
           <button
             type="button"
             onClick={() => inputRef.current?.click()}

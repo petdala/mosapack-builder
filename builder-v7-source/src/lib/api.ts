@@ -69,6 +69,7 @@ export async function submitProofRequest(p: ProofRequest): Promise<{ ok: boolean
     palette_colors: p.paletteColors,
     quoted_price_usd: p.quotedPriceUsd,
     request_type: 'custom_proof',
+    rights_notice_shown: true,
     grid_size: `${p.gridSize}x${p.gridSize}`,
     panel_grid: p.panelGrid,
     panel_size_tiles: p.panelSizeTiles,
