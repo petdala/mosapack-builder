@@ -43,9 +43,11 @@ function readDraft(): BuilderDraft | null {
     if (!raw) return null
     const draft = JSON.parse(raw) as BuilderDraft
     if (!draft.crop || !draft.photoDataUrl) return null
+    const original = JSON.stringify(draft)
     if (draft.sizeIn === 16) draft.sizeIn = 18
     if (!GRID_FOR_SIZE[draft.sizeIn]) draft.sizeIn = 12
     if (PRICES[draft.sizeIn]?.[draft.tierId] == null) draft.tierId = 'balanced'
+    if (JSON.stringify(draft) !== original) window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
     return draft
   } catch {
     return null

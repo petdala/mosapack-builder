@@ -44,7 +44,7 @@ function drawManifestLine(ctx: CanvasRenderingContext2D, counts: Record<number, 
   ctx.font = '500 18px Inter, Arial, sans-serif'
   let line = ''
   let yy = y
-  for (const part of text.split('  ·  ')) {
+  for (const part of text.split(' · ')) {
     const next = line ? `${line}  ·  ${part}` : part
     if (ctx.measureText(next).width > maxWidth && line) {
       ctx.fillText(line, x, yy)
