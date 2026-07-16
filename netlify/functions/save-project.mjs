@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer';
 import { getStore } from '@netlify/blobs';
 
 const SAVE_VERSION = 'b2-v1';
-const V7_SAVE_VERSION = 'v7';
+const V7_SAVE_VERSION = 'v7'; // builder-v7 proof_request.v1 payload
 const PROJECT_STORE = 'mosapack-projects';
 const ASSET_STORE = 'mosapack-project-assets';
 const MAX_DATA_URL_BYTES = 3 * 1024 * 1024;
@@ -28,6 +28,7 @@ function isAllowedOrigin(request) {
     return hostname === 'localhost' ||
       hostname === '127.0.0.1' ||
       hostname === 'mosapack.com' ||
+      hostname === 'www.mosapack.com' ||
       hostname === 'mosapack.netlify.app' ||
       hostname.endsWith('--mosapack.netlify.app');
   } catch {
@@ -45,23 +46,25 @@ function requireString(payload, field) {
 
 function validatePayload(payload) {
   const isV7 = payload.save_version === V7_SAVE_VERSION;
-  const missing = [];
+  // b2-v1 keeps its original strict contract; v7 (proof_request.v1) requires the fields builder-v7 actually sends.
   const requiredFields = isV7
-    ? ['save_version', 'email', 'photo_category', 'recommended_format', 'selected_format', 'grid_size', 'preview_image_data_url', 'cropped_source_data_url']
+    ? ['save_version', 'email', 'photo_category', 'recommended_format', 'grid_size', 'preview_image_data_url']
     : ['save_version', 'email', 'photo_category', 'recommended_format', 'crop_state', 'render_settings', 'grid_size', 'preview_image_data_url', 'project_snapshot'];
+  const missing = [];
   for (const field of requiredFields) {
     if (payload[field] === undefined || payload[field] === null || payload[field] === '') missing.push(field);
   }
   if (!isV7 && !payload.selected_format && !payload.product_interest) missing.push('selected_format_or_product_interest');
   if (!isV7 && !payload.cropped_source_data_url && !payload.approved_source_data_url) missing.push('cropped_source_or_approved_source_data_url');
   if (missing.length) return `Missing required fields: ${missing.join(', ')}`;
-  if (payload.save_version !== SAVE_VERSION && payload.save_version !== V7_SAVE_VERSION) return `Unsupported save_version: ${payload.save_version}`;
+  if (payload.save_version !== SAVE_VERSION && !isV7) return `Unsupported save_version: ${payload.save_version}`;
   if (payload.consent_to_store_design !== true) return 'Consent to store design is required.';
   if (!requireString(payload, 'email') || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(payload.email)) return 'A valid email is required.';
-  if (isV7) return '';
-  if (typeof payload.crop_state !== 'object' || Array.isArray(payload.crop_state)) return 'crop_state must be an object.';
-  if (typeof payload.render_settings !== 'object' || Array.isArray(payload.render_settings)) return 'render_settings must be an object.';
-  if (typeof payload.project_snapshot !== 'object' || Array.isArray(payload.project_snapshot)) return 'project_snapshot must be an object.';
+  if (!isV7) {
+    if (typeof payload.crop_state !== 'object' || Array.isArray(payload.crop_state)) return 'crop_state must be an object.';
+    if (typeof payload.render_settings !== 'object' || Array.isArray(payload.render_settings)) return 'render_settings must be an object.';
+    if (typeof payload.project_snapshot !== 'object' || Array.isArray(payload.project_snapshot)) return 'project_snapshot must be an object.';
+  }
   return '';
 }
 
@@ -152,13 +155,13 @@ export default async function handler(request) {
     recommended_format: String(payload.recommended_format || ''),
     selected_format: String(selectedFormat),
     app_version: String(appVersion),
-    save_version: SAVE_VERSION
+    save_version: String(payload.save_version)
   };
 
   const storedProject = {
     project_id: projectId,
     created_at: savedAt,
-    save_version: SAVE_VERSION,
+    save_version: String(payload.save_version),
     design_storage: 'netlify_blobs',
     retention_days: 30,
     email: payload.email,
@@ -177,6 +180,22 @@ export default async function handler(request) {
     bom_summary: payload.bom_summary || null,
     tile_map: payload.tile_map || null,
     project_snapshot: payload.project_snapshot,
+    // proof_request.v1 (builder-v7) fields — persisted so proof ops have the full request context
+    schema_version: payload.schema_version || null,
+    proof_ref: payload.proof_ref || null,
+    request_type: payload.request_type || null,
+    panel_grid: payload.panel_grid ?? null,
+    panel_size_tiles: payload.panel_size_tiles ?? null,
+    preferred_size_in: payload.preferred_size_in ?? null,
+    preferred_size_label: payload.preferred_size_label || null,
+    format_interest_label: payload.format_interest_label || null,
+    style_preset_id: payload.style_preset_id || null,
+    style_preset_label: payload.style_preset_label || null,
+    palette_tier: payload.palette_tier || null,
+    palette_colors: payload.palette_colors ?? null,
+    quoted_price_usd: payload.quoted_price_usd ?? null,
+    preview_tweaks: payload.preview_tweaks ?? null,
+    rights_notice_shown: payload.rights_notice_shown === true,
     source_file_metadata: payload.source_file_metadata || null,
     notes: payload.notes || '',
     utm: payload.utm || {},
@@ -209,6 +228,6 @@ export default async function handler(request) {
     ok: true,
     project_id: projectId,
     saved_at: savedAt,
-    save_version: SAVE_VERSION
+    save_version: String(payload.save_version)
   });
 }
