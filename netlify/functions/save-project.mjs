@@ -2,6 +2,7 @@ import { Buffer } from 'node:buffer';
 import { getStore } from '@netlify/blobs';
 
 const SAVE_VERSION = 'b2-v1';
+const V7_SAVE_VERSION = 'v7';
 const PROJECT_STORE = 'mosapack-projects';
 const ASSET_STORE = 'mosapack-project-assets';
 const MAX_DATA_URL_BYTES = 3 * 1024 * 1024;
@@ -26,6 +27,7 @@ function isAllowedOrigin(request) {
     if (protocol !== 'https:' && hostname !== 'localhost' && hostname !== '127.0.0.1') return false;
     return hostname === 'localhost' ||
       hostname === '127.0.0.1' ||
+      hostname === 'mosapack.com' ||
       hostname === 'mosapack.netlify.app' ||
       hostname.endsWith('--mosapack.netlify.app');
   } catch {
@@ -42,16 +44,21 @@ function requireString(payload, field) {
 }
 
 function validatePayload(payload) {
+  const isV7 = payload.save_version === V7_SAVE_VERSION;
   const missing = [];
-  for (const field of ['save_version', 'email', 'photo_category', 'recommended_format', 'crop_state', 'render_settings', 'grid_size', 'preview_image_data_url', 'project_snapshot']) {
+  const requiredFields = isV7
+    ? ['save_version', 'email', 'photo_category', 'recommended_format', 'selected_format', 'grid_size', 'preview_image_data_url', 'cropped_source_data_url']
+    : ['save_version', 'email', 'photo_category', 'recommended_format', 'crop_state', 'render_settings', 'grid_size', 'preview_image_data_url', 'project_snapshot'];
+  for (const field of requiredFields) {
     if (payload[field] === undefined || payload[field] === null || payload[field] === '') missing.push(field);
   }
-  if (!payload.selected_format && !payload.product_interest) missing.push('selected_format_or_product_interest');
-  if (!payload.cropped_source_data_url && !payload.approved_source_data_url) missing.push('cropped_source_or_approved_source_data_url');
+  if (!isV7 && !payload.selected_format && !payload.product_interest) missing.push('selected_format_or_product_interest');
+  if (!isV7 && !payload.cropped_source_data_url && !payload.approved_source_data_url) missing.push('cropped_source_or_approved_source_data_url');
   if (missing.length) return `Missing required fields: ${missing.join(', ')}`;
-  if (payload.save_version !== SAVE_VERSION) return `Unsupported save_version: ${payload.save_version}`;
+  if (payload.save_version !== SAVE_VERSION && payload.save_version !== V7_SAVE_VERSION) return `Unsupported save_version: ${payload.save_version}`;
   if (payload.consent_to_store_design !== true) return 'Consent to store design is required.';
   if (!requireString(payload, 'email') || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(payload.email)) return 'A valid email is required.';
+  if (isV7) return '';
   if (typeof payload.crop_state !== 'object' || Array.isArray(payload.crop_state)) return 'crop_state must be an object.';
   if (typeof payload.render_settings !== 'object' || Array.isArray(payload.render_settings)) return 'render_settings must be an object.';
   if (typeof payload.project_snapshot !== 'object' || Array.isArray(payload.project_snapshot)) return 'project_snapshot must be an object.';
