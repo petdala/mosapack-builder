@@ -13,7 +13,7 @@ export const FORMATS = [
 export const SIZES = [
   { in: 6, label: '6″ Mini', note: 'fridge magnet', recommended: false },
   { in: 12, label: '12″ Starter', note: 'about the width of a laptop', recommended: true },
-  { in: 18, label: '18″ Gallery', note: 'poster size', recommended: false },
+  { in: 18, label: '18″ Gallery', note: '9 panels · a panel an evening for a week', recommended: false },
   { in: 24, label: '24″ Statement', note: 'wall-art scale', recommended: false },
 ] as const
 
@@ -98,6 +98,7 @@ export function PreviewStep(p: Props) {
   const panelCount = p.panelGrid * p.panelGrid
   const panelCopy = panelCount === 1 ? '1 panel' : `${panelCount} panels`
   const sittingCopy = panelCount === 1 ? '1 sitting' : `${panelCount} sittings`
+  const panelMetaCopy = panelCount === 9 ? '9 panels · a panel an evening for a week' : `${panelCopy} · builds in ${sittingCopy}`
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -333,7 +334,7 @@ export function PreviewStep(p: Props) {
           <span className="text-xs leading-5 text-neutral-500">
             <span className="block text-sm font-bold text-ink">{p.sizeIn}″ Sticker kit</span>
             {p.mosaic ? `${p.mosaic.gridSize * p.mosaic.gridSize} tiles` : '—'} · {TIERS.find((t) => t.id === p.tierId)?.colors} colors
-            <span className="block">{panelCopy} · builds in {sittingCopy}</span>
+            <span className="block">{panelMetaCopy}</span>
           </span>
           <span className="text-right">
             <span className="block text-2xl font-extrabold tracking-tight tabular-nums">${p.price}.00</span>
