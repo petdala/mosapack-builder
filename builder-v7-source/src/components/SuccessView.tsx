@@ -3,6 +3,7 @@ import { PALETTE } from '@/lib/palette'
 
 interface Props {
   mosaicSrc: string
+  previewSrc: string
   proofRef: string
   email: string
   simulated: boolean
@@ -245,7 +246,7 @@ function buildPanelMapPng(tileMap: number[], gridSize: number, paletteCount: num
   return canvas.toDataURL('image/png')
 }
 
-export function SuccessView({ mosaicSrc, proofRef, email, simulated, tileMap, gridSize, panelGrid, panelSizeTiles, paletteCount, onRestart }: Props) {
+export function SuccessView({ mosaicSrc, previewSrc, proofRef, email, simulated, tileMap, gridSize, panelGrid, panelSizeTiles, paletteCount, onRestart }: Props) {
   const download = () => {
     const a = document.createElement('a')
     a.href = mosaicSrc
@@ -274,7 +275,7 @@ export function SuccessView({ mosaicSrc, proofRef, email, simulated, tileMap, gr
       </p>
 
       <div className="mt-6 overflow-hidden rounded-xl border border-neutral-200 bg-white">
-        <img src={mosaicSrc} alt="Your mosaic preview" className="block w-full" style={{ imageRendering: 'pixelated' }} />
+        <img src={previewSrc} alt="Your mosaic rendered as physical tiles" className="block w-full" />
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">

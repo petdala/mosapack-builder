@@ -1,9 +1,13 @@
-import { useState } from 'react'
-import { STYLES, FineTune, MosaicResult } from '@/lib/mosaic'
+import { useMemo, useState } from 'react'
+import { FineTune, MosaicResult } from '@/lib/mosaic'
 import { PALETTE, TIERS, PRICES } from '@/lib/palette'
 import { track } from '@/lib/api'
 import { TrustLine } from './TrustLine'
 import type { AdaptiveMosaicPreview, PaletteMode } from '@/lib/adaptivePalette'
+import type { OptimizeControls } from './OptimizeStep'
+import { CURATED_VARIANTS } from '@/lib/magicResults'
+import { renderFramedMockup, renderPhysicalTiles } from '@/lib/tileRenderer'
+import type { GroutTone } from '@/lib/tileRenderer'
 
 export const FORMATS = [
   { id: 'sticker_ready', label: 'Sticker-ready', note: 'Peel-and-place tiles' },
@@ -27,9 +31,9 @@ interface Props {
   photoSrc: string
   mosaic: MosaicResult | null
   rendering: boolean
-  adaptivePreviewEnabled: boolean
   adaptivePreview: AdaptiveMosaicPreview | null
   adaptiveRendering: boolean
+  adaptiveFailed: boolean
   paletteMode: PaletteMode
   styleThumbs: Record<string, string>
   styleId: string
@@ -47,6 +51,8 @@ interface Props {
   price: number
   panelGrid: number
   onAdjustCrop: () => void
+  optimizeControls: OptimizeControls
+  onOptimizeControls: (controls: OptimizeControls) => void
   onRequest: () => void
   autoCropped: boolean
 }
@@ -70,12 +76,12 @@ function PanelSeamOverlay({ panelGrid }: { panelGrid: number }) {
 
 function StepperControl({ label, hint, value, onChange }: { label: string; hint: string; value: number; onChange: (v: number) => void }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-2">
+    <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
       <div className="min-w-0">
         <p className="text-sm font-semibold text-ink">{label}</p>
         <p className="text-xs text-neutral-500">{hint}</p>
       </div>
-      <div className="flex items-center gap-1" role="group" aria-label={label}>
+      <div className="grid grid-cols-5 gap-1" role="group" aria-label={label}>
         {[-2, -1, 0, 1, 2].map((v) => (
           <button
             key={v}
@@ -97,7 +103,8 @@ function StepperControl({ label, hint, value, onChange }: { label: string; hint:
 }
 
 export function PreviewStep(p: Props) {
-  const [view, setView] = useState<'mosaic' | 'photo'>('mosaic')
+  const [view, setView] = useState<'tiles' | 'wall' | 'photo'>('tiles')
+  const [grout, setGrout] = useState<GroutTone>('grey')
   const [tuneOpen, setTuneOpen] = useState(false)
   const availableTiers = TIERS.filter((t) => PRICES[p.sizeIn]?.[t.id] != null)
   const panelCount = p.panelGrid * p.panelGrid
@@ -105,6 +112,18 @@ export function PreviewStep(p: Props) {
   const sittingCopy = panelCount === 1 ? '1 sitting' : `${panelCount} sittings`
   const panelMetaCopy = panelCount === 9 ? '9 panels · a panel an evening for a week' : `${panelCopy} · builds in ${sittingCopy}`
   const fixedPalette = PALETTE.slice(0, TIERS.find((tier) => tier.id === p.tierId)?.colors ?? 12)
+  const customerMosaic = p.paletteMode === 'adaptive' && p.adaptivePreview ? p.adaptivePreview.mosaic : p.mosaic
+  const customerPalette = p.paletteMode === 'adaptive' && p.adaptivePreview
+    ? p.adaptivePreview.palette.colors
+    : fixedPalette
+  const tileCanvas = useMemo(() => customerMosaic
+    ? renderPhysicalTiles(customerMosaic, customerPalette, {
+      grout,
+      tilePx: Math.max(8, Math.floor(672 / customerMosaic.gridSize)),
+    })
+    : null, [customerMosaic, customerPalette, grout])
+  const tileSrc = useMemo(() => tileCanvas?.toDataURL('image/png') ?? '', [tileCanvas])
+  const framedSrc = useMemo(() => tileCanvas ? renderFramedMockup(tileCanvas).toDataURL('image/png') : '', [tileCanvas])
 
   const swatchStrip = (colors: readonly { hex: string }[], label: string) => (
     <div className="mt-2" aria-label={label}>
@@ -125,27 +144,24 @@ export function PreviewStep(p: Props) {
         </h1>
         <p className="mt-1 text-[15px] text-neutral-600">Every tile is a real color from our kit.</p>
 
-        <div className="mt-4 flex items-center gap-2" role="group" aria-label="Preview view">
-          <button
-            type="button"
-            aria-pressed={view === 'mosaic'}
-            onClick={() => setView('mosaic')}
-            className={`min-h-[44px] rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark ${
-              view === 'mosaic' ? 'bg-ink text-white' : 'bg-white text-neutral-600 border border-neutral-300 hover:border-neutral-400'
-            }`}
-          >
-            Mosaic
-          </button>
-          <button
-            type="button"
-            aria-pressed={view === 'photo'}
-            onClick={() => setView('photo')}
-            className={`min-h-[44px] rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark ${
-              view === 'photo' ? 'bg-ink text-white' : 'bg-white text-neutral-600 border border-neutral-300 hover:border-neutral-400'
-            }`}
-          >
-            Your photo
-          </button>
+        <div className="mt-4 flex flex-wrap items-center gap-2" role="group" aria-label="Preview view">
+          {([
+            ['tiles', 'Tiles'],
+            ['wall', 'On your wall'],
+            ['photo', 'Your photo'],
+          ] as const).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={view === id}
+              onClick={() => setView(id)}
+              className={`min-h-[44px] rounded-md px-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark sm:px-4 ${
+                view === id ? 'bg-ink text-white' : 'border border-neutral-300 bg-white text-neutral-600 hover:border-neutral-400'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
           {p.autoCropped && (
             <span className="ml-1 hidden rounded-full bg-brand-pale px-3 py-1 text-xs font-semibold text-brand-deep sm:inline">
               ✓ Auto-centered
@@ -156,66 +172,32 @@ export function PreviewStep(p: Props) {
         <div
           className="relative mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white"
           data-palette-mode={p.paletteMode}
-          data-adaptive-preview={p.adaptivePreviewEnabled ? 'enabled' : 'disabled'}
+          data-adaptive-fallback={p.adaptiveFailed ? 'fixed' : 'none'}
         >
-          {view === 'mosaic' ? (
-            p.mosaic && p.adaptivePreviewEnabled ? (
-              <div
-                className="grid grid-cols-2 gap-px bg-neutral-200"
-                data-testid="adaptive-palette-comparison"
-                data-adaptive-improvement={p.adaptivePreview?.improvementPct.toFixed(2) ?? ''}
-              >
-                <figure className="min-w-0 bg-white p-2 sm:p-3">
-                  <figcaption className="mb-2 text-xs font-bold text-ink sm:text-sm">Fixed Master-25</figcaption>
-                  <div className="relative overflow-hidden bg-neutral-50">
-                    <img
-                      src={p.mosaic.displayCanvas.toDataURL('image/png')}
-                      alt={`Fixed palette mosaic, ${p.mosaic.gridSize} by ${p.mosaic.gridSize} tiles`}
-                      className="block aspect-square w-full"
-                      style={{ imageRendering: 'pixelated' }}
-                    />
-                    <PanelSeamOverlay panelGrid={p.panelGrid} />
-                  </div>
-                  {swatchStrip(fixedPalette, 'Fixed palette swatches')}
-                  <p className="mt-1 text-[10px] leading-4 text-neutral-500 sm:text-xs">Current kit colors</p>
-                </figure>
-                <figure className="min-w-0 bg-white p-2 sm:p-3">
-                  <figcaption className="mb-2 text-xs font-bold text-ink sm:text-sm">Adaptive</figcaption>
-                  {p.adaptivePreview ? (
-                    <>
-                      <div className="relative overflow-hidden bg-neutral-50">
-                        <img
-                          src={p.adaptivePreview.mosaic.displayCanvas.toDataURL('image/png')}
-                          alt={`Adaptive palette mosaic, ${p.adaptivePreview.mosaic.gridSize} by ${p.adaptivePreview.mosaic.gridSize} tiles`}
-                          className="block aspect-square w-full"
-                          style={{ imageRendering: 'pixelated' }}
-                        />
-                        <PanelSeamOverlay panelGrid={p.panelGrid} />
-                      </div>
-                      {swatchStrip(p.adaptivePreview.palette.colors, 'Adaptive palette swatches')}
-                    </>
-                  ) : (
-                    <div className="flex aspect-square items-center justify-center bg-neutral-50 text-xs text-neutral-500">
-                      Optimizing colors…
-                    </div>
-                  )}
-                  <p className="mt-1 text-[10px] leading-4 text-neutral-500 sm:text-xs">Colors optimized for your photo</p>
-                </figure>
-              </div>
-            ) : p.mosaic ? (
+          {view === 'tiles' && tileSrc ? (
+            <div className="relative bg-neutral-100 p-2 sm:p-3">
               <img
-                src={p.mosaic.displayCanvas.toDataURL('image/png')}
-                alt={`Mosaic preview, ${p.mosaic.gridSize} by ${p.mosaic.gridSize} tiles`}
-                className="block w-full"
-                style={{ imageRendering: 'pixelated' }}
+                src={tileSrc}
+                alt={`Realistic tile mosaic, ${customerMosaic?.gridSize} by ${customerMosaic?.gridSize} tiles`}
+                className="block aspect-square w-full"
+                data-testid="real-tile-hero"
+                data-variant={p.styleId}
               />
-            ) : (
-              <div className="flex aspect-square items-center justify-center text-sm text-neutral-500">
-                Building your mosaic preview…
-              </div>
-            )
-          ) : (
+              <PanelSeamOverlay panelGrid={p.panelGrid} />
+            </div>
+          ) : view === 'wall' && framedSrc ? (
+            <img
+              src={framedSrc}
+              alt="Your mosaic matted and framed on a wall"
+              className="block aspect-[4/3] w-full object-cover"
+              data-testid="framed-mockup"
+            />
+          ) : view === 'photo' ? (
             <img src={p.photoSrc} alt="Your cropped photo" className="block w-full" />
+          ) : (
+            <div className="flex aspect-square items-center justify-center text-sm text-neutral-500">
+              Building your tile preview…
+            </div>
           )}
           {(p.rendering || p.adaptiveRendering) && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/60" aria-live="polite">
@@ -224,17 +206,68 @@ export function PreviewStep(p: Props) {
               </span>
             </div>
           )}
-          {view === 'mosaic' && p.mosaic && !p.adaptivePreviewEnabled && <PanelSeamOverlay panelGrid={p.panelGrid} />}
         </div>
 
+        {customerMosaic && (
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2" role="group" aria-label="Grout color">
+              {([
+                ['grey', 'Grey', '#D7D9D8'],
+                ['warm', 'Warm ivory', '#EEE8DC'],
+              ] as const).map(([id, label, color]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={grout === id}
+                  onClick={() => setGrout(id)}
+                  className={`flex min-h-[40px] items-center gap-2 rounded-md border px-3 text-xs font-semibold ${
+                    grout === id ? 'border-brand bg-brand-pale text-brand-deep' : 'border-neutral-300 bg-white text-neutral-600'
+                  }`}
+                >
+                  <span className="h-4 w-4 border border-black/10" style={{ backgroundColor: color }} aria-hidden="true" />
+                  {label}
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-neutral-500">
+              {customerMosaic.gridSize}×{customerMosaic.gridSize} tiles · {Object.keys(customerMosaic.counts).length} colors
+            </span>
+          </div>
+        )}
+        {customerMosaic && swatchStrip(customerPalette, 'Colors in this mosaic')}
+
+        <section className="mt-6" aria-labelledby="finished-looks-heading">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h2 id="finished-looks-heading" className="text-base font-bold text-ink">Pick your favorite</h2>
+              <p className="text-xs text-neutral-500">Four finished looks, ready to build.</p>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-4 gap-2" data-testid="curated-variants">
+            {CURATED_VARIANTS.map((variant) => (
+              <button
+                key={variant.id}
+                type="button"
+                aria-pressed={p.styleId === variant.id}
+                onClick={() => { p.onStyle(variant.id); track('style_changed', { style: variant.id }) }}
+                className={`min-w-0 border bg-white p-1.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-dark sm:p-2 ${
+                  p.styleId === variant.id ? 'border-brand ring-1 ring-brand' : 'border-neutral-200 hover:border-neutral-400'
+                }`}
+                data-testid={`variant-${variant.id}`}
+              >
+                {p.styleThumbs[variant.id] ? (
+                  <img src={p.styleThumbs[variant.id]} alt="" aria-hidden="true" className="aspect-square w-full" />
+                ) : (
+                  <div className="aspect-square w-full bg-neutral-100" aria-hidden="true" />
+                )}
+                <span className="mt-1.5 block truncate text-[11px] font-bold leading-tight text-ink sm:text-xs">{variant.label}</span>
+                <span className="mt-0.5 hidden text-[10px] leading-tight text-neutral-500 sm:block">{variant.note}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
         <div className="mt-3 flex flex-wrap items-center gap-4">
-          <button
-            type="button"
-            onClick={p.onAdjustCrop}
-            className="min-h-[44px] text-sm font-semibold text-brand-deep underline decoration-brand/40 underline-offset-4 hover:decoration-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark"
-          >
-            Adjust crop
-          </button>
           <button
             type="button"
             aria-expanded={tuneOpen}
@@ -243,18 +276,42 @@ export function PreviewStep(p: Props) {
           >
             Fine-tune {tuneOpen ? '▴' : '▾'}
           </button>
-          {p.mosaic && (
-            <span className="text-xs text-neutral-500">
-              {p.mosaic.gridSize}×{p.mosaic.gridSize} tiles · {Object.keys(p.mosaic.counts).length} colors · ΔE00 matched
-            </span>
-          )}
         </div>
 
         {tuneOpen && (
           <div className="mt-2 divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white px-4 py-1">
-            <StepperControl label="Brightness" hint="Lift or deepen the whole image" value={p.tune.brightness} onChange={(v) => p.onTune({ ...p.tune, brightness: v })} />
+            <div className="py-3">
+              <p className="text-sm font-semibold text-ink">Background</p>
+              <div className="mt-2 grid grid-cols-2 gap-2" role="group" aria-label="Background treatment">
+                {(['flatten', 'keep'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    aria-pressed={p.optimizeControls.bgMode === mode}
+                    onClick={() => p.onOptimizeControls({ ...p.optimizeControls, bgMode: mode })}
+                    className={`min-h-[42px] rounded-md border px-3 text-sm font-semibold ${
+                      p.optimizeControls.bgMode === mode
+                        ? 'border-brand bg-brand-pale text-brand-deep'
+                        : 'border-neutral-300 bg-white text-neutral-600'
+                    }`}
+                  >
+                    {mode === 'flatten' ? 'Flatten' : 'Keep'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <StepperControl label="Brightness" hint="Lift or deepen the photo" value={p.optimizeControls.brightness} onChange={(brightness) => p.onOptimizeControls({ ...p.optimizeControls, brightness })} />
+            <StepperControl label="Zoom" hint="Bring the subject closer" value={p.optimizeControls.zoom} onChange={(zoom) => p.onOptimizeControls({ ...p.optimizeControls, zoom })} />
             <StepperControl label="Contrast" hint="Make light and dark pop more" value={p.tune.contrast} onChange={(v) => p.onTune({ ...p.tune, contrast: v })} />
-            <StepperControl label="Calmer background" hint="Flatten a busy background so your subject stands out" value={p.tune.background} onChange={(v) => p.onTune({ ...p.tune, background: v })} />
+            <div className="py-3">
+              <button
+                type="button"
+                onClick={p.onAdjustCrop}
+                className="min-h-[44px] text-sm font-semibold text-brand-deep underline decoration-brand/40 underline-offset-4"
+              >
+                Adjust crop
+              </button>
+            </div>
           </div>
         )}
 
@@ -281,36 +338,10 @@ export function PreviewStep(p: Props) {
         </div>
       </div>
 
-      {/* ---- right rail: style → options → CTA, in reading order (audit U1) ---- */}
+      {/* ---- right rail: options → CTA, in reading order (audit U1) ---- */}
       <aside aria-label="Style and options">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="text-sm font-bold text-ink">Choose a style</p>
-          {/* wrapping grid, no clipped carousel (audit U3); subject-crop thumbs (audit U4) */}
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2">
-            {STYLES.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                aria-pressed={p.styleId === s.id}
-                onClick={() => { p.onStyle(s.id); track('style_changed', { style: s.id }) }}
-                className={`rounded-lg border p-2 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-dark ${
-                  p.styleId === s.id ? 'border-brand bg-brand-pale' : 'border-neutral-200 bg-white hover:border-neutral-300'
-                }`}
-              >
-                {p.styleThumbs[s.id] ? (
-                  <img src={p.styleThumbs[s.id]} alt="" aria-hidden="true" className="w-full rounded-md" style={{ imageRendering: 'pixelated' }} />
-                ) : (
-                  <div className="aspect-square w-full rounded-md bg-neutral-100" aria-hidden="true" />
-                )}
-                <span className="mt-1.5 block text-[13px] font-bold leading-tight text-ink">{s.label}</span>
-                <span className="block text-[11px] leading-tight text-neutral-500">{s.blurb}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* PaletteTierSelector — nested tiers, swatches from the live palette (Brick.me import) */}
-        <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm font-bold text-ink">Colors in your kit</p>
           <p className="text-xs text-neutral-500">More colors = richer photo, more sticker rolls</p>
           <div className="mt-2 grid grid-cols-2 gap-2">
