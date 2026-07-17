@@ -7,6 +7,9 @@ interface ScenarioResult {
   outputFaceLuma: number
   inputGreenBias: number
   outputGreenBias: number
+  holeDistanceFromBackground: number
+  islandDistanceFromBackground: number
+  appendageDistanceFromBackground: number
   hashes: Record<string, string>
 }
 
@@ -95,6 +98,45 @@ test('P0 corrections and mosaic grid snapshots stay deterministic', async ({ pag
       hashes[String(sizeIn)] = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')
     }
 
+    const maskCase = document.createElement('canvas')
+    maskCase.width = side
+    maskCase.height = side
+    const maskContext = maskCase.getContext('2d', { willReadFrequently: true })!
+    maskContext.fillStyle = '#6c8f68'
+    maskContext.fillRect(0, 0, side, side)
+    maskContext.fillStyle = '#b71c1c'
+    maskContext.fillRect(72, 20, 112, 216)
+    maskContext.fillStyle = '#d09a78'
+    maskContext.fillRect(56, 110, 16, 6)
+
+    const defectMaskData = new Uint8ClampedArray(side * side * 4)
+    for (let y = 0; y < side; y++) {
+      for (let x = 0; x < side; x++) {
+        const offset = (y * side + x) * 4
+        const main = x >= 72 && x < 184 && y >= 20 && y < 236
+        const appendage = x >= 56 && x < 72 && y >= 110 && y < 116
+        const hole = x >= 112 && x < 132 && y >= 160 && y < 180
+        const island = x >= 28 && x < 40 && y >= 52 && y < 64
+        const value = ((main || appendage || island) && !hole) ? 255 : 0
+        defectMaskData[offset] = value
+        defectMaskData[offset + 1] = value
+        defectMaskData[offset + 2] = value
+        defectMaskData[offset + 3] = 255
+      }
+    }
+    const defectMask = new ImageData(defectMaskData, side, side)
+    const defectOutput = (await optimizeForBuild(maskCase, 12, {
+      analysisOverride: { mask: defectMask, face: null, faces: 0 },
+    })).canvas
+    const defectPixels = defectOutput.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, defectOutput.width, defectOutput.height).data
+    const colorAt = (sourceX: number, sourceY: number) => {
+      const x = Math.floor(sourceX / side * defectOutput.width)
+      const y = Math.floor(sourceY / side * defectOutput.height)
+      const offset = (y * defectOutput.width + x) * 4
+      return [defectPixels[offset], defectPixels[offset + 1], defectPixels[offset + 2]]
+    }
+    const distanceFromBackground = (rgb: number[]) => Math.abs(rgb[0] - 253) + Math.abs(rgb[1] - 253) + Math.abs(rgb[2] - 253)
+
     return {
       inputFill,
       outputFillBySize,
@@ -102,6 +144,9 @@ test('P0 corrections and mosaic grid snapshots stay deterministic', async ({ pag
       outputFaceLuma,
       inputGreenBias,
       outputGreenBias,
+      holeDistanceFromBackground: distanceFromBackground(colorAt(122, 170)),
+      islandDistanceFromBackground: distanceFromBackground(colorAt(34, 58)),
+      appendageDistanceFromBackground: distanceFromBackground(colorAt(62, 113)),
       hashes,
     }
   })
@@ -109,10 +154,13 @@ test('P0 corrections and mosaic grid snapshots stay deterministic', async ({ pag
   expect(Object.values(result.outputFillBySize).every((fill) => fill > result.inputFill)).toBe(true)
   expect(result.outputFaceLuma).toBeGreaterThan(result.inputFaceLuma + 20)
   expect(Math.abs(result.outputGreenBias)).toBeLessThan(Math.abs(result.inputGreenBias))
+  expect(result.holeDistanceFromBackground).toBeGreaterThan(100)
+  expect(result.islandDistanceFromBackground).toBeLessThan(18)
+  expect(result.appendageDistanceFromBackground).toBeGreaterThan(100)
   expect(result.hashes).toEqual({
-    '6': '036900f90901e46a2d8fc8f2cac26484e2a13822cfb977e533e68869145a4181',
-    '12': 'd3e4785bf1f5296132d2f5063250de90604902361675551a2282a46902b27ab5',
-    '18': 'd0c92cbe9ce4e5d4ff079c0b93b3a7ab3ce5d642074b4aa86045b582fdc2403d',
-    '24': 'c42069d4179fe7d961ddf92efb9045e9b50b37ea10d006d4772f0993010c6bfa',
+    '6': '1791ac0105a6ca4941573c5c90bd1ade30b4c07b5d390a1738e896414d91b7d3',
+    '12': '982714beb3d1d942d609d0824f8b549feff74a8cc9eae1dd88e7b257fddaaea5',
+    '18': '31fb58bf08fcf6343189d70612cce535664fe77acc46260837f6184b8f352878',
+    '24': '4117ef903d0bc7c860c8e332f4b3a8004f08006cf0858deda3accf3c34e6797e',
   })
 })
