@@ -279,12 +279,20 @@ function enforceConstraints(
   pool.push(...gamutCandidates(profileId))
 
   const evaluationStride = Math.max(1, Math.ceil(labs.length / 512))
+  const separationFloors = Array.from(new Set([
+    minSeparation,
+    Math.min(minSeparation, 6),
+    Math.min(minSeparation, 4),
+    Math.min(minSeparation, 2),
+    0,
+  ]))
+  let separationIndex = 0
   while (chosen.length < count) {
     let bestIndex = -1
     let bestGain = -Infinity
     for (let candidateIndex = 0; candidateIndex < pool.length; candidateIndex++) {
       const candidate = pool[candidateIndex]
-      if (chosen.some((color) => deltaE00(color, candidate) < minSeparation)) continue
+      if (chosen.some((color) => deltaE00(color, candidate) < separationFloors[separationIndex])) continue
       let gain = 0
       for (let i = 0; i < labs.length; i += evaluationStride) {
         let current = Infinity
@@ -293,7 +301,11 @@ function enforceConstraints(
       }
       if (gain > bestGain + 1e-9) { bestGain = gain; bestIndex = candidateIndex }
     }
-    if (bestIndex < 0) throw new Error(`Unable to produce ${count} colors at ΔE00 ${minSeparation}.`)
+    if (bestIndex < 0) {
+      separationIndex++
+      if (separationIndex < separationFloors.length) continue
+      throw new Error(`Unable to produce ${count} colors after relaxing palette separation.`)
+    }
     chosen.push(pool[bestIndex])
     pool.splice(bestIndex, 1)
   }

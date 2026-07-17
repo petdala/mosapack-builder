@@ -76,3 +76,78 @@ test('adaptive palette is deterministic, constrained, and improves off-distribut
   expect(result.errors.sunsetAdaptive).toBeLessThanOrEqual(result.errors.sunsetFixed)
   expect(result.errors.portraitAdaptive / 270).toBeLessThanOrEqual(result.errors.portraitFixed / 270 + 1)
 })
+
+test('near-monochrome input returns an exact palette and completes preview rendering', async ({ page }) => {
+  await page.goto('/')
+  const result = await page.evaluate(async () => {
+    const { createAdaptiveMosaicPreview, generateAdaptivePalette } = await import('/src/lib/adaptivePalette.ts')
+    const { rgbToLab } = await import('/src/lib/color.ts')
+    const { computeSaliency, STYLES } = await import('/src/lib/mosaic.ts')
+
+    const canvas = document.createElement('canvas')
+    canvas.width = 64
+    canvas.height = 64
+    const context = canvas.getContext('2d')!
+    context.fillStyle = '#777A7C'
+    context.fillRect(0, 0, 64, 64)
+    context.fillStyle = '#797C7E'
+    context.fillRect(20, 20, 24, 24)
+
+    const labs = Array.from({ length: 256 }, (_, index) => rgbToLab({
+      r: 119 + index % 3,
+      g: 122 + index % 2,
+      b: 124 + index % 3,
+    }))
+    const palette = generateAdaptivePalette(labs, undefined, 25)
+    const forcedRelaxation = generateAdaptivePalette(labs, undefined, 25, { minSeparation: 100 })
+    const preview = createAdaptiveMosaicPreview(
+      canvas,
+      16,
+      STYLES[0],
+      { brightness: 0, contrast: 0, background: 0 },
+      computeSaliency(canvas),
+      12,
+      25,
+      false,
+    )
+
+    return {
+      paletteCount: palette.colors.length,
+      relaxedCount: forcedRelaxation.colors.length,
+      previewCount: preview.palette.colors.length,
+      renderedTiles: preview.mosaic.grid.length,
+      canvasWidth: preview.mosaic.displayCanvas.width,
+    }
+  })
+
+  expect(result).toEqual({
+    paletteCount: 25,
+    relaxedCount: 25,
+    previewCount: 25,
+    renderedTiles: 256,
+    canvasWidth: 192,
+  })
+
+  await page.goto('/?adaptivePalette=1')
+  const monochromeDataUrl = await page.evaluate(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 512
+    canvas.height = 512
+    const context = canvas.getContext('2d')!
+    context.fillStyle = '#777A7C'
+    context.fillRect(0, 0, 512, 512)
+    context.fillStyle = '#797C7E'
+    context.fillRect(160, 160, 192, 192)
+    return canvas.toDataURL('image/png')
+  })
+  await page.setInputFiles('input[type="file"]', {
+    name: 'near-monochrome.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(monochromeDataUrl.split(',')[1], 'base64'),
+  })
+  await expect(page.getByRole('heading', { name: 'Your photo is ready to build' })).toBeVisible({ timeout: 30_000 })
+  await page.getByRole('button', { name: 'Use original' }).click()
+  await expect(page.getByTestId('adaptive-palette-comparison')).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText('Updating…')).toHaveCount(0, { timeout: 30_000 })
+  await expect(page.locator('[data-adaptive-preview="enabled"]')).toBeVisible()
+})

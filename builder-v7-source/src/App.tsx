@@ -87,6 +87,7 @@ export default function App() {
   const [rendering, setRendering] = useState(false)
   const [adaptivePreview, setAdaptivePreview] = useState<AdaptiveMosaicPreview | null>(null)
   const [adaptiveRendering, setAdaptiveRendering] = useState(false)
+  const [adaptivePreviewFailed, setAdaptivePreviewFailed] = useState(false)
   const [optimizeResult, setOptimizeResult] = useState<OptimizeResult | null>(null)
   const [optimizeLoading, setOptimizeLoading] = useState(false)
   const [optimizeError, setOptimizeError] = useState<string | null>(null)
@@ -279,25 +280,35 @@ export default function App() {
     if (!adaptivePreviewEnabled || !sourceCanvas || stage !== 'preview') {
       setAdaptivePreview(null)
       setAdaptiveRendering(false)
+      setAdaptivePreviewFailed(false)
       return
     }
     let cancelled = false
     setAdaptiveRendering(true)
+    setAdaptivePreviewFailed(false)
     const timeout = setTimeout(() => {
-      const preview = createAdaptiveMosaicPreview(
-        sourceCanvas,
-        gridSize,
-        style,
-        tune,
-        sourceSal,
-        Math.max(10, Math.round(672 / gridSize)),
-        paletteCount,
-        Boolean(optimizeResult?.report.skinRgb),
-        optimizeApplied ? optimizeResult?.subjectMask : undefined,
-      )
-      if (cancelled) return
-      setAdaptivePreview(preview)
-      setAdaptiveRendering(false)
+      try {
+        const preview = createAdaptiveMosaicPreview(
+          sourceCanvas,
+          gridSize,
+          style,
+          tune,
+          sourceSal,
+          Math.max(10, Math.round(672 / gridSize)),
+          paletteCount,
+          Boolean(optimizeResult?.report.skinRgb),
+          optimizeApplied ? optimizeResult?.subjectMask : undefined,
+        )
+        if (!cancelled) setAdaptivePreview(preview)
+      } catch (error) {
+        console.warn('Adaptive palette preview unavailable; keeping fixed preview.', error)
+        if (!cancelled) {
+          setAdaptivePreview(null)
+          setAdaptivePreviewFailed(true)
+        }
+      } finally {
+        if (!cancelled) setAdaptiveRendering(false)
+      }
     }, 40)
     return () => {
       cancelled = true
@@ -578,7 +589,7 @@ export default function App() {
             photoSrc={croppedSrc}
             mosaic={mosaic}
             rendering={rendering}
-            adaptivePreviewEnabled={adaptivePreviewEnabled}
+            adaptivePreviewEnabled={adaptivePreviewEnabled && !adaptivePreviewFailed}
             adaptivePreview={adaptivePreview}
             adaptiveRendering={adaptiveRendering}
             paletteMode={paletteMode}
