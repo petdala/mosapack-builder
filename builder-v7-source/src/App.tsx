@@ -18,6 +18,8 @@ import { PALETTE, TIERS, PRICES, PANEL_SIZE_TILES, kitPrice } from '@/lib/palett
 import { optimizeForBuild, OptimizeResult } from '@/lib/optimize'
 import { createAdaptiveMosaicPreview } from '@/lib/adaptivePalette'
 import type { AdaptiveMosaicPreview, PaletteMode } from '@/lib/adaptivePalette'
+import { CURATED_VARIANTS, curatedVariantStyle } from '@/lib/magicResults'
+import { renderPhysicalTiles } from '@/lib/tileRenderer'
 
 type Stage = 'upload' | 'optimize' | 'preview' | 'done'
 const GRID_FOR_SIZE: Record<number, number> = { 6: 1, 12: 2, 18: 3, 24: 4 }
@@ -63,11 +65,9 @@ function clearDraft() {
 }
 
 export default function App() {
-  const adaptivePreviewEnabled = useMemo(() => {
-    const queryValue = new URLSearchParams(window.location.search).get('adaptivePalette')
-    return queryValue === '1' || queryValue === 'true' || import.meta.env.VITE_ADAPTIVE_PALETTE_PREVIEW === 'true'
-  }, [])
-  const [paletteMode] = useState<PaletteMode>('fixed')
+  const [paletteMode] = useState<PaletteMode>(() => (
+    new URLSearchParams(window.location.search).get('paletteMode') === 'adaptive' ? 'adaptive' : 'fixed'
+  ))
   const [classicBannerVisible, setClassicBannerVisible] = useState(() => new URLSearchParams(window.location.search).has('classic'))
   const [stage, setStage] = useState<Stage>('upload')
   const [img, setImg] = useState<HTMLImageElement | null>(null)
@@ -104,6 +104,7 @@ export default function App() {
     email: string
     simulated: boolean
     mosaicSrc: string
+    previewSrc: string
     tileMap: number[]
     gridSize: number
     panelGrid: number
@@ -154,6 +155,18 @@ export default function App() {
   const gridSize = panelGrid * PANEL_SIZE_TILES
   const paletteCount = TIERS.find((t) => t.id === tierId)?.colors ?? 12
   const price = kitPrice(sizeIn, tierId)
+  const adaptiveReadyForVariants = paletteMode !== 'adaptive' || adaptivePreview !== null
+  const proofRequestEnabled = paletteMode === 'fixed'
+  const customerPreviewThumb = useMemo(() => {
+    const customerMosaic = paletteMode === 'adaptive' && adaptivePreview ? adaptivePreview.mosaic : mosaic
+    const customerPalette = paletteMode === 'adaptive' && adaptivePreview
+      ? adaptivePreview.palette.colors
+      : PALETTE.slice(0, paletteCount)
+    if (!customerMosaic) return ''
+    return renderPhysicalTiles(customerMosaic, customerPalette, {
+      tilePx: Math.max(8, Math.floor(672 / customerMosaic.gridSize)),
+    }).toDataURL('image/png')
+  }, [paletteMode, adaptivePreview, mosaic, paletteCount])
 
   useEffect(() => {
     if (!optimizationInput || (stage !== 'optimize' && stage !== 'preview') || !optimizeApplied) return
@@ -277,7 +290,7 @@ export default function App() {
   }, [sourceCanvas, gridSize, style, tune, sourceSal, paletteCount])
 
   useEffect(() => {
-    if (!adaptivePreviewEnabled || !sourceCanvas || stage !== 'preview') {
+    if (paletteMode !== 'adaptive' || !sourceCanvas || stage !== 'preview') {
       setAdaptivePreview(null)
       setAdaptiveRendering(false)
       setAdaptivePreviewFailed(false)
@@ -314,34 +327,69 @@ export default function App() {
       cancelled = true
       clearTimeout(timeout)
     }
-  }, [adaptivePreviewEnabled, sourceCanvas, stage, gridSize, style, tune, sourceSal, paletteCount, optimizeApplied, optimizeResult])
+  }, [paletteMode, sourceCanvas, stage, gridSize, style, tune, sourceSal, paletteCount, optimizeApplied, optimizeResult])
 
-  // style thumbnails: mosaic of a subject-zoomed crop, so styles are tellable apart (audit U4)
+  // Curated finished looks render sequentially to keep mobile interaction responsive.
   useEffect(() => {
-    if (!sourceCanvas) return
-    const zoom = document.createElement('canvas')
-    const Z = 240
-    zoom.width = Z; zoom.height = Z
-    const zctx = zoom.getContext('2d')!
-    const side = Math.min(sourceCanvas.width, sourceCanvas.height)
-    const half = side / (2 * 1.8)
-    const cx = Math.max(half, Math.min(sourceCanvas.width - half, sourceSal.cx * sourceCanvas.width))
-    const cy = Math.max(half, Math.min(sourceCanvas.height - half, sourceSal.cy * sourceCanvas.height))
-    zctx.drawImage(sourceCanvas, cx - half, cy - half, half * 2, half * 2, 0, 0, Z, Z)
-    const zsal = computeSaliency(zoom)
+    if (!sourceCanvas || stage !== 'preview' || !adaptiveReadyForVariants) return
     const thumbs: Record<string, string> = {}
+    const thumbnailGridSize = Math.min(20, gridSize)
+    const thumbnailTilePx = Math.max(6, Math.floor(240 / thumbnailGridSize))
     let cancelled = false
     const run = (i: number) => {
-      if (cancelled || i >= STYLES.length) return
-      const s = STYLES[i]
-      const m = renderMosaic(zoom, 26, s, { brightness: 0, contrast: 0, background: 0 }, zsal, 5, paletteCount)
-      thumbs[s.id] = m.displayCanvas.toDataURL('image/png')
+      if (cancelled || i >= CURATED_VARIANTS.length) return
+      const variant = CURATED_VARIANTS[i]
+      const variantStyle = curatedVariantStyle(variant.id)
+      try {
+        if (paletteMode === 'adaptive') {
+          const preview = createAdaptiveMosaicPreview(
+            sourceCanvas,
+            thumbnailGridSize,
+            variantStyle,
+            { brightness: 0, contrast: 0, background: 0 },
+            sourceSal,
+            thumbnailTilePx,
+            paletteCount,
+            Boolean(optimizeResult?.report.skinRgb),
+            optimizeApplied ? optimizeResult?.subjectMask : undefined,
+          )
+          thumbs[variant.id] = renderPhysicalTiles(preview.mosaic, preview.palette.colors, {
+            tilePx: thumbnailTilePx,
+          }).toDataURL('image/png')
+        } else {
+          const fixed = renderMosaic(
+            sourceCanvas,
+            thumbnailGridSize,
+            variantStyle,
+            { brightness: 0, contrast: 0, background: 0 },
+            sourceSal,
+            thumbnailTilePx,
+            paletteCount,
+          )
+          thumbs[variant.id] = renderPhysicalTiles(fixed, PALETTE.slice(0, paletteCount), {
+            tilePx: thumbnailTilePx,
+          }).toDataURL('image/png')
+        }
+      } catch {
+        const fixed = renderMosaic(
+          sourceCanvas,
+          thumbnailGridSize,
+          variantStyle,
+          { brightness: 0, contrast: 0, background: 0 },
+          sourceSal,
+          thumbnailTilePx,
+          paletteCount,
+        )
+        thumbs[variant.id] = renderPhysicalTiles(fixed, PALETTE.slice(0, paletteCount), {
+          tilePx: thumbnailTilePx,
+        }).toDataURL('image/png')
+      }
       setStyleThumbs({ ...thumbs })
       setTimeout(() => run(i + 1), 16)
     }
-    run(0)
-    return () => { cancelled = true }
-  }, [sourceCanvas, sourceSal, paletteCount])
+    const start = setTimeout(() => run(0), 120)
+    return () => { cancelled = true; clearTimeout(start) }
+  }, [sourceCanvas, sourceSal, gridSize, paletteCount, paletteMode, optimizeApplied, optimizeResult, stage, adaptiveReadyForVariants])
 
   const onPhoto = useCallback(async (src: string) => {
     try {
@@ -424,16 +472,22 @@ export default function App() {
   }
 
   const openRequest = () => {
+    if (!proofRequestEnabled) return
     setServerError(null)
     setReqOpen(true)
     track('proof_modal_opened')
   }
 
   const submit = async (name: string, email: string) => {
-    if (!mosaic || !croppedSrc) return
+    if (!proofRequestEnabled || !mosaic || !croppedSrc) return
     setSubmitting(true)
     setServerError(null)
-    const mosaicSrc = mosaic.canvas.toDataURL('image/png')
+    const proofMosaic = mosaic
+    const proofPalette = PALETTE.slice(0, paletteCount)
+    const mosaicSrc = proofMosaic.canvas.toDataURL('image/png')
+    const proofPreviewSrc = renderPhysicalTiles(proofMosaic, proofPalette, {
+      tilePx: Math.max(8, Math.floor(672 / proofMosaic.gridSize)),
+    }).toDataURL('image/png')
     const res = await submitProofRequest({
       name, email,
       photoCategory: category,
@@ -452,9 +506,9 @@ export default function App() {
       fineTune: tune,
       croppedSourceDataUrl: croppedSrc,
       previewImageDataUrl: mosaicSrc,
-      colorCounts: mosaic.counts,
-      tileMap: mosaic.grid,
-      palette: PALETTE.slice(0, paletteCount),
+      colorCounts: proofMosaic.counts,
+      tileMap: proofMosaic.grid,
+      palette: proofPalette,
       optimizeApplied,
       optimizeFixes: optimizeApplied ? optimizeResult?.appliedFixes ?? [] : [],
       bgMode: optimizeApplied ? optimizeResult?.bgMode ?? 'flatten' : 'keep',
@@ -470,8 +524,9 @@ export default function App() {
         email,
         simulated: res.simulated,
         mosaicSrc,
-        tileMap: [...mosaic.grid],
-        gridSize: mosaic.gridSize,
+        previewSrc: proofPreviewSrc,
+        tileMap: [...proofMosaic.grid],
+        gridSize: proofMosaic.gridSize,
         panelGrid,
         panelSizeTiles: PANEL_SIZE_TILES,
         paletteCount,
@@ -589,10 +644,11 @@ export default function App() {
             photoSrc={croppedSrc}
             mosaic={mosaic}
             rendering={rendering}
-            adaptivePreviewEnabled={adaptivePreviewEnabled && !adaptivePreviewFailed}
             adaptivePreview={adaptivePreview}
             adaptiveRendering={adaptiveRendering}
+            adaptiveFailed={adaptivePreviewFailed}
             paletteMode={paletteMode}
+            proofRequestEnabled={proofRequestEnabled}
             styleThumbs={styleThumbs}
             styleId={styleId}
             onStyle={changeStyle}
@@ -609,6 +665,8 @@ export default function App() {
             price={price}
             panelGrid={panelGrid}
             onAdjustCrop={() => setCropOpen(true)}
+            optimizeControls={optimizeControls}
+            onOptimizeControls={setOptimizeControls}
             onRequest={openRequest}
             autoCropped={autoCropped}
           />
@@ -616,6 +674,7 @@ export default function App() {
         {stage === 'done' && done && (
           <SuccessView
             mosaicSrc={done.mosaicSrc}
+            previewSrc={done.previewSrc}
             proofRef={done.ref}
             email={done.email}
             simulated={done.simulated}
@@ -630,7 +689,7 @@ export default function App() {
       </main>
 
       {/* mobile sticky CTA: opaque, bordered, under dialogs, hidden while a dialog is open (audit C1) */}
-      {stage === 'preview' && !anyDialog && (
+      {stage === 'preview' && proofRequestEnabled && !anyDialog && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white px-4 pt-3 md:hidden" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs text-neutral-500">
@@ -672,7 +731,7 @@ export default function App() {
         open={reqOpen}
         onOpenChange={setReqOpen}
         summary={{
-          thumb: mosaic?.displayCanvas.toDataURL('image/png') ?? '',
+          thumb: proofRequestEnabled ? customerPreviewThumb : '',
           category,
           formatLabel: FORMATS.find((f) => f.id === format)?.label ?? '',
           sizeLabel: SIZES.find((s) => s.in === sizeIn)?.label ?? '',

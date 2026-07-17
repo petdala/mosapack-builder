@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { DEMOS } from '@/lib/demos'
 import { loadImage, computeSaliency, autoCrop, renderCrop, renderMosaic, STYLES } from '@/lib/mosaic'
 import { track } from '@/lib/api'
+import { PALETTE } from '@/lib/palette'
+import { renderPhysicalTiles } from '@/lib/tileRenderer'
 import { TrustLine } from './TrustLine'
 
 const MAX_MB = 20
@@ -22,7 +24,10 @@ export function UploadStep({ onPhoto }: { onPhoto: (src: string, demo?: string) 
         const crop = autoCrop(img, sal)
         const src = renderCrop(img, crop, 320)
         const m = renderMosaic(src, 40, STYLES[0], { brightness: 0, contrast: 0, background: 0 }, computeSaliency(src), 8)
-        if (on) setPair({ before: src.toDataURL('image/jpeg', 0.85), after: m.displayCanvas.toDataURL('image/png') })
+        if (on) setPair({
+          before: src.toDataURL('image/jpeg', 0.85),
+          after: renderPhysicalTiles(m, PALETTE, { tilePx: 8 }).toDataURL('image/png'),
+        })
       } catch { /* example strip is decorative — never block upload */ }
     })()
     return () => { on = false }
