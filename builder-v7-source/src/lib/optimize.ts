@@ -56,6 +56,7 @@ interface SizePolicy {
 }
 
 const WORK_LONG_EDGE = 1024
+const HARD_MASK_ERODE_RADIUS = 9
 const FLAT_BACKGROUND = [244, 244, 244] as const
 const POLICY: Record<number, SizePolicy> = {
   6: { fill: 0.86, sharpen: 60 },
@@ -717,7 +718,7 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
   const processingMaskImage = valuesToImageData(processingMask, source.width, source.height)
   const sourceContext = source.getContext('2d', { willReadFrequently: true })!
   const sourcePixels = sourceContext.getImageData(0, 0, source.width, source.height)
-  const sourceHardMask = minFilter(processingMask, source.width, source.height, 5)
+  const sourceHardMask = minFilter(processingMask, source.width, source.height, HARD_MASK_ERODE_RADIUS)
   correctTone(sourcePixels, processingMask, analysis.face)
   if (bgMode === 'flatten') flattenBackground(sourcePixels, sourceHardMask)
   sourceContext.putImageData(sourcePixels, 0, 0)
@@ -727,7 +728,7 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
   context.drawImage(source, crop.x, crop.y, crop.side, crop.side, 0, 0, outputSize, outputSize)
   const outputMask = cropMask(processingMaskImage, crop, outputSize)
   const outputRawMask = maskValues(outputMask)
-  const hardMask = minFilter(outputRawMask, outputSize, outputSize, 5)
+  const hardMask = minFilter(outputRawMask, outputSize, outputSize, HARD_MASK_ERODE_RADIUS)
   const pixels = context.getImageData(0, 0, outputSize, outputSize)
 
   adjustContrast(pixels, brightness)

@@ -110,9 +110,9 @@ test('P0 corrections and mosaic grid snapshots stay deterministic', async ({ pag
   expect(result.outputFaceLuma).toBeGreaterThan(result.inputFaceLuma + 20)
   expect(Math.abs(result.outputGreenBias)).toBeLessThan(Math.abs(result.inputGreenBias))
   expect(result.hashes).toEqual({
-    '6': '42d5da5299e36929f949c57990934c8dc00c7738919bcc698504603c1f245c5b',
-    '12': '47344af4ae0227f4c56965af2c46d080c5493ad7bff636b6037ae968ed1d2169',
-    '18': 'ee131636938e15f82cd741f5a51d09c50e7a61a72db93d1d29587f5a91465eb6',
-    '24': '060b587b3f4478e43d4afb1331acea23adf40b4357b57f163c853fe69c3f8877',
+    '6': '036900f90901e46a2d8fc8f2cac26484e2a13822cfb977e533e68869145a4181',
+    '12': 'd3e4785bf1f5296132d2f5063250de90604902361675551a2282a46902b27ab5',
+    '18': 'd0c92cbe9ce4e5d4ff079c0b93b3a7ab3ce5d642074b4aa86045b582fdc2403d',
+    '24': 'c42069d4179fe7d961ddf92efb9045e9b50b37ea10d006d4772f0993010c6bfa',
   })
 })
