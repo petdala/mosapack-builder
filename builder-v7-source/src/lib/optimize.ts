@@ -690,42 +690,6 @@ function keepLargestComponent(values: Uint8ClampedArray, width: number, height: 
   return output
 }
 
-function fillBoundedInteriorGaps(
-  values: Uint8ClampedArray,
-  image: ImageData,
-  width: number,
-  height: number,
-): Uint8ClampedArray {
-  const output = values.slice()
-  const limit = 160
-  const left = new Uint8Array(values.length)
-  const right = new Uint8Array(values.length)
-  for (let y = 0; y < height; y++) {
-    let distance = limit + 1
-    for (let x = 0; x < width; x++) {
-      const index = y * width + x
-      distance = values[index] > 127 ? 0 : Math.min(limit + 1, distance + 1)
-      left[index] = distance
-    }
-    distance = limit + 1
-    for (let x = width - 1; x >= 0; x--) {
-      const index = y * width + x
-      distance = values[index] > 127 ? 0 : Math.min(limit + 1, distance + 1)
-      right[index] = distance
-    }
-  }
-  for (let i = 0; i < values.length; i++) {
-    if (values[i] > 127 || left[i] > limit || right[i] > limit) continue
-    const offset = i * 4
-    const r = image.data[offset]
-    const g = image.data[offset + 1]
-    const b = image.data[offset + 2]
-    if (g > r * 1.06 && g > b * 1.06) continue
-    output[i] = 255
-  }
-  return output
-}
-
 function removeLowerGreenIslands(
   values: Uint8ClampedArray,
   image: ImageData,
@@ -923,8 +887,7 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
   const sourcePixels = sourceContext.getImageData(0, 0, source.width, source.height)
   const largestComponent = keepLargestComponent(values, source.width, source.height)
   const filledMask = fillMaskHoles(largestComponent, source.width, source.height)
-  const repairedMask = fillBoundedInteriorGaps(filledMask, sourcePixels, source.width, source.height)
-  const cleanedValues = removeLowerGreenIslands(repairedMask, sourcePixels, source.width, source.height)
+  const cleanedValues = removeLowerGreenIslands(filledMask, sourcePixels, source.width, source.height)
   const cleanedMask = valuesToImageData(cleanedValues, source.width, source.height)
   const crop = portraitCrop(cleanedMask, targetFill)
   const outputSize = Math.max(640, Math.min(WORK_LONG_EDGE, Math.round(crop.side)))
