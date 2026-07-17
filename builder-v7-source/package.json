@@ -7,10 +7,12 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:optimize": "playwright test --config qa/playwright.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
+    "@mediapipe/tasks-vision": "^0.10.35",
     "@radix-ui/react-accordion": "^1.2.16",
     "@radix-ui/react-aspect-ratio": "^1.1.11",
     "@radix-ui/react-avatar": "^1.2.2",
@@ -56,6 +58,7 @@
   },
   "devDependencies": {
     "@parcel/config-default": "^2.16.4",
+    "@playwright/test": "^1.61.1",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

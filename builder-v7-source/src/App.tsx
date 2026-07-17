@@ -3,6 +3,7 @@ import { Undo2, X } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Stepper } from '@/components/Stepper'
 import { UploadStep } from '@/components/UploadStep'
+import { OptimizeStep, OptimizeControls } from '@/components/OptimizeStep'
 import { PreviewStep, FORMATS, SIZES, CATEGORIES } from '@/components/PreviewStep'
 import { CropDialog } from '@/components/CropDialog'
 import { RequestDialog } from '@/components/RequestDialog'
@@ -14,8 +15,9 @@ import {
 } from '@/lib/mosaic'
 import { track, submitProofRequest } from '@/lib/api'
 import { PALETTE, TIERS, PRICES, PANEL_SIZE_TILES, kitPrice } from '@/lib/palette'
+import { optimizeForBuild, OptimizeResult } from '@/lib/optimize'
 
-type Stage = 'upload' | 'preview' | 'done'
+type Stage = 'upload' | 'optimize' | 'preview' | 'done'
 const GRID_FOR_SIZE: Record<number, number> = { 6: 1, 12: 2, 18: 3, 24: 4 }
 const DRAFT_KEY = 'mosapack.builder.draft.v1'
 const MAX_DRAFT_PHOTO_BYTES = 2 * 1024 * 1024
@@ -76,6 +78,12 @@ export default function App() {
   const [undoDepth, setUndoDepth] = useState(0)
   const [mosaic, setMosaic] = useState<MosaicResult | null>(null)
   const [rendering, setRendering] = useState(false)
+  const [optimizeResult, setOptimizeResult] = useState<OptimizeResult | null>(null)
+  const [optimizeLoading, setOptimizeLoading] = useState(false)
+  const [optimizeError, setOptimizeError] = useState<string | null>(null)
+  const [optimizeApplied, setOptimizeApplied] = useState(true)
+  const [optimizeControls, setOptimizeControls] = useState<OptimizeControls>({ bgMode: 'flatten', brightness: 0, zoom: 0 })
+  const optimizeSeq = useRef(0)
   const [styleThumbs, setStyleThumbs] = useState<Record<string, string>>({})
   const [cropOpen, setCropOpen] = useState(false)
   const [reqOpen, setReqOpen] = useState(false)
@@ -117,17 +125,44 @@ export default function App() {
     if (!img || !crop) return null
     return renderCrop(img, crop, 640)
   }, [img, crop])
-  const croppedSal: Saliency = useMemo(
-    () => (cropped ? computeSaliency(cropped) : { cx: 0.5, cy: 0.5, spread: 0.35 }),
-    [cropped]
+  const optimizationInput = useMemo(() => {
+    if (!img || !crop) return null
+    const sourceSide = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height)
+    return renderCrop(img, crop, Math.min(1600, Math.max(640, sourceSide)))
+  }, [img, crop])
+  const sourceCanvas = optimizeApplied && optimizeResult ? optimizeResult.canvas : cropped
+  const sourceSal: Saliency = useMemo(
+    () => (sourceCanvas ? computeSaliency(sourceCanvas) : { cx: 0.5, cy: 0.5, spread: 0.35 }),
+    [sourceCanvas]
   )
-  const croppedSrc = useMemo(() => cropped?.toDataURL('image/jpeg', 0.9) ?? '', [cropped])
+  const croppedSrc = useMemo(() => sourceCanvas?.toDataURL('image/jpeg', 0.9) ?? '', [sourceCanvas])
+  const originalCroppedSrc = useMemo(() => optimizationInput?.toDataURL('image/jpeg', 0.9) ?? '', [optimizationInput])
+  const optimizedSrc = useMemo(() => optimizeResult?.canvas.toDataURL('image/jpeg', 0.9) ?? '', [optimizeResult])
 
   const style = STYLES.find((s) => s.id === styleId) ?? STYLES[0]
   const panelGrid = GRID_FOR_SIZE[sizeIn] ?? 2
   const gridSize = panelGrid * PANEL_SIZE_TILES
   const paletteCount = TIERS.find((t) => t.id === tierId)?.colors ?? 12
   const price = kitPrice(sizeIn, tierId)
+
+  useEffect(() => {
+    if (!optimizationInput || (stage !== 'optimize' && stage !== 'preview') || !optimizeApplied) return
+    const seq = ++optimizeSeq.current
+    setOptimizeLoading(true)
+    setOptimizeError(null)
+    optimizeForBuild(optimizationInput, sizeIn, optimizeControls)
+      .then((result) => {
+        if (seq !== optimizeSeq.current) return
+        setOptimizeResult(result)
+        setOptimizeLoading(false)
+        track('photo_optimized', { size_in: sizeIn, bg_mode: result.bgMode, fixes: result.appliedFixes.length })
+      })
+      .catch(() => {
+        if (seq !== optimizeSeq.current) return
+        setOptimizeError('optimize_failed')
+        setOptimizeLoading(false)
+      })
+  }, [optimizationInput, sizeIn, optimizeControls, optimizeApplied, stage])
 
   useEffect(() => {
     if (PRICES[sizeIn]?.[tierId] == null) setTierId('balanced')
@@ -217,31 +252,32 @@ export default function App() {
   // main mosaic render — deferred a tick so the UI never blocks
   const renderSeq = useRef(0)
   useEffect(() => {
-    if (!cropped) return
+    if (!sourceCanvas) return
     const seq = ++renderSeq.current
     setRendering(true)
     const t = setTimeout(() => {
       if (seq !== renderSeq.current) return
-      const m = renderMosaic(cropped, gridSize, style, tune, croppedSal, Math.max(10, Math.round(672 / gridSize)), paletteCount)
+      const m = renderMosaic(sourceCanvas, gridSize, style, tune, sourceSal, Math.max(10, Math.round(672 / gridSize)), paletteCount)
       if (seq !== renderSeq.current) return
       setMosaic(m)
       setRendering(false)
       track('preview_rendered', { style: style.id, grid: gridSize })
     }, 30)
     return () => clearTimeout(t)
-  }, [cropped, gridSize, style, tune, croppedSal, paletteCount])
+  }, [sourceCanvas, gridSize, style, tune, sourceSal, paletteCount])
 
   // style thumbnails: mosaic of a subject-zoomed crop, so styles are tellable apart (audit U4)
   useEffect(() => {
-    if (!cropped) return
+    if (!sourceCanvas) return
     const zoom = document.createElement('canvas')
     const Z = 240
     zoom.width = Z; zoom.height = Z
     const zctx = zoom.getContext('2d')!
-    const half = 640 / (2 * 1.8)
-    const cx = Math.max(half, Math.min(640 - half, croppedSal.cx * 640))
-    const cy = Math.max(half, Math.min(640 - half, croppedSal.cy * 640))
-    zctx.drawImage(cropped, cx - half, cy - half, half * 2, half * 2, 0, 0, Z, Z)
+    const side = Math.min(sourceCanvas.width, sourceCanvas.height)
+    const half = side / (2 * 1.8)
+    const cx = Math.max(half, Math.min(sourceCanvas.width - half, sourceSal.cx * sourceCanvas.width))
+    const cy = Math.max(half, Math.min(sourceCanvas.height - half, sourceSal.cy * sourceCanvas.height))
+    zctx.drawImage(sourceCanvas, cx - half, cy - half, half * 2, half * 2, 0, 0, Z, Z)
     const zsal = computeSaliency(zoom)
     const thumbs: Record<string, string> = {}
     let cancelled = false
@@ -255,7 +291,7 @@ export default function App() {
     }
     run(0)
     return () => { cancelled = true }
-  }, [cropped, croppedSal, paletteCount])
+  }, [sourceCanvas, sourceSal, paletteCount])
 
   const onPhoto = useCallback(async (src: string) => {
     try {
@@ -268,9 +304,13 @@ export default function App() {
       setAutoCropped(true)
       setMosaic(null)
       setStyleThumbs({})
+      setOptimizeResult(null)
+      setOptimizeError(null)
+      setOptimizeApplied(true)
+      setOptimizeControls({ bgMode: 'flatten', brightness: 0, zoom: 0 })
       undoStack.current = []
       setUndoDepth(0)
-      setStage('preview')
+      setStage('optimize')
       track('crop_confirmed', { mode: 'auto' })
       window.scrollTo({ top: 0 })
     } catch {
@@ -293,10 +333,14 @@ export default function App() {
       setAutoCropped(false)
       setMosaic(null)
       setStyleThumbs({})
+      setOptimizeResult(null)
+      setOptimizeError(null)
+      setOptimizeApplied(true)
+      setOptimizeControls({ bgMode: 'flatten', brightness: 0, zoom: 0 })
       undoStack.current = []
       setUndoDepth(0)
       setResumeDraft(null)
-      setStage('preview')
+      setStage('optimize')
       window.scrollTo({ top: 0 })
     } catch {
       clearDraft()
@@ -307,6 +351,24 @@ export default function App() {
   const dismissDraft = () => {
     clearDraft()
     setResumeDraft(null)
+  }
+
+  const approveOptimization = () => {
+    if (!optimizeResult || optimizeLoading) return
+    setOptimizeApplied(true)
+    setStage('preview')
+    track('optimize_approved', { bg_mode: optimizeResult.bgMode, fixes: optimizeResult.appliedFixes.length })
+    window.scrollTo({ top: 0 })
+  }
+
+  const useOriginal = () => {
+    optimizeSeq.current++
+    setOptimizeLoading(false)
+    setOptimizeApplied(false)
+    setOptimizeError(null)
+    setStage('preview')
+    track('optimize_original_used')
+    window.scrollTo({ top: 0 })
   }
 
   const openRequest = () => {
@@ -341,6 +403,10 @@ export default function App() {
       colorCounts: mosaic.counts,
       tileMap: mosaic.grid,
       palette: PALETTE.slice(0, paletteCount),
+      optimizeApplied,
+      optimizeFixes: optimizeApplied ? optimizeResult?.appliedFixes ?? [] : [],
+      bgMode: optimizeApplied ? optimizeResult?.bgMode ?? 'flatten' : 'keep',
+      issueReport: optimizeResult?.report ?? null,
     })
     setSubmitting(false)
     if (res.ok) {
@@ -370,6 +436,9 @@ export default function App() {
   const restart = () => {
     setStage('upload')
     setImg(null); setCrop(null); setMosaic(null); setStyleThumbs({})
+    optimizeSeq.current++
+    setOptimizeResult(null); setOptimizeLoading(false); setOptimizeError(null); setOptimizeApplied(true)
+    setOptimizeControls({ bgMode: 'flatten', brightness: 0, zoom: 0 })
     setPhotoDataUrl('')
     undoStack.current = []
     setUndoDepth(0)
@@ -381,11 +450,11 @@ export default function App() {
 
   const goTo = (i: number) => {
     if (i === 0) restart()
-    if (i === 1 && img) setStage('preview')
+    if (i === 1 && img) setStage(optimizeResult ? 'preview' : 'optimize')
   }
 
   const anyDialog = cropOpen || reqOpen
-  const stepIndex = stage === 'upload' ? 0 : stage === 'preview' ? 1 : 2
+  const stepIndex = stage === 'upload' ? 0 : stage === 'done' ? 2 : 1
 
   return (
     <div className="min-h-screen bg-[#fafafa] font-sans text-ink antialiased">
@@ -449,6 +518,19 @@ export default function App() {
               </button>
             </div>
           </div>
+        )}
+        {stage === 'optimize' && optimizationInput && (
+          <OptimizeStep
+            originalSrc={originalCroppedSrc}
+            optimizedSrc={optimizedSrc}
+            loading={optimizeLoading}
+            error={optimizeError}
+            result={optimizeResult}
+            controls={optimizeControls}
+            onControls={setOptimizeControls}
+            onApprove={approveOptimization}
+            onUseOriginal={useOriginal}
+          />
         )}
         {stage === 'preview' && crop && (
           <PreviewStep

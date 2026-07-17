@@ -1,4 +1,5 @@
 // Funnel analytics (audit §8) + proof-request submission (production contract preserved).
+import type { IssueReport } from '@/lib/optimize'
 
 declare global {
   interface Window { gtag?: (...args: unknown[]) => void }
@@ -31,6 +32,10 @@ export interface ProofRequest {
   /** Per-cell palette indices, row-major — the manufacturing map the backend expects. */
   tileMap: number[]
   palette: { name: string; hex: string }[]
+  optimizeApplied: boolean
+  optimizeFixes: string[]
+  bgMode: string
+  issueReport: IssueReport | null
 }
 
 function ref(): string {
@@ -79,6 +84,10 @@ export async function submitProofRequest(p: ProofRequest): Promise<{ ok: boolean
     color_counts: p.colorCounts,
     tile_map: p.tileMap,
     palette: p.palette,
+    optimize_applied: p.optimizeApplied,
+    optimize_fixes: p.optimizeFixes,
+    bg_mode: p.bgMode,
+    issue_report: p.issueReport,
     bom_summary: {
       total_tiles: p.gridSize * p.gridSize,
       unique_colors: Object.keys(p.colorCounts).length,

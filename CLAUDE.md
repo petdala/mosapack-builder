@@ -31,6 +31,7 @@ MosaPack A0/A1/A2/A3/A4 foundation work only.
 - Builder lineage is v6-derived, but public routes and copy must not expose raw version names.
 - v5 is superseded; do not back-port into v5 or revive old builder files.
 - Do not expose `builder-pro-v5.html`, `builder-pro-v6.html`, `builder-pro-v7.html`, or `builder-optimized-v8.html`.
+- MediaPipe model files under `public/models/*` are served with `Cache-Control: immutable, max-age=31536000` (1 year). Any model replacement MUST use a new versioned filename (for example, `selfie_segmenter_v2.tflite`) and update its reference in `builder-v7-source/src/lib/optimize.ts`. Never overwrite an existing model filename, or clients may run the stale model for up to a year.
 
 ## Review Handoff Rule
 
