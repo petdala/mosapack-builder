@@ -3,6 +3,7 @@ import { STYLES, FineTune, MosaicResult } from '@/lib/mosaic'
 import { PALETTE, TIERS, PRICES } from '@/lib/palette'
 import { track } from '@/lib/api'
 import { TrustLine } from './TrustLine'
+import type { AdaptiveMosaicPreview, PaletteMode } from '@/lib/adaptivePalette'
 
 export const FORMATS = [
   { id: 'sticker_ready', label: 'Sticker-ready', note: 'Peel-and-place tiles' },
@@ -26,6 +27,10 @@ interface Props {
   photoSrc: string
   mosaic: MosaicResult | null
   rendering: boolean
+  adaptivePreviewEnabled: boolean
+  adaptivePreview: AdaptiveMosaicPreview | null
+  adaptiveRendering: boolean
+  paletteMode: PaletteMode
   styleThumbs: Record<string, string>
   styleId: string
   onStyle: (id: string) => void
@@ -99,6 +104,17 @@ export function PreviewStep(p: Props) {
   const panelCopy = panelCount === 1 ? '1 panel' : `${panelCount} panels`
   const sittingCopy = panelCount === 1 ? '1 sitting' : `${panelCount} sittings`
   const panelMetaCopy = panelCount === 9 ? '9 panels · a panel an evening for a week' : `${panelCopy} · builds in ${sittingCopy}`
+  const fixedPalette = PALETTE.slice(0, TIERS.find((tier) => tier.id === p.tierId)?.colors ?? 12)
+
+  const swatchStrip = (colors: readonly { hex: string }[], label: string) => (
+    <div className="mt-2" aria-label={label}>
+      <div className="flex h-3 overflow-hidden rounded-sm border border-black/10">
+        {colors.map((color, index) => (
+          <span key={`${color.hex}-${index}`} style={{ backgroundColor: color.hex, flex: 1 }} />
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -137,9 +153,56 @@ export function PreviewStep(p: Props) {
           )}
         </div>
 
-        <div className="relative mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <div
+          className="relative mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white"
+          data-palette-mode={p.paletteMode}
+          data-adaptive-preview={p.adaptivePreviewEnabled ? 'enabled' : 'disabled'}
+        >
           {view === 'mosaic' ? (
-            p.mosaic ? (
+            p.mosaic && p.adaptivePreviewEnabled ? (
+              <div
+                className="grid grid-cols-2 gap-px bg-neutral-200"
+                data-testid="adaptive-palette-comparison"
+                data-adaptive-improvement={p.adaptivePreview?.improvementPct.toFixed(2) ?? ''}
+              >
+                <figure className="min-w-0 bg-white p-2 sm:p-3">
+                  <figcaption className="mb-2 text-xs font-bold text-ink sm:text-sm">Fixed Master-25</figcaption>
+                  <div className="relative overflow-hidden bg-neutral-50">
+                    <img
+                      src={p.mosaic.displayCanvas.toDataURL('image/png')}
+                      alt={`Fixed palette mosaic, ${p.mosaic.gridSize} by ${p.mosaic.gridSize} tiles`}
+                      className="block aspect-square w-full"
+                      style={{ imageRendering: 'pixelated' }}
+                    />
+                    <PanelSeamOverlay panelGrid={p.panelGrid} />
+                  </div>
+                  {swatchStrip(fixedPalette, 'Fixed palette swatches')}
+                  <p className="mt-1 text-[10px] leading-4 text-neutral-500 sm:text-xs">Current kit colors</p>
+                </figure>
+                <figure className="min-w-0 bg-white p-2 sm:p-3">
+                  <figcaption className="mb-2 text-xs font-bold text-ink sm:text-sm">Adaptive</figcaption>
+                  {p.adaptivePreview ? (
+                    <>
+                      <div className="relative overflow-hidden bg-neutral-50">
+                        <img
+                          src={p.adaptivePreview.mosaic.displayCanvas.toDataURL('image/png')}
+                          alt={`Adaptive palette mosaic, ${p.adaptivePreview.mosaic.gridSize} by ${p.adaptivePreview.mosaic.gridSize} tiles`}
+                          className="block aspect-square w-full"
+                          style={{ imageRendering: 'pixelated' }}
+                        />
+                        <PanelSeamOverlay panelGrid={p.panelGrid} />
+                      </div>
+                      {swatchStrip(p.adaptivePreview.palette.colors, 'Adaptive palette swatches')}
+                    </>
+                  ) : (
+                    <div className="flex aspect-square items-center justify-center bg-neutral-50 text-xs text-neutral-500">
+                      Optimizing colors…
+                    </div>
+                  )}
+                  <p className="mt-1 text-[10px] leading-4 text-neutral-500 sm:text-xs">Colors optimized for your photo</p>
+                </figure>
+              </div>
+            ) : p.mosaic ? (
               <img
                 src={p.mosaic.displayCanvas.toDataURL('image/png')}
                 alt={`Mosaic preview, ${p.mosaic.gridSize} by ${p.mosaic.gridSize} tiles`}
@@ -154,14 +217,14 @@ export function PreviewStep(p: Props) {
           ) : (
             <img src={p.photoSrc} alt="Your cropped photo" className="block w-full" />
           )}
-          {p.rendering && (
+          {(p.rendering || p.adaptiveRendering) && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/60" aria-live="polite">
               <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-neutral-700 shadow">
                 Updating…
               </span>
             </div>
           )}
-          {view === 'mosaic' && p.mosaic && <PanelSeamOverlay panelGrid={p.panelGrid} />}
+          {view === 'mosaic' && p.mosaic && !p.adaptivePreviewEnabled && <PanelSeamOverlay panelGrid={p.panelGrid} />}
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-4">

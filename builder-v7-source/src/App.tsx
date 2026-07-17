@@ -16,6 +16,8 @@ import {
 import { track, submitProofRequest } from '@/lib/api'
 import { PALETTE, TIERS, PRICES, PANEL_SIZE_TILES, kitPrice } from '@/lib/palette'
 import { optimizeForBuild, OptimizeResult } from '@/lib/optimize'
+import { createAdaptiveMosaicPreview } from '@/lib/adaptivePalette'
+import type { AdaptiveMosaicPreview, PaletteMode } from '@/lib/adaptivePalette'
 
 type Stage = 'upload' | 'optimize' | 'preview' | 'done'
 const GRID_FOR_SIZE: Record<number, number> = { 6: 1, 12: 2, 18: 3, 24: 4 }
@@ -61,6 +63,11 @@ function clearDraft() {
 }
 
 export default function App() {
+  const adaptivePreviewEnabled = useMemo(() => {
+    const queryValue = new URLSearchParams(window.location.search).get('adaptivePalette')
+    return queryValue === '1' || queryValue === 'true' || import.meta.env.VITE_ADAPTIVE_PALETTE_PREVIEW === 'true'
+  }, [])
+  const [paletteMode] = useState<PaletteMode>('fixed')
   const [classicBannerVisible, setClassicBannerVisible] = useState(() => new URLSearchParams(window.location.search).has('classic'))
   const [stage, setStage] = useState<Stage>('upload')
   const [img, setImg] = useState<HTMLImageElement | null>(null)
@@ -78,6 +85,9 @@ export default function App() {
   const [undoDepth, setUndoDepth] = useState(0)
   const [mosaic, setMosaic] = useState<MosaicResult | null>(null)
   const [rendering, setRendering] = useState(false)
+  const [adaptivePreview, setAdaptivePreview] = useState<AdaptiveMosaicPreview | null>(null)
+  const [adaptiveRendering, setAdaptiveRendering] = useState(false)
+  const [adaptivePreviewFailed, setAdaptivePreviewFailed] = useState(false)
   const [optimizeResult, setOptimizeResult] = useState<OptimizeResult | null>(null)
   const [optimizeLoading, setOptimizeLoading] = useState(false)
   const [optimizeError, setOptimizeError] = useState<string | null>(null)
@@ -266,6 +276,46 @@ export default function App() {
     return () => clearTimeout(t)
   }, [sourceCanvas, gridSize, style, tune, sourceSal, paletteCount])
 
+  useEffect(() => {
+    if (!adaptivePreviewEnabled || !sourceCanvas || stage !== 'preview') {
+      setAdaptivePreview(null)
+      setAdaptiveRendering(false)
+      setAdaptivePreviewFailed(false)
+      return
+    }
+    let cancelled = false
+    setAdaptiveRendering(true)
+    setAdaptivePreviewFailed(false)
+    const timeout = setTimeout(() => {
+      try {
+        const preview = createAdaptiveMosaicPreview(
+          sourceCanvas,
+          gridSize,
+          style,
+          tune,
+          sourceSal,
+          Math.max(10, Math.round(672 / gridSize)),
+          paletteCount,
+          Boolean(optimizeResult?.report.skinRgb),
+          optimizeApplied ? optimizeResult?.subjectMask : undefined,
+        )
+        if (!cancelled) setAdaptivePreview(preview)
+      } catch (error) {
+        console.warn('Adaptive palette preview unavailable; keeping fixed preview.', error)
+        if (!cancelled) {
+          setAdaptivePreview(null)
+          setAdaptivePreviewFailed(true)
+        }
+      } finally {
+        if (!cancelled) setAdaptiveRendering(false)
+      }
+    }, 40)
+    return () => {
+      cancelled = true
+      clearTimeout(timeout)
+    }
+  }, [adaptivePreviewEnabled, sourceCanvas, stage, gridSize, style, tune, sourceSal, paletteCount, optimizeApplied, optimizeResult])
+
   // style thumbnails: mosaic of a subject-zoomed crop, so styles are tellable apart (audit U4)
   useEffect(() => {
     if (!sourceCanvas) return
@@ -303,6 +353,7 @@ export default function App() {
       setPhotoDataUrl(src.length <= MAX_DRAFT_PHOTO_BYTES ? src : '')
       setAutoCropped(true)
       setMosaic(null)
+      setAdaptivePreview(null)
       setStyleThumbs({})
       setOptimizeResult(null)
       setOptimizeError(null)
@@ -332,6 +383,7 @@ export default function App() {
       setCategory(resumeDraft.category)
       setAutoCropped(false)
       setMosaic(null)
+      setAdaptivePreview(null)
       setStyleThumbs({})
       setOptimizeResult(null)
       setOptimizeError(null)
@@ -435,7 +487,7 @@ export default function App() {
 
   const restart = () => {
     setStage('upload')
-    setImg(null); setCrop(null); setMosaic(null); setStyleThumbs({})
+    setImg(null); setCrop(null); setMosaic(null); setAdaptivePreview(null); setStyleThumbs({})
     optimizeSeq.current++
     setOptimizeResult(null); setOptimizeLoading(false); setOptimizeError(null); setOptimizeApplied(true)
     setOptimizeControls({ bgMode: 'flatten', brightness: 0, zoom: 0 })
@@ -537,6 +589,10 @@ export default function App() {
             photoSrc={croppedSrc}
             mosaic={mosaic}
             rendering={rendering}
+            adaptivePreviewEnabled={adaptivePreviewEnabled && !adaptivePreviewFailed}
+            adaptivePreview={adaptivePreview}
+            adaptiveRendering={adaptiveRendering}
+            paletteMode={paletteMode}
             styleThumbs={styleThumbs}
             styleId={styleId}
             onStyle={changeStyle}
