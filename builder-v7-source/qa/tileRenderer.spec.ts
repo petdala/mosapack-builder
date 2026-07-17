@@ -64,7 +64,7 @@ test('curated variants are deterministic and distinct', async ({ page }) => {
   expect(new Set(result.first).size).toBe(4)
 })
 
-test('selecting a curated variant updates the adaptive hero and framed view', async ({ page }) => {
+test('selecting a curated variant updates the fixed hero and framed view', async ({ page }) => {
   await page.goto('/')
   const imageDataUrl = await page.evaluate(() => {
     const canvas = document.createElement('canvas')
@@ -100,4 +100,109 @@ test('selecting a curated variant updates the adaptive hero and framed view', as
 
   await page.getByRole('button', { name: 'On your wall' }).click()
   await expect(page.getByTestId('framed-mockup')).toBeVisible()
+})
+
+test('fixed customer preview and submitted proof use the same tile map', async ({ page }) => {
+  let submitted: Record<string, unknown> | null = null
+  await page.route('**/.netlify/functions/save-project', async (route) => {
+    submitted = route.request().postDataJSON() as Record<string, unknown>
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ project_id: 'mp7_consistency', proof_ref: 'MP-CONSISTENCY' }),
+    })
+  })
+  await page.goto('/')
+
+  const imageDataUrl = await page.evaluate(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 512
+    canvas.height = 512
+    const context = canvas.getContext('2d')!
+    const gradient = context.createLinearGradient(0, 0, 512, 512)
+    gradient.addColorStop(0, '#0BA7A5')
+    gradient.addColorStop(0.45, '#F04E78')
+    gradient.addColorStop(1, '#F3A127')
+    context.fillStyle = gradient
+    context.fillRect(0, 0, 512, 512)
+    context.fillStyle = '#182B4D'
+    context.fillRect(144, 96, 224, 320)
+    return canvas.toDataURL('image/png')
+  })
+  await page.setInputFiles('input[type="file"]', {
+    name: 'proof-consistency.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(imageDataUrl.split(',')[1], 'base64'),
+  })
+  await expect(page.getByRole('heading', { name: 'Your photo is ready to build' })).toBeVisible({ timeout: 30_000 })
+  await page.getByRole('button', { name: 'Use original' }).click()
+
+  const paletteMode = page.locator('[data-palette-mode="fixed"]')
+  const hero = page.getByTestId('real-tile-hero')
+  await expect(paletteMode).toBeVisible({ timeout: 30_000 })
+  await expect(hero).toBeVisible()
+  const heroSrc = await hero.getAttribute('src')
+  expect(heroSrc).toMatch(/^data:image\/png;base64,/)
+
+  await page.getByRole('button', { name: 'Get my free proof' }).first().click()
+  const dialogPreview = page.getByRole('img', { name: 'Your mosaic preview' })
+  await expect(dialogPreview).toHaveAttribute('src', heroSrc!)
+  await page.getByLabel('Name').fill('Proof Consistency')
+  await page.getByLabel('Email').fill('proof@example.com')
+  await page.getByRole('button', { name: 'Get my free proof' }).last().click()
+
+  await expect(page.getByRole('heading', { name: 'Your mosaic is with our team' })).toBeVisible({ timeout: 30_000 })
+  const successPreview = page.getByRole('img', { name: 'Your mosaic rendered as physical tiles' })
+  await expect(successPreview).toHaveAttribute('src', heroSrc!)
+  expect(submitted).not.toBeNull()
+
+  const correspondence = await page.evaluate(async ({ payload, displayedSrc }) => {
+    const load = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image()
+      image.onload = () => resolve(image)
+      image.onerror = reject
+      image.src = src
+    })
+    const rgb = (hex: string) => {
+      const value = hex.replace('#', '')
+      return [
+        Number.parseInt(value.slice(0, 2), 16),
+        Number.parseInt(value.slice(2, 4), 16),
+        Number.parseInt(value.slice(4, 6), 16),
+      ]
+    }
+    const tileMap = payload.tile_map as number[]
+    const palette = payload.palette as { hex: string }[]
+    const gridSize = Number.parseInt(payload.grid_size as string, 10)
+    const previewSrc = payload.preview_image_data_url as string
+    const displayed = await load(displayedSrc)
+    const stored = await load(previewSrc)
+    const sample = (image: HTMLImageElement, index: number) => {
+      const canvas = document.createElement('canvas')
+      canvas.width = image.naturalWidth
+      canvas.height = image.naturalHeight
+      const context = canvas.getContext('2d')!
+      context.drawImage(image, 0, 0)
+      const tilePx = image.naturalWidth / gridSize
+      const x = index % gridSize
+      const y = Math.floor(index / gridSize)
+      return Array.from(context.getImageData(
+        Math.floor((x + 0.5) * tilePx),
+        Math.floor((y + 0.5) * tilePx),
+        1,
+        1,
+      ).data).slice(0, 3)
+    }
+    const sampleIndices = [0, Math.floor(tileMap.length / 3), Math.floor(tileMap.length / 2), tileMap.length - 1]
+    return sampleIndices.map((index) => ({
+      expected: rgb(palette[tileMap[index]].hex),
+      displayed: sample(displayed, index),
+      stored: sample(stored, index),
+    }))
+  }, { payload: submitted!, displayedSrc: heroSrc! })
+
+  for (const sample of correspondence) {
+    expect(sample.displayed).toEqual(sample.expected)
+    expect(sample.stored).toEqual(sample.expected)
+  }
 })

@@ -66,7 +66,7 @@ function clearDraft() {
 
 export default function App() {
   const [paletteMode] = useState<PaletteMode>(() => (
-    new URLSearchParams(window.location.search).get('paletteMode') === 'fixed' ? 'fixed' : 'adaptive'
+    new URLSearchParams(window.location.search).get('paletteMode') === 'adaptive' ? 'adaptive' : 'fixed'
   ))
   const [classicBannerVisible, setClassicBannerVisible] = useState(() => new URLSearchParams(window.location.search).has('classic'))
   const [stage, setStage] = useState<Stage>('upload')
@@ -156,6 +156,7 @@ export default function App() {
   const paletteCount = TIERS.find((t) => t.id === tierId)?.colors ?? 12
   const price = kitPrice(sizeIn, tierId)
   const adaptiveReadyForVariants = paletteMode !== 'adaptive' || adaptivePreview !== null
+  const proofRequestEnabled = paletteMode === 'fixed'
   const customerPreviewThumb = useMemo(() => {
     const customerMosaic = paletteMode === 'adaptive' && adaptivePreview ? adaptivePreview.mosaic : mosaic
     const customerPalette = paletteMode === 'adaptive' && adaptivePreview
@@ -471,16 +472,22 @@ export default function App() {
   }
 
   const openRequest = () => {
+    if (!proofRequestEnabled) return
     setServerError(null)
     setReqOpen(true)
     track('proof_modal_opened')
   }
 
   const submit = async (name: string, email: string) => {
-    if (!mosaic || !croppedSrc) return
+    if (!proofRequestEnabled || !mosaic || !croppedSrc) return
     setSubmitting(true)
     setServerError(null)
-    const mosaicSrc = mosaic.canvas.toDataURL('image/png')
+    const proofMosaic = mosaic
+    const proofPalette = PALETTE.slice(0, paletteCount)
+    const mosaicSrc = proofMosaic.canvas.toDataURL('image/png')
+    const proofPreviewSrc = renderPhysicalTiles(proofMosaic, proofPalette, {
+      tilePx: Math.max(8, Math.floor(672 / proofMosaic.gridSize)),
+    }).toDataURL('image/png')
     const res = await submitProofRequest({
       name, email,
       photoCategory: category,
@@ -499,9 +506,9 @@ export default function App() {
       fineTune: tune,
       croppedSourceDataUrl: croppedSrc,
       previewImageDataUrl: mosaicSrc,
-      colorCounts: mosaic.counts,
-      tileMap: mosaic.grid,
-      palette: PALETTE.slice(0, paletteCount),
+      colorCounts: proofMosaic.counts,
+      tileMap: proofMosaic.grid,
+      palette: proofPalette,
       optimizeApplied,
       optimizeFixes: optimizeApplied ? optimizeResult?.appliedFixes ?? [] : [],
       bgMode: optimizeApplied ? optimizeResult?.bgMode ?? 'flatten' : 'keep',
@@ -517,9 +524,9 @@ export default function App() {
         email,
         simulated: res.simulated,
         mosaicSrc,
-        previewSrc: customerPreviewThumb || mosaic.displayCanvas.toDataURL('image/png'),
-        tileMap: [...mosaic.grid],
-        gridSize: mosaic.gridSize,
+        previewSrc: proofPreviewSrc,
+        tileMap: [...proofMosaic.grid],
+        gridSize: proofMosaic.gridSize,
         panelGrid,
         panelSizeTiles: PANEL_SIZE_TILES,
         paletteCount,
@@ -641,6 +648,7 @@ export default function App() {
             adaptiveRendering={adaptiveRendering}
             adaptiveFailed={adaptivePreviewFailed}
             paletteMode={paletteMode}
+            proofRequestEnabled={proofRequestEnabled}
             styleThumbs={styleThumbs}
             styleId={styleId}
             onStyle={changeStyle}
@@ -681,7 +689,7 @@ export default function App() {
       </main>
 
       {/* mobile sticky CTA: opaque, bordered, under dialogs, hidden while a dialog is open (audit C1) */}
-      {stage === 'preview' && !anyDialog && (
+      {stage === 'preview' && proofRequestEnabled && !anyDialog && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white px-4 pt-3 md:hidden" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs text-neutral-500">
@@ -723,7 +731,7 @@ export default function App() {
         open={reqOpen}
         onOpenChange={setReqOpen}
         summary={{
-          thumb: customerPreviewThumb,
+          thumb: proofRequestEnabled ? customerPreviewThumb : '',
           category,
           formatLabel: FORMATS.find((f) => f.id === format)?.label ?? '',
           sizeLabel: SIZES.find((s) => s.in === sizeIn)?.label ?? '',

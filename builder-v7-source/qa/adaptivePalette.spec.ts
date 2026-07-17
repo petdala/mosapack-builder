@@ -128,7 +128,7 @@ test('near-monochrome input returns an exact palette and completes preview rende
     canvasWidth: 192,
   })
 
-  await page.goto('/')
+  await page.goto('/?paletteMode=adaptive')
   const monochromeDataUrl = await page.evaluate(() => {
     const canvas = document.createElement('canvas')
     canvas.width = 512
@@ -151,4 +151,5 @@ test('near-monochrome input returns an exact palette and completes preview rende
   await expect(page.getByText('Updating…')).toHaveCount(0, { timeout: 30_000 })
   await expect(page.locator('[data-palette-mode="adaptive"]')).toBeVisible()
   await expect(page.getByTestId('adaptive-palette-comparison')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Get my free proof' })).toHaveCount(0)
 })

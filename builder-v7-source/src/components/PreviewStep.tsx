@@ -35,6 +35,7 @@ interface Props {
   adaptiveRendering: boolean
   adaptiveFailed: boolean
   paletteMode: PaletteMode
+  proofRequestEnabled: boolean
   styleThumbs: Record<string, string>
   styleId: string
   onStyle: (id: string) => void
@@ -438,14 +439,22 @@ export function PreviewStep(p: Props) {
 
         {/* one action color for the entire proof chain (audit V2): pop pink */}
         <div className="mt-4 hidden md:block">
-          <button
-            type="button"
-            onClick={p.onRequest}
-            className="w-full rounded-full bg-pop py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-pop-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pop-dark"
-          >
-            Get my free proof
-          </button>
-          <TrustLine className="mt-2 text-center" />
+          {p.proofRequestEnabled ? (
+            <>
+              <button
+                type="button"
+                onClick={p.onRequest}
+                className="w-full rounded-full bg-pop py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-pop-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pop-dark"
+              >
+                Get my free proof
+              </button>
+              <TrustLine className="mt-2 text-center" />
+            </>
+          ) : (
+            <p className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-center text-xs font-semibold text-neutral-600">
+              Internal adaptive preview · proof request unavailable
+            </p>
+          )}
         </div>
       </aside>
     </div>
