@@ -36,9 +36,40 @@
       "stickers_per_sheet": 80,
       "verified": false,
       "verification_status": "unverified_future_profile"
+    },
+    "sl680_0375": {
+      "$comment": "SheetLabels.com SL680 vendor geometry for 0.375in rounded squares, 192-up on US Letter. Vendor dimensions confirmed 2026-07-17; physical printer registration remains a Gate A requirement. The registration budget MUST be re-derived for this smaller die before production because it requires tighter tolerance than the legacy 0.5in process test.",
+      "profile_id": "sl680_0375",
+      "vendor": "SheetLabels.com",
+      "vendor_product_id": "SL680",
+      "source_url": "https://www.sheetlabels.com/labels/SL680",
+      "pilot_material": "removable_white_matte",
+      "candidate_material": "weatherproof_polyester",
+      "page": "letter",
+      "page_w_in": 8.5,
+      "page_h_in": 11.0,
+      "cols": 12,
+      "rows": 16,
+      "pitch_x_in": 0.6332,
+      "pitch_y_in": 0.6417,
+      "die_w_in": 0.375,
+      "die_h_in": 0.375,
+      "die_in": 0.375,
+      "corner_shape": "rounded_square",
+      "margin_left_in": 0.58,
+      "margin_right_in": 0.58,
+      "margin_top_in": 0.5,
+      "margin_bottom_in": 0.5,
+      "gap_x_in": 0.2582,
+      "gap_y_in": 0.2667,
+      "bleed_in": 0.03,
+      "stickers_per_sheet": 192,
+      "verified": false,
+      "verification_status": "vendor_geometry_confirmed_physical_gate_pending",
+      "registration_status": "pending_rederivation"
     }
   },
-  "default_profile": "OL2050",
+  "default_profile": "sl680_0375",
   "fulfillment_modes": {
     "printed_mixed_sheets": {
       "status": "implemented",
@@ -76,6 +107,57 @@
     "bleed_escalation_in": 0.05,
     "bleed_ceiling_in": 0.0625,
     "$comment": "bleed_ceiling = gap_in / 2 for OL2050. Registration pass: offset <= 0.5mm both axes across 3 consecutive sheets, zero visible liner slivers; escalate to bleed_escalation_in for repeatable 0.5-1.2mm offsets; vendor-print beyond that or for skew > 0.7mm corner differential."
+  },
+  "gamut_profiles": {
+    "srgb-print-safe-v1": {
+      "$comment": "Config boundary shared with adaptivePalette.ts printableLab(). V1 accepts D65 sRGB colors after constraining L* to 3..97 and reducing chroma by 0.9 per iteration until the color is representable in sRGB. This is a conservative printable approximation, not a vendor ICC profile.",
+      "color_space": "srgb_d65",
+      "l_star_min": 3.0,
+      "l_star_max": 97.0,
+      "chroma_scale_step": 0.9,
+      "max_iterations": 32,
+      "validation_delta_e00_tolerance": 0.5,
+      "status": "icc_stub_pending_vendor_profile"
+    }
+  },
+  "adaptive_palette": {
+    "gamut_profile_id": "srgb-print-safe-v1",
+    "min_delta_e00": 8.0
+  },
+  "color_targets": {
+    "master_25": [
+      { "name": "Black", "hex": "#1B1B1B" },
+      { "name": "White", "hex": "#F4F4F4" },
+      { "name": "Light Gray", "hex": "#BFC5CA" },
+      { "name": "Dark Gray", "hex": "#7A838C" },
+      { "name": "Tan", "hex": "#D9C49F" },
+      { "name": "Light Nougat", "hex": "#E7C6B1" },
+      { "name": "Reddish Brown", "hex": "#7B3F00" },
+      { "name": "Blue", "hex": "#1653A4" },
+      { "name": "Medium Nougat", "hex": "#CC8E68" },
+      { "name": "Red", "hex": "#C40000" },
+      { "name": "Yellow", "hex": "#F1D54E" },
+      { "name": "Green", "hex": "#589E61" },
+      { "name": "Very Light Gray", "hex": "#DBE1E6" },
+      { "name": "Medium Gray", "hex": "#9CA3A8" },
+      { "name": "Dark Brown", "hex": "#4E2D1B" },
+      { "name": "Orange", "hex": "#E58E2A" },
+      { "name": "Dark Green", "hex": "#2B5B3D" },
+      { "name": "Light Blue", "hex": "#7EAED6" },
+      { "name": "Very Dark Gray", "hex": "#4A4E52" },
+      { "name": "Dark Tan", "hex": "#C2B280" },
+      { "name": "Dark Red", "hex": "#8B0000" },
+      { "name": "Bright Red", "hex": "#FF0000" },
+      { "name": "Bright Green", "hex": "#75B844" },
+      { "name": "Sand Green", "hex": "#8DA59B" },
+      { "name": "Magenta", "hex": "#B3277E" }
+    ],
+    "full_gamut_sampler": {
+      "l_star_ramp": [5, 15, 25, 35, 45, 55, 65, 75, 85, 95],
+      "hue_ring_l_star": 55,
+      "hue_steps": 15,
+      "chroma_levels": [28, 52]
+    }
   },
   "spares": {
     "rate": 0.05,

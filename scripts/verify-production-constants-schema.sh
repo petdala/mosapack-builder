@@ -35,6 +35,8 @@ const sample = readJson(samplePath);
 if (constants) {
   assert(constants.sheet_profiles && constants.sheet_profiles.OL2050, 'OL2050 sheet profile exists');
   assert(constants.sheet_profiles && constants.sheet_profiles.OL5425, 'OL5425 sheet profile exists');
+  assert(constants.sheet_profiles && constants.sheet_profiles.sl680_0375, 'SL680 0.375in sheet profile exists');
+  assert(constants.default_profile === 'sl680_0375', 'SL680 0.375in is the default sheet profile');
   for (const [key, profile] of Object.entries(constants.sheet_profiles || {})) {
     assert(profile.profile_id === key, `${key} profile_id matches map key`);
     assert(typeof profile.verified === 'boolean', `${key} has verified boolean`);
@@ -42,6 +44,17 @@ if (constants) {
   }
   const ol2050 = constants.sheet_profiles?.OL2050;
   assert(ol2050 && constants.print.bleed_in <= ol2050.gap_in / 2, 'OL2050 bleed is <= gap/2');
+  const sl680 = constants.sheet_profiles?.sl680_0375;
+  assert(sl680?.cols === 12 && sl680?.rows === 16 && sl680?.stickers_per_sheet === 192, 'SL680 is 12x16 / 192-up');
+  assert(sl680?.die_w_in === 0.375 && sl680?.die_h_in === 0.375, 'SL680 die is 0.375in square');
+  assert(Math.abs(sl680?.pitch_x_in - (sl680?.die_w_in + sl680?.gap_x_in)) < 1e-9, 'SL680 horizontal pitch equals die plus gap');
+  assert(Math.abs(sl680?.pitch_y_in - (sl680?.die_h_in + sl680?.gap_y_in)) < 1e-9, 'SL680 vertical pitch equals die plus gap');
+  assert(sl680?.registration_status === 'pending_rederivation', 'SL680 registration budget is pending rederivation');
+  assert(constants.adaptive_palette?.gamut_profile_id in (constants.gamut_profiles || {}), 'adaptive gamut profile exists');
+  assert(constants.adaptive_palette?.min_delta_e00 === 8, 'adaptive minimum deltaE00 is 8');
+  assert(constants.color_targets?.master_25?.length === 25, 'Master color target has 25 patches');
+  const sampler = constants.color_targets?.full_gamut_sampler;
+  assert(sampler?.l_star_ramp?.length + sampler?.hue_steps * sampler?.chroma_levels?.length === 40, 'full-gamut sampler has 40 patches');
   const grids = [24, 32, 48];
   for (const grid of grids) {
     const divisor = (constants.sections.candidate_sizes || []).find((size) => grid % size === 0) || grid;

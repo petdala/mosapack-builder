@@ -36,6 +36,7 @@ WARN = HexColor("#B45309")
 SUPPORTED_GRIDS = {24, 32, 48}
 COMMERCE_RE = re.compile(r"stripe|shopify|checkout|payment|order placed|payment received", re.I)
 CALIBRATION_Y_IN = 0.40
+SL680_CALIBRATION_Y_IN = 0.35
 FEED_FIDUCIAL_TOP_OFFSET_IN = 0.22
 FULFILLMENT_ALIASES = {
     "printed_mixed": "printed_mixed_sheets",
@@ -45,6 +46,7 @@ FULFILLMENT_ALIASES = {
     "hybrid": "hybrid_stock_plus_topoff",
     "hybrid_stock_plus_topoff": "hybrid_stock_plus_topoff",
 }
+HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
 def repo_root() -> Path:
@@ -88,12 +90,162 @@ def normalize_palette(palette: list[Any]) -> list[dict[str, Any]]:
         if color_id in seen:
             raise ValueError(f"duplicate palette id: {color_id}")
         seen.add(color_id)
-        if not re.match(r"^#[0-9a-fA-F]{6}$", hex_value):
+        if not HEX_COLOR_RE.match(hex_value):
             raise ValueError(f"palette[{index}].hex must be #RRGGBB")
         if declared_index is not None and declared_index != index:
             raise ValueError(f"palette[{index}].index must equal array position")
         normalized.append({"id": color_id, "name": name, "hex": hex_value.lower(), "index": index})
     return normalized
+
+
+def palette_mode_for(design: dict[str, Any]) -> str:
+    if design.get("palette_id") == "adaptive" or design.get("palette_mode") == "adaptive":
+        return "adaptive"
+    return "fixed"
+
+
+def hex_to_rgb(hex_value: str) -> tuple[float, float, float]:
+    return tuple(float(int(hex_value[index:index + 2], 16)) for index in (1, 3, 5))
+
+
+def rgb_to_lab(rgb: tuple[float, float, float]) -> tuple[float, float, float]:
+    def pivot(value: float) -> float:
+        value /= 255.0
+        return ((value + 0.055) / 1.055) ** 2.4 if value > 0.04045 else value / 12.92
+
+    red, green, blue = (pivot(value) for value in rgb)
+    x = (red * 0.4124564 + green * 0.3575761 + blue * 0.1804375) / 0.95047
+    y = red * 0.2126729 + green * 0.7151522 + blue * 0.072175
+    z = (red * 0.0193339 + green * 0.119192 + blue * 0.9503041) / 1.08883
+
+    def convert(value: float) -> float:
+        return value ** (1.0 / 3.0) if value > 0.008856 else 7.787 * value + 16.0 / 116.0
+
+    x, y, z = convert(x), convert(y), convert(z)
+    return 116.0 * y - 16.0, 500.0 * (x - y), 200.0 * (y - z)
+
+
+def lab_to_rgb_unclamped(lab: tuple[float, float, float]) -> tuple[float, float, float]:
+    lightness, axis_a, axis_b = lab
+    fy = (lightness + 16.0) / 116.0
+    fx = fy + axis_a / 500.0
+    fz = fy - axis_b / 200.0
+
+    def inverse(value: float) -> float:
+        cube = value * value * value
+        return cube if cube > 0.008856 else (value - 16.0 / 116.0) / 7.787
+
+    x = 0.95047 * inverse(fx)
+    y = inverse(fy)
+    z = 1.08883 * inverse(fz)
+    linear = (
+        x * 3.2404542 + y * -1.5371385 + z * -0.4985314,
+        x * -0.969266 + y * 1.8760108 + z * 0.041556,
+        x * 0.0556434 + y * -0.2040259 + z * 1.0572252,
+    )
+
+    def encode(value: float) -> float:
+        return 255.0 * (12.92 * value if value <= 0.0031308 else 1.055 * value ** (1.0 / 2.4) - 0.055)
+
+    return tuple(encode(value) for value in linear)
+
+
+def delta_e00(left: tuple[float, float, float], right: tuple[float, float, float]) -> float:
+    light_1, axis_a_1, axis_b_1 = left
+    light_2, axis_a_2, axis_b_2 = right
+    chroma_1 = math.hypot(axis_a_1, axis_b_1)
+    chroma_2 = math.hypot(axis_a_2, axis_b_2)
+    chroma_bar = (chroma_1 + chroma_2) / 2.0
+    factor_g = 0.5 * (1.0 - math.sqrt(chroma_bar ** 7 / (chroma_bar ** 7 + 25.0 ** 7)))
+    adjusted_a_1 = axis_a_1 * (1.0 + factor_g)
+    adjusted_a_2 = axis_a_2 * (1.0 + factor_g)
+    adjusted_chroma_1 = math.hypot(adjusted_a_1, axis_b_1)
+    adjusted_chroma_2 = math.hypot(adjusted_a_2, axis_b_2)
+
+    def hue(axis_a: float, axis_b: float, chroma: float) -> float:
+        return 0.0 if chroma == 0 else (math.degrees(math.atan2(axis_b, axis_a)) + 360.0) % 360.0
+
+    hue_1 = hue(adjusted_a_1, axis_b_1, adjusted_chroma_1)
+    hue_2 = hue(adjusted_a_2, axis_b_2, adjusted_chroma_2)
+    delta_light = light_2 - light_1
+    delta_chroma = adjusted_chroma_2 - adjusted_chroma_1
+    delta_hue = 0.0
+    if adjusted_chroma_1 * adjusted_chroma_2 != 0:
+        delta_hue = hue_2 - hue_1
+        if delta_hue > 180.0:
+            delta_hue -= 360.0
+        elif delta_hue < -180.0:
+            delta_hue += 360.0
+    delta_big_hue = 2.0 * math.sqrt(adjusted_chroma_1 * adjusted_chroma_2) * math.sin(math.radians(delta_hue / 2.0))
+    light_bar = (light_1 + light_2) / 2.0
+    adjusted_chroma_bar = (adjusted_chroma_1 + adjusted_chroma_2) / 2.0
+    hue_bar = hue_1 + hue_2
+    if adjusted_chroma_1 * adjusted_chroma_2 != 0:
+        if abs(hue_1 - hue_2) > 180.0:
+            hue_bar += 360.0 if hue_1 + hue_2 < 360.0 else -360.0
+        hue_bar /= 2.0
+    factor_t = (
+        1.0
+        - 0.17 * math.cos(math.radians(hue_bar - 30.0))
+        + 0.24 * math.cos(math.radians(2.0 * hue_bar))
+        + 0.32 * math.cos(math.radians(3.0 * hue_bar + 6.0))
+        - 0.20 * math.cos(math.radians(4.0 * hue_bar - 63.0))
+    )
+    delta_theta = 30.0 * math.exp(-((hue_bar - 275.0) / 25.0) ** 2)
+    rotation_c = 2.0 * math.sqrt(adjusted_chroma_bar ** 7 / (adjusted_chroma_bar ** 7 + 25.0 ** 7))
+    scale_light = 1.0 + (0.015 * (light_bar - 50.0) ** 2) / math.sqrt(20.0 + (light_bar - 50.0) ** 2)
+    scale_chroma = 1.0 + 0.045 * adjusted_chroma_bar
+    scale_hue = 1.0 + 0.015 * adjusted_chroma_bar * factor_t
+    rotation_t = -math.sin(math.radians(2.0 * delta_theta)) * rotation_c
+    return math.sqrt(
+        (delta_light / scale_light) ** 2
+        + (delta_chroma / scale_chroma) ** 2
+        + (delta_big_hue / scale_hue) ** 2
+        + rotation_t * (delta_chroma / scale_chroma) * (delta_big_hue / scale_hue)
+    )
+
+
+def printable_lab(lab: tuple[float, float, float], profile: dict[str, Any]) -> tuple[float, float, float]:
+    lightness = max(float(profile["l_star_min"]), min(float(profile["l_star_max"]), lab[0]))
+    chroma_scale = 1.0
+    for _ in range(int(profile.get("max_iterations", 32))):
+        candidate = lightness, lab[1] * chroma_scale, lab[2] * chroma_scale
+        rgb = lab_to_rgb_unclamped(candidate)
+        if all(0.0 <= channel <= 255.0 for channel in rgb):
+            return rgb_to_lab(tuple(float(round(channel)) for channel in rgb))
+        chroma_scale *= float(profile.get("chroma_scale_step", 0.9))
+    gray = float(round(lightness * 2.55))
+    return rgb_to_lab((gray, gray, gray))
+
+
+def lab_to_hex(lab: tuple[float, float, float]) -> str:
+    rgb = lab_to_rgb_unclamped(lab)
+    return "#" + "".join(f"{max(0, min(255, round(channel))):02X}" for channel in rgb)
+
+
+def validate_adaptive_palette(design: dict[str, Any], constants: dict[str, Any]) -> None:
+    adaptive = constants.get("adaptive_palette", {})
+    profile_id = str(design.get("gamut_profile_id") or adaptive.get("gamut_profile_id") or "")
+    profile = constants.get("gamut_profiles", {}).get(profile_id)
+    if not profile:
+        raise ValueError(f"adaptive gamut_profile_id is not configured: {profile_id}")
+    tolerance = float(profile.get("validation_delta_e00_tolerance", 0.5))
+    min_separation = float(adaptive.get("min_delta_e00", 8.0))
+    labs: list[tuple[float, float, float]] = []
+    for index, color in enumerate(design["palette"]):
+        lab = rgb_to_lab(hex_to_rgb(color["hex"]))
+        clamped = printable_lab(lab, profile)
+        if delta_e00(lab, clamped) > tolerance:
+            raise ValueError(f"adaptive palette[{index}] {color['hex']} is outside gamut profile {profile_id}")
+        labs.append(lab)
+    for left in range(len(labs)):
+        for right in range(left + 1, len(labs)):
+            distance = delta_e00(labs[left], labs[right])
+            if distance < min_separation - 1e-9:
+                raise ValueError(
+                    f"adaptive palette colors {left} and {right} have deltaE00 {distance:.3f}; minimum is {min_separation:.3f}"
+                )
+    design["gamut_profile_id"] = profile_id
 
 
 def scan_for_forbidden_payload(value: Any, path: str = "design") -> None:
@@ -151,6 +303,10 @@ def validate_design(design: dict[str, Any], constants: dict[str, Any]) -> list[s
     palette = normalize_palette(design.get("palette") or [])
     if not palette:
         raise ValueError("palette must not be empty")
+    design["palette"] = palette
+    design["palette_mode"] = palette_mode_for(design)
+    if design["palette_mode"] == "adaptive":
+        validate_adaptive_palette(design, constants)
     cell_map = design.get("cell_map")
     if not isinstance(cell_map, list) or len(cell_map) != grid * grid:
         raise ValueError("cell_map length must equal grid * grid")
@@ -161,7 +317,6 @@ def validate_design(design: dict[str, Any], constants: dict[str, Any]) -> list[s
         excluded = constants["black_base"]["excluded_color_id"]
         if not any(color["id"] == excluded for color in palette):
             raise ValueError("black_base requires excluded_color_id in palette")
-    design["palette"] = palette
     design["sheet_profile"] = profile_id
     design.setdefault("proof_ref", proof_ref_for(design))
     return warnings
@@ -169,6 +324,8 @@ def validate_design(design: dict[str, Any], constants: dict[str, Any]) -> list[s
 
 def palette_drift_warnings(design: dict[str, Any], constants: dict[str, Any]) -> list[str]:
     warnings: list[str] = []
+    if palette_mode_for(design) == "adaptive":
+        return warnings
     palette_id = design.get("palette_id")
     if not palette_id:
         return ["palette_id missing; embedded palette could not be checked against production constants"]
@@ -205,18 +362,38 @@ def page_size_for(profile: dict[str, Any]) -> tuple[float, float]:
     return letter
 
 
+def profile_pitch_x(profile: dict[str, Any]) -> float:
+    return float(profile["pitch_x_in"] if "pitch_x_in" in profile else profile["pitch_in"])
+
+
+def profile_pitch_y(profile: dict[str, Any]) -> float:
+    return float(profile["pitch_y_in"] if "pitch_y_in" in profile else profile["pitch_in"])
+
+
+def profile_die_w(profile: dict[str, Any]) -> float:
+    return float(profile["die_w_in"] if "die_w_in" in profile else profile["die_in"])
+
+
+def profile_die_h(profile: dict[str, Any]) -> float:
+    return float(profile["die_h_in"] if "die_h_in" in profile else profile["die_in"])
+
+
+def calibration_y_in(profile: dict[str, Any]) -> float:
+    return SL680_CALIBRATION_Y_IN if profile.get("profile_id") == "sl680_0375" else CALIBRATION_Y_IN
+
+
 def die_origin(index: int, profile: dict[str, Any], page_h: float) -> tuple[float, float]:
     row, col = divmod(index, int(profile["cols"]))
-    x = float(profile["margin_left_in"]) * IN + col * float(profile["pitch_in"]) * IN
-    y_top = page_h - float(profile["margin_top_in"]) * IN - row * float(profile["pitch_in"]) * IN
+    x = float(profile["margin_left_in"]) * IN + col * profile_pitch_x(profile) * IN
+    y_top = page_h - float(profile["margin_top_in"]) * IN - row * profile_pitch_y(profile) * IN
     return x, y_top
 
 
 def die_grid_bbox(profile: dict[str, Any], page_h: float) -> dict[str, float]:
     x_left = float(profile["margin_left_in"]) * IN
-    x_right = x_left + (int(profile["cols"]) - 1) * float(profile["pitch_in"]) * IN + float(profile["die_in"]) * IN
+    x_right = x_left + (int(profile["cols"]) - 1) * profile_pitch_x(profile) * IN + profile_die_w(profile) * IN
     y_top = page_h - float(profile["margin_top_in"]) * IN
-    y_bot = y_top - (int(profile["rows"]) - 1) * float(profile["pitch_in"]) * IN - float(profile["die_in"]) * IN
+    y_bot = y_top - (int(profile["rows"]) - 1) * profile_pitch_y(profile) * IN - profile_die_h(profile) * IN
     return {"x_left": x_left, "x_right": x_right, "y_top": y_top, "y_bot": y_bot}
 
 
@@ -275,6 +452,11 @@ def normalize_fulfillment_mode(mode: str | None) -> str:
     if key not in FULFILLMENT_ALIASES:
         raise ValueError(f"unsupported fulfillment mode: {mode}")
     return FULFILLMENT_ALIASES[key]
+
+
+def validate_palette_fulfillment(design: dict[str, Any], mode: str) -> None:
+    if palette_mode_for(design) == "adaptive" and mode == "stock_color_sheets":
+        raise ValueError("stock_color_sheets does not support adaptive palettes; use printed_mixed_sheets")
 
 
 def compute_sheet_plan(design: dict[str, Any], constants: dict[str, Any]) -> dict[str, Any]:
@@ -443,6 +625,7 @@ def build_manifest(
     page_w: float,
     page_h: float,
     gate_a: bool,
+    color_target_strip: bool,
     bleed_values_used: list[float],
     fulfillment: dict[str, Any],
     warnings: list[str],
@@ -477,6 +660,9 @@ def build_manifest(
         "grid": design["grid"],
         "size_in": design["size_in"],
         "palette_id": design.get("palette_id"),
+        "palette_mode": design["palette_mode"],
+        "gamut_profile_id": design.get("gamut_profile_id"),
+        **({"adaptive_palette": design["palette"]} if design["palette_mode"] == "adaptive" else {}),
         "black_base": bool(design.get("black_base")),
         "base_index": base_index,
         "total_base_cells": total_base_cells,
@@ -499,12 +685,14 @@ def build_manifest(
         "pdf_layout_mode": "printed_mixed_sheets",
         "pdf_layout_note": "PDF layout remains printed_mixed_sheets unless a future stock/hybrid print mode is implemented.",
         "gate_a_mode": gate_a,
+        "color_target_strip": color_target_strip,
+        "color_target_patch_count": len(color_target_patches(constants)) if color_target_strip else 0,
         "bleed_values_used": bleed_values_used,
         "fulfillment": fulfillment,
         "calibration": {
             "horizontal_bar": True,
             "horizontal_bar_length_in": 1.0,
-            "horizontal_bar_y_in": CALIBRATION_Y_IN,
+            "horizontal_bar_y_in": calibration_y_in(constants["sheet_profiles"][design["sheet_profile"]]),
             "vertical_bar": True,
             "vertical_bar_length_in": 1.0,
             "instruction": "Print at 100% / Actual Size. Do not use Fit to Page.",
@@ -584,6 +772,21 @@ def draw_vertical_calibration_bar(cv: canvas.Canvas, x: float, y: float) -> None
     cv.drawString(x + 0.08 * IN, y + 0.42 * IN, "Vertical check: 1.000 in / 25.4 mm")
 
 
+def draw_vertical_calibration_bar_in_margin(cv: canvas.Canvas, x: float, y: float) -> None:
+    cv.setStrokeColor(BLACK)
+    cv.setFillColor(BLACK)
+    cv.setLineWidth(0.75)
+    cv.line(x, y, x, y + IN)
+    cv.line(x - 0.045 * IN, y, x + 0.045 * IN, y)
+    cv.line(x - 0.045 * IN, y + IN, x + 0.045 * IN, y + IN)
+    cv.saveState()
+    cv.translate(x - 0.07 * IN, y + 0.08 * IN)
+    cv.rotate(90)
+    cv.setFont("Helvetica", 6)
+    cv.drawString(0, 0, "Vertical check: 1.000 in / 25.4 mm")
+    cv.restoreState()
+
+
 def draw_feed_fiducials(cv: canvas.Canvas, page_w: float, page_h: float) -> None:
     y = page_h - FEED_FIDUCIAL_TOP_OFFSET_IN * IN
     cv.setStrokeColor(BLACK)
@@ -593,6 +796,58 @@ def draw_feed_fiducials(cv: canvas.Canvas, page_w: float, page_h: float) -> None
         cv.line(x, y, x, y - 0.12 * IN)
     cv.setFont("Helvetica", 5)
     cv.drawString(page_w / 2 + 0.04 * IN, y - 0.08 * IN, "feed/skew fiducials")
+
+
+def color_target_patches(constants: dict[str, Any]) -> list[dict[str, str]]:
+    targets = constants.get("color_targets", {})
+    patches = [
+        {"group": "master_25", "hex": str(color["hex"]).upper()}
+        for color in targets.get("master_25", [])
+    ]
+    sampler = targets.get("full_gamut_sampler", {})
+    profile_id = str(constants.get("adaptive_palette", {}).get("gamut_profile_id", ""))
+    profile = constants.get("gamut_profiles", {}).get(profile_id)
+    if not profile:
+        raise ValueError(f"color target gamut profile is not configured: {profile_id}")
+    for lightness in sampler.get("l_star_ramp", []):
+        lab = printable_lab((float(lightness), 0.0, 0.0), profile)
+        patches.append({"group": "l_star_ramp", "hex": lab_to_hex(lab)})
+    hue_steps = int(sampler.get("hue_steps", 0))
+    ring_lightness = float(sampler.get("hue_ring_l_star", 55))
+    for chroma in sampler.get("chroma_levels", []):
+        for step in range(hue_steps):
+            radians = math.radians(step * 360.0 / hue_steps)
+            lab = printable_lab(
+                (ring_lightness, math.cos(radians) * float(chroma), math.sin(radians) * float(chroma)),
+                profile,
+            )
+            patches.append({"group": f"hue_ring_c{chroma}", "hex": lab_to_hex(lab)})
+    return patches
+
+
+def draw_color_target_strip(
+    cv: canvas.Canvas,
+    constants: dict[str, Any],
+    profile: dict[str, Any],
+    page_h: float,
+) -> None:
+    patches = color_target_patches(constants)
+    if len(patches) > int(profile["stickers_per_sheet"]):
+        raise ValueError("color target patch count exceeds sheet capacity")
+    die_w = profile_die_w(profile) * IN
+    die_h = profile_die_h(profile) * IN
+    for index, patch in enumerate(patches):
+        x, y_top = die_origin(index, profile, page_h)
+        cv.setFillColor(HexColor(patch["hex"]))
+        cv.roundRect(x, y_top - die_h, die_w, die_h, 2.5, stroke=0, fill=1)
+        cv.setStrokeColor(BLACK)
+        cv.setLineWidth(0.25)
+        cv.roundRect(x, y_top - die_h, die_w, die_h, 2.5, stroke=1, fill=0)
+        red, green, blue = hex_to_rgb(patch["hex"])
+        luminance = 0.299 * red + 0.587 * green + 0.114 * blue
+        cv.setFillColor(BLACK if luminance >= 150 else HexColor("#FFFFFF"))
+        cv.setFont("Helvetica-Bold", 3.0)
+        cv.drawCentredString(x + die_w / 2.0, y_top - die_h / 2.0 - 1.0, patch["hex"])
 
 
 def page_cover(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, Any], plan: dict[str, Any], warnings: list[str], page_w: float, page_h: float) -> None:
@@ -660,37 +915,76 @@ def page_cover(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, A
     cv.showPage()
 
 
-def page_alignment(cv: canvas.Canvas, design: dict[str, Any], profile: dict[str, Any], page_w: float, page_h: float) -> None:
+def page_alignment(
+    cv: canvas.Canvas,
+    design: dict[str, Any],
+    constants: dict[str, Any],
+    profile: dict[str, Any],
+    page_w: float,
+    page_h: float,
+    include_color_target_strip: bool = False,
+) -> None:
     proof_ref = proof_ref_for(design)
     margin = float(profile["margin_left_in"]) * IN
     header(cv, page_w, page_h, "alignment / registration", f"{proof_ref} - Print at 100% / Actual Size", margin)
     cv.setStrokeColor(GRAY)
     cv.setLineWidth(0.35)
-    die = float(profile["die_in"]) * IN
+    die_w = profile_die_w(profile) * IN
+    die_h = profile_die_h(profile) * IN
     for i in range(int(profile["stickers_per_sheet"])):
         x, y_top = die_origin(i, profile, page_h)
-        cv.roundRect(x, y_top - die, die, die, 2.5, stroke=1, fill=0)
+        cv.roundRect(x, y_top - die_h, die_w, die_h, 2.5, stroke=1, fill=0)
+
+    if include_color_target_strip:
+        draw_color_target_strip(cv, constants, profile, page_h)
 
     bbox = die_grid_bbox(profile, page_h)
+    is_sl680 = profile.get("profile_id") == "sl680_0375"
     corners = (
-        (bbox["x_left"], bbox["y_bot"], 0.05 * IN, 0.06 * IN),
-        (bbox["x_right"], bbox["y_bot"], -0.72 * IN, 0.06 * IN),
-        (bbox["x_left"], bbox["y_top"], 0.05 * IN, -0.13 * IN),
-        (bbox["x_right"], bbox["y_top"], -0.72 * IN, -0.13 * IN),
+        (
+            bbox["x_left"],
+            bbox["y_bot"],
+            0.05 * IN,
+            (-0.13 if is_sl680 else 0.06) * IN,
+        ),
+        (
+            bbox["x_right"],
+            bbox["y_bot"],
+            -0.72 * IN,
+            (-0.13 if is_sl680 else 0.06) * IN,
+        ),
+        (
+            bbox["x_left"],
+            bbox["y_top"],
+            0.05 * IN,
+            (0.07 if is_sl680 else -0.13) * IN,
+        ),
+        (
+            bbox["x_right"],
+            bbox["y_top"],
+            -0.72 * IN,
+            (0.07 if is_sl680 else -0.13) * IN,
+        ),
     )
     for x, y, dx, dy in corners:
         draw_crosshair(cv, x, y)
         draw_crosshair_label(cv, x, y, dx, dy)
 
     draw_feed_fiducials(cv, page_w, page_h)
-    calibration_y = CALIBRATION_Y_IN * IN
-    draw_calibration_bar(cv, margin, calibration_y)
-    draw_vertical_calibration_bar(cv, margin + 1.38 * IN, calibration_y)
-
+    calibration_y = calibration_y_in(profile) * IN
     cv.setFillColor(INK)
     cv.setFont("Helvetica", 5.5)
-    cv.drawString(margin + 2.42 * IN, calibration_y + 0.10 * IN, "Print on plain paper first; overlay the label sheet and hold to light.")
-    cv.drawString(margin + 2.42 * IN, calibration_y, "Print at 100% / Actual Size. Do not use Fit to Page.")
+    if is_sl680:
+        draw_calibration_bar(cv, 2.0 * IN, calibration_y)
+        vertical_x = (bbox["x_right"] + page_w) / 2.0
+        draw_vertical_calibration_bar_in_margin(cv, vertical_x, page_h / 2.0 - 0.5 * IN)
+        cv.drawString(3.35 * IN, calibration_y + 0.10 * IN, "Print on plain paper first; overlay the label sheet and hold to light.")
+        cv.drawString(3.35 * IN, calibration_y, "Print at 100% / Actual Size. Do not use Fit to Page.")
+    else:
+        draw_calibration_bar(cv, margin, calibration_y)
+        draw_vertical_calibration_bar(cv, margin + 1.38 * IN, calibration_y)
+        cv.drawString(margin + 2.42 * IN, calibration_y + 0.10 * IN, "Print on plain paper first; overlay the label sheet and hold to light.")
+        cv.drawString(margin + 2.42 * IN, calibration_y, "Print at 100% / Actual Size. Do not use Fit to Page.")
     footer(cv, page_w, f"{proof_ref} - alignment")
     cv.showPage()
 
@@ -708,7 +1002,8 @@ def page_sticker_sheets(
 ) -> None:
     proof_ref = proof_ref_for(design)
     margin = float(profile["margin_left_in"]) * IN
-    die = float(profile["die_in"]) * IN
+    die_w = profile_die_w(profile) * IN
+    die_h = profile_die_h(profile) * IN
     bleed = float(bleed_in) * IN
     per_sheet = int(profile["stickers_per_sheet"])
     items = plan["items"]
@@ -733,7 +1028,7 @@ def page_sticker_sheets(
             x, y_top = die_origin(pos, profile, page_h)
             color = design["palette"][color_index]
             cv.setFillColor(HexColor(color["hex"]))
-            cv.roundRect(x - bleed, y_top - die - bleed, die + 2 * bleed, die + 2 * bleed, 4, stroke=0, fill=1)
+            cv.roundRect(x - bleed, y_top - die_h - bleed, die_w + 2 * bleed, die_h + 2 * bleed, 4, stroke=0, fill=1)
             if global_index in section_starts or global_index == spare_start:
                 label_y = y_top + 0.06 * IN
                 if label_y <= page_h - 0.30 * IN:
@@ -773,7 +1068,9 @@ def page_build_guide(cv: canvas.Canvas, design: dict[str, Any], constants: dict[
     cv.drawString(margin + preview_size + 0.38 * IN, page_h - 0.85 * IN, "Color legend")
     y = page_h - 1.12 * IN
     cv.setFont("Helvetica", 7.2)
-    for color in design["palette"][:24]:
+    legend_colors = design["palette"] if design["palette_mode"] == "adaptive" else design["palette"][:24]
+    legend_spacing = 0.15 if design["palette_mode"] == "adaptive" else 0.17
+    for color in legend_colors:
         cv.setFillColor(HexColor(color["hex"]))
         cv.roundRect(margin + preview_size + 0.38 * IN, y - 5, 10, 10, 2, stroke=0, fill=1)
         cv.setStrokeColor(GRAY)
@@ -781,7 +1078,7 @@ def page_build_guide(cv: canvas.Canvas, design: dict[str, Any], constants: dict[
         cv.setFillColor(INK)
         count = plan["placed_counts"].get(color["index"], 0)
         cv.drawString(margin + preview_size + 0.6 * IN, y, f"{color['index']}: {color['name']} ({count})")
-        y -= 0.17 * IN
+        y -= legend_spacing * IN
 
     section_size = plan["section_size"]
     per_row = int(design["grid"]) // section_size
@@ -823,6 +1120,7 @@ def render_pdf(
     constants_path: str | Path,
     bleed_override: float | None = None,
     gate_a: bool = False,
+    color_target_strip: bool = False,
     fulfillment_mode: str = "printed_mixed",
     write_manifest_file: bool = True,
 ) -> dict[str, Any]:
@@ -830,6 +1128,7 @@ def render_pdf(
     page_w, page_h = page_size_for(profile)
     plan = compute_sheet_plan(design, constants)
     canonical_fulfillment_mode = normalize_fulfillment_mode(fulfillment_mode)
+    validate_palette_fulfillment(design, canonical_fulfillment_mode)
     fulfillment = compute_fulfillment_plan(design, constants, plan, canonical_fulfillment_mode)
     mismatch_warnings = warn_on_production_mismatch(design, plan)
     palette_warnings = palette_drift_warnings(design, constants)
@@ -844,7 +1143,7 @@ def render_pdf(
     cv = canvas.Canvas(str(out), pagesize=(page_w, page_h))
     cv.setTitle(f"MosaPack {proof_ref_for(design)} ({design['project_id']}) kit pack")
     page_cover(cv, design, constants, plan, warnings, page_w, page_h)
-    page_alignment(cv, design, profile, page_w, page_h)
+    page_alignment(cv, design, constants, profile, page_w, page_h, color_target_strip)
     if gate_a:
         page_sticker_sheets(cv, design, plan, profile, page_w, page_h, 0.03, sheet_limit=1, title_prefix="Gate A ")
         page_sticker_sheets(cv, design, plan, profile, page_w, page_h, 0.05, sheet_limit=1, title_prefix="Gate A ")
@@ -862,6 +1161,7 @@ def render_pdf(
         page_w,
         page_h,
         gate_a,
+        color_target_strip,
         bleed_values_used,
         fulfillment,
         warnings,
@@ -877,10 +1177,13 @@ def render_pdf(
         "grid": design["grid"],
         "size_in": design["size_in"],
         "sheet_profile": design["sheet_profile"],
+        "palette_mode": design["palette_mode"],
+        "gamut_profile_id": design.get("gamut_profile_id"),
         "placed": plan["total_placed"],
         "spares": plan["total_spares"],
         "sheets": plan["printed_mixed_sheets"],
         "gate_a_mode": gate_a,
+        "color_target_strip": color_target_strip,
         "fulfillment_mode": canonical_fulfillment_mode,
         "bleed_values_used": bleed_values_used,
         "warnings": warnings,
@@ -894,6 +1197,7 @@ def generate(
     *,
     bleed_override: float | None = None,
     gate_a: bool = False,
+    color_target_strip: bool = False,
     fulfillment_mode: str = "printed_mixed",
     write_manifest_file: bool = True,
 ) -> dict[str, Any]:
@@ -910,6 +1214,7 @@ def generate(
         constants_path=resolved_constants_path,
         bleed_override=bleed_override,
         gate_a=gate_a,
+        color_target_strip=color_target_strip,
         fulfillment_mode=fulfillment_mode,
         write_manifest_file=write_manifest_file,
     )
@@ -922,6 +1227,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--constants", default=None, help="Production constants JSON path")
     parser.add_argument("--bleed", type=float, default=None, help="Override bleed in inches for normal output")
     parser.add_argument("--gate-a", action="store_true", help="Generate Gate A validation PDF with sheet 1 at 0.03in and 0.05in bleed")
+    parser.add_argument("--color-target-strip", action="store_true", help="Add Master-25 and full-gamut color targets to the alignment page")
     parser.add_argument("--fulfillment", default="printed_mixed", choices=sorted(FULFILLMENT_ALIASES), help="Manifest-only fulfillment math mode")
     parser.add_argument("--no-manifest", action="store_true", help="Do not emit sidecar manifest JSON")
     return parser.parse_args(argv)
@@ -936,6 +1242,7 @@ def main(argv: list[str] | None = None) -> int:
             args.constants,
             bleed_override=args.bleed,
             gate_a=args.gate_a,
+            color_target_strip=args.color_target_strip,
             fulfillment_mode=args.fulfillment,
             write_manifest_file=not args.no_manifest,
         )
