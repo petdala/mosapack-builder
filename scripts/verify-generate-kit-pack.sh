@@ -51,6 +51,7 @@ if [ "$FAIL" -ne 0 ]; then
 fi
 
 PYTHONPYCACHEPREFIX=/tmp/mosapack-pycache python3 -m py_compile "$GENERATOR"
+PYTHONPYCACHEPREFIX=/tmp/mosapack-pycache python3 -m unittest tools.kitpack.test_generate_kit_pack -v
 
 if ! python3 - <<'PY'
 import reportlab
@@ -110,6 +111,8 @@ for label, manifest in (("normal", normal), ("gate_a", gate), ("mixed", mixed), 
         raise SystemExit(f"{label} manifest proof_ref mismatch")
     if manifest["sheet_profile"] != "OL2050":
         raise SystemExit(f"{label} manifest sheet_profile mismatch")
+    if manifest.get("palette_mode") != "fixed":
+        raise SystemExit(f"{label} manifest palette_mode should remain fixed")
     if manifest.get("pdf_layout_mode") != "printed_mixed_sheets":
         raise SystemExit(f"{label} manifest must disclose printed_mixed_sheets PDF layout")
     if "PDF layout remains printed_mixed_sheets" not in manifest.get("pdf_layout_note", ""):

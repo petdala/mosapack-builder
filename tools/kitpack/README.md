@@ -24,6 +24,8 @@ python3 tools/kitpack/generate_kit_pack.py \
 
 If `--constants` is omitted, the generator defaults to `config/production-constants.json` relative to the repo root.
 
+The default sheet profile is `sl680_0375` (SheetLabels SL680, 0.375in rounded square). Designs may still select `OL2050` explicitly for historical process tests.
+
 Gate A validation mode:
 
 ```bash
@@ -33,6 +35,18 @@ python3 tools/kitpack/generate_kit_pack.py \
   --constants config/production-constants.json \
   --gate-a
 ```
+
+Add the 25 Master colors and the 40-patch full-gamut target to the alignment page:
+
+```bash
+python3 tools/kitpack/generate_kit_pack.py \
+  path/to/adaptive-design.json \
+  /tmp/mosapack-gate-a-sl680.pdf \
+  --gate-a \
+  --color-target-strip
+```
+
+Adaptive designs declare `palette_id: "adaptive"` or `palette_mode: "adaptive"`. Their colors are validated against the configured gamut profile and minimum Delta E 00 separation. Adaptive designs require `printed_mixed_sheets`; `stock_color_sheets` is rejected.
 
 Bleed override for normal full-sheet output:
 
@@ -64,13 +78,14 @@ The PDF includes:
 
 The PDF is an operator proof pack, not a customer order, checkout artifact, or production approval.
 
-Gate A mode emits only sheet 1 at `0.03in` and `0.05in` bleed so Derek can validate scale, registration, bleed, and partial build feasibility before committing label stock.
+Gate A mode emits only sheet 1 at `0.03in` and `0.05in` bleed so Derek can validate scale, registration, bleed, color, and partial build feasibility before committing label stock. `--color-target-strip` combines registration, fixed-palette, and adaptive gamut measurements on the alignment page.
 
 ## Gate
 
 Gate A remains required:
 
-- OL2050 alignment test
+- SL680 alignment and full-gamut target test
+- re-derived registration budget for the 0.375in die
 - 100-150 sticker instrumented physical sample
 - material/printer path validation
 
