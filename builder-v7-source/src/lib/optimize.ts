@@ -39,6 +39,7 @@ export interface OptimizeOptions {
 
 export interface OptimizeResult {
   canvas: HTMLCanvasElement
+  subjectMask: ImageData
   report: IssueReport
   appliedFixes: string[]
   flags: string[]
@@ -979,6 +980,7 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
 
   return {
     canvas: output,
+    subjectMask: outputMask,
     report,
     appliedFixes,
     flags: issueFlags(report, sizeIn),
