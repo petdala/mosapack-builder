@@ -8,6 +8,7 @@ interface ScenarioResult {
   inputGreenBias: number
   outputGreenBias: number
   holeDistanceFromBackground: number
+  darkSpeckleCount: number
   islandDistanceFromBackground: number
   appendageDistanceFromBackground: number
   hashes: Record<string, string>
@@ -137,6 +138,41 @@ test('P0 corrections and mosaic grid snapshots stay deterministic', async ({ pag
     }
     const distanceFromBackground = (rgb: number[]) => Math.abs(rgb[0] - 253) + Math.abs(rgb[1] - 253) + Math.abs(rgb[2] - 253)
 
+    const darkCase = document.createElement('canvas')
+    darkCase.width = side
+    darkCase.height = side
+    const darkContext = darkCase.getContext('2d', { willReadFrequently: true })!
+    darkContext.fillStyle = '#6c8f68'
+    darkContext.fillRect(0, 0, side, side)
+    darkContext.fillStyle = '#10182a'
+    darkContext.fillRect(38, 38, 180, 180)
+    darkContext.fillStyle = '#f4f4f4'
+    for (const [x, y] of [[78, 74], [130, 96], [176, 142], [104, 188]]) darkContext.fillRect(x, y, 1, 1)
+    const darkMaskData = new Uint8ClampedArray(side * side * 4)
+    for (let y = 0; y < side; y++) {
+      for (let x = 0; x < side; x++) {
+        const offset = (y * side + x) * 4
+        const value = x >= 38 && x < 218 && y >= 38 && y < 218 ? 255 : 0
+        darkMaskData[offset] = value
+        darkMaskData[offset + 1] = value
+        darkMaskData[offset + 2] = value
+        darkMaskData[offset + 3] = 255
+      }
+    }
+    const darkOutput = (await optimizeForBuild(darkCase, 12, {
+      analysisOverride: { mask: new ImageData(darkMaskData, side, side), face: null, faces: 0 },
+    })).canvas
+    const darkPixels = darkOutput.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, darkOutput.width, darkOutput.height).data
+    let darkSpeckleCount = 0
+    for (let y = Math.floor(darkOutput.height * 0.2); y < Math.ceil(darkOutput.height * 0.8); y++) {
+      for (let x = Math.floor(darkOutput.width * 0.2); x < Math.ceil(darkOutput.width * 0.8); x++) {
+        const offset = (y * darkOutput.width + x) * 4
+        if (luma(darkPixels[offset], darkPixels[offset + 1], darkPixels[offset + 2]) > 220) {
+          darkSpeckleCount++
+        }
+      }
+    }
+
     return {
       inputFill,
       outputFillBySize,
@@ -145,6 +181,7 @@ test('P0 corrections and mosaic grid snapshots stay deterministic', async ({ pag
       inputGreenBias,
       outputGreenBias,
       holeDistanceFromBackground: distanceFromBackground(colorAt(122, 170)),
+      darkSpeckleCount,
       islandDistanceFromBackground: distanceFromBackground(colorAt(34, 58)),
       appendageDistanceFromBackground: distanceFromBackground(colorAt(62, 113)),
       hashes,
@@ -155,12 +192,13 @@ test('P0 corrections and mosaic grid snapshots stay deterministic', async ({ pag
   expect(result.outputFaceLuma).toBeGreaterThan(result.inputFaceLuma + 20)
   expect(Math.abs(result.outputGreenBias)).toBeLessThan(Math.abs(result.inputGreenBias))
   expect(result.holeDistanceFromBackground).toBeGreaterThan(100)
+  expect(result.darkSpeckleCount).toBe(0)
   expect(result.islandDistanceFromBackground).toBeLessThan(18)
   expect(result.appendageDistanceFromBackground).toBeGreaterThan(100)
   expect(result.hashes).toEqual({
-    '6': '1791ac0105a6ca4941573c5c90bd1ade30b4c07b5d390a1738e896414d91b7d3',
-    '12': '982714beb3d1d942d609d0824f8b549feff74a8cc9eae1dd88e7b257fddaaea5',
-    '18': '31fb58bf08fcf6343189d70612cce535664fe77acc46260837f6184b8f352878',
-    '24': '4117ef903d0bc7c860c8e332f4b3a8004f08006cf0858deda3accf3c34e6797e',
+    '6': '3b17ea3002e8f19ca5d14a0f00ecf692c0f311935d47afe14655f7e26451512f',
+    '12': '9e3f9715199054e8bbe5f3c74b4e5ce71d6e92b4f5fd37e74d9b2004bdb826d0',
+    '18': '6e44711253e4c816c6b1b94b8474f478b9644344f6a8105f9a156733e01b36f5',
+    '24': 'd172caebdd9e6df9947610b789c40b67cdbb45e28009d1de55683f83ef8d092d',
   })
 })

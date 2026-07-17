@@ -572,7 +572,7 @@ function correctTone(image: ImageData, softMask: Uint8ClampedArray, face: FaceBo
     }
     if (skinPixels > 150) {
       const mean = skinLuma / skinPixels
-      const targetGain = mean < 185 ? Math.min(1.55, 185 / Math.max(30, mean)) : 1
+      const targetGain = mean < 185 ? Math.min(1.3, 185 / Math.max(30, mean)) : 1
       const rawWeights = new Uint8ClampedArray(width * height)
       for (let y = Math.floor(fy0); y < Math.ceil(fy1); y++) {
         for (let x = Math.floor(fx0); x < Math.ceil(fx1); x++) {
@@ -585,8 +585,8 @@ function correctTone(image: ImageData, softMask: Uint8ClampedArray, face: FaceBo
           rawWeights[index] = Math.round(255 * Math.max(0, Math.min(edgeX, edgeY)))
         }
       }
-      const gainRadius = Math.max(4, Math.min(18, Math.round(face.width * 0.08)))
-      const smoothWeights = boxBlur(rawWeights, width, height, gainRadius)
+      const gainRadius = Math.max(12, Math.min(48, Math.round(face.width * 0.2)))
+      const smoothWeights = boxBlur(boxBlur(rawWeights, width, height, gainRadius), width, height, gainRadius)
       for (let y = Math.floor(fy0); y < Math.ceil(fy1); y++) {
         for (let x = Math.floor(fx0); x < Math.ceil(fx1); x++) {
           const index = y * width + x
@@ -595,9 +595,6 @@ function correctTone(image: ImageData, softMask: Uint8ClampedArray, face: FaceBo
           const r = data[offset]
           const g = data[offset + 1]
           const b = data[offset + 2]
-          const luma = 0.299 * r + 0.587 * g + 0.114 * b
-          const chroma = Math.max(r, g, b) - Math.min(r, g, b)
-          if (luma > 220 || (luma > 120 && chroma < 45)) continue
           const weight = smoothWeights[index] / 255
           const gain = 1 + (targetGain - 1) * weight
           data[offset] = clampChannel(r * gain)
@@ -621,14 +618,20 @@ function adjustContrast(image: ImageData, brightness: number) {
 }
 
 function fillMaskHoles(values: Uint8ClampedArray, width: number, height: number): Uint8ClampedArray {
-  const output = values.slice()
-  const sealed = minFilter(maxFilter(values, width, height, 4), width, height, 4)
+  const output = new Uint8ClampedArray(values.length)
   const exterior = new Uint8Array(values.length)
   const queue = new Int32Array(values.length)
+  let subjectArea = 0
+  for (let i = 0; i < values.length; i++) {
+    if (values[i] > 127) {
+      output[i] = 255
+      subjectArea++
+    }
+  }
   let read = 0
   let write = 0
   const enqueue = (index: number) => {
-    if (exterior[index] || sealed[index] > 127) return
+    if (exterior[index] || values[index] > 127) return
     exterior[index] = 1
     queue[write++] = index
   }
@@ -649,16 +652,40 @@ function fillMaskHoles(values: Uint8ClampedArray, width: number, height: number)
     if (y > 0) enqueue(index - width)
     if (y + 1 < height) enqueue(index + width)
   }
-  for (let i = 0; i < output.length; i++) {
-    if (values[i] <= 127 && !exterior[i]) output[i] = 255
+  const maxHoleArea = Math.max(16, Math.round(subjectArea * 0.025))
+  const componentSeen = exterior.slice()
+  for (let start = 0; start < values.length; start++) {
+    if (componentSeen[start] || values[start] > 127) continue
+    read = 0
+    write = 0
+    componentSeen[start] = 1
+    queue[write++] = start
+    while (read < write) {
+      const index = queue[read++]
+      const x = index % width
+      const y = Math.floor(index / width)
+      const visit = (next: number) => {
+        if (componentSeen[next] || values[next] > 127) return
+        componentSeen[next] = 1
+        queue[write++] = next
+      }
+      if (x > 0) visit(index - 1)
+      if (x + 1 < width) visit(index + 1)
+      if (y > 0) visit(index - width)
+      if (y + 1 < height) visit(index + width)
+    }
+    if (write <= maxHoleArea) {
+      for (let i = 0; i < write; i++) output[queue[i]] = 255
+    }
   }
   return output
 }
 
-function keepLargestComponent(values: Uint8ClampedArray, width: number, height: number): Uint8ClampedArray {
+function keepMeaningfulComponents(values: Uint8ClampedArray, width: number, height: number): Uint8ClampedArray {
   const visited = new Uint8Array(values.length)
   const queue = new Int32Array(values.length)
-  let largest: number[] = []
+  const components: number[][] = []
+  let largestSize = 0
 
   for (let start = 0; start < values.length; start++) {
     if (visited[start] || values[start] <= 127) continue
@@ -682,11 +709,16 @@ function keepLargestComponent(values: Uint8ClampedArray, width: number, height: 
         }
       }
     }
-    if (component.length > largest.length) largest = component
+    components.push(component)
+    largestSize = Math.max(largestSize, component.length)
   }
 
   const output = new Uint8ClampedArray(values.length)
-  for (const index of largest) output[index] = values[index]
+  const minArea = Math.max(64, Math.round(values.length * 0.001), Math.round(largestSize * 0.02))
+  for (const component of components) {
+    if (component.length !== largestSize && component.length < minArea) continue
+    for (const index of component) output[index] = 255
+  }
   return output
 }
 
@@ -706,7 +738,7 @@ function removeLowerGreenIslands(
     const r = image.data[offset]
     const g = image.data[offset + 1]
     const b = image.data[offset + 2]
-    if (!(g > r * 1.08 && g > b * 1.04)) continue
+    if (!(g > 75 && g - Math.max(r, b) > 18)) continue
     let read = 0
     let write = 0
     let ySum = 0
@@ -728,7 +760,7 @@ function removeLowerGreenIslands(
           const nr = image.data[nextOffset]
           const ng = image.data[nextOffset + 1]
           const nb = image.data[nextOffset + 2]
-          if (!(ng > nr * 1.08 && ng > nb * 1.04)) continue
+          if (!(ng > 75 && ng - Math.max(nr, nb) > 18)) continue
           visited[next] = 1
           queue[write++] = next
         }
@@ -779,12 +811,22 @@ function medianDenoise(image: ImageData, subject: Uint8ClampedArray) {
   const { width, height, data } = image
   const source = data.slice()
   const samples = new Array<number>(9)
+  const lumaSamples = new Array<number>(9)
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
       const index = y * width + x
       if (subject[index] <= 128) continue
       const offset = index * 4
       const centerLuma = 0.299 * source[offset] + 0.587 * source[offset + 1] + 0.114 * source[offset + 2]
+      let lumaSample = 0
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const neighbor = ((y + dy) * width + x + dx) * 4
+          lumaSamples[lumaSample++] = 0.299 * source[neighbor] + 0.587 * source[neighbor + 1] + 0.114 * source[neighbor + 2]
+        }
+      }
+      lumaSamples.sort((a, b) => a - b)
+      const neighborhoodLuma = lumaSamples[4]
       for (let channel = 0; channel < 3; channel++) {
         let sample = 0
         let min = 255
@@ -800,9 +842,12 @@ function medianDenoise(image: ImageData, subject: Uint8ClampedArray) {
         samples.sort((a, b) => a - b)
         const median = samples[4]
         const brightTexture = centerLuma > 175
+        const darkTexture = neighborhoodLuma < 190
         const maxRange = brightTexture ? 120 : 72
         const maxDelta = brightTexture ? 60 : 34
-        if (max - min <= maxRange && Math.abs(source[offset + channel] - median) <= maxDelta && centerLuma < 248) {
+        const centerDelta = Math.abs(source[offset + channel] - median)
+        const darkImpulse = darkTexture && centerLuma - neighborhoodLuma > 35 && centerDelta > 24
+        if (centerLuma < 248 && (darkImpulse || (max - min <= maxRange && centerDelta <= maxDelta))) {
           data[offset + channel] = median
         }
       }
@@ -823,9 +868,18 @@ function unsharp(image: ImageData, subject: Uint8ClampedArray, amount: number) {
   for (let i = 0; i < width * height; i++) {
     if (subject[i] <= 128) continue
     const offset = i * 4
+    const luma = 0.299 * channels[0][i] + 0.587 * channels[1][i] + 0.114 * channels[2][i]
+    const noiseFloor = luma < 64 ? 18 : luma < 128 ? 12 : 8
+    const lumaAmount = amount * (0.25 + 0.75 * luma / 255)
+    const maxStep = 12 + luma * 0.08
     for (let channel = 0; channel < 3; channel++) {
       const delta = channels[channel][i] - blurred[channel][i]
-      if (Math.abs(delta) > 8) data[offset + channel] = clampChannel(channels[channel][i] + delta * amount)
+      if (Math.abs(delta) <= noiseFloor) continue
+      const sharpened = channels[channel][i] + delta * lumaAmount
+      data[offset + channel] = clampChannel(Math.max(
+        channels[channel][i] - maxStep,
+        Math.min(channels[channel][i] + maxStep, sharpened),
+      ))
     }
   }
 }
@@ -885,9 +939,9 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
   const targetFill = Math.max(0.5, Math.min(0.94, policy.fill + zoom * 0.04))
   const sourceContext = source.getContext('2d', { willReadFrequently: true })!
   const sourcePixels = sourceContext.getImageData(0, 0, source.width, source.height)
-  const largestComponent = keepLargestComponent(values, source.width, source.height)
-  const filledMask = fillMaskHoles(largestComponent, source.width, source.height)
-  const cleanedValues = removeLowerGreenIslands(filledMask, sourcePixels, source.width, source.height)
+  const filledMask = fillMaskHoles(values, source.width, source.height)
+  const keptMask = keepMeaningfulComponents(filledMask, source.width, source.height)
+  const cleanedValues = removeLowerGreenIslands(keptMask, sourcePixels, source.width, source.height)
   const cleanedMask = valuesToImageData(cleanedValues, source.width, source.height)
   const crop = portraitCrop(cleanedMask, targetFill)
   const outputSize = Math.max(640, Math.min(WORK_LONG_EDGE, Math.round(crop.side)))
