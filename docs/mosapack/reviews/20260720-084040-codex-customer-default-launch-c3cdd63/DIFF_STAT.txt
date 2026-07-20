@@ -1,0 +1,5 @@
+Diff before report generation
+
+No diff existed before report generation.
+
+Report files are generated after this diff snapshot.
