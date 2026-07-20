@@ -35,6 +35,7 @@ import {
   suppressIsolatedTiles,
 } from '@/lib/qualityPipeline'
 import { renderQualityTiles } from '@/lib/qualityRenderer'
+import { applyQualityIntelligence, isQualityIntelligenceEnabled } from '@/lib/qualityIntelligence'
 
 type Stage = 'upload' | 'optimize' | 'preview' | 'done'
 const GRID_FOR_SIZE: Record<number, number> = { 6: 1, 12: 2, 18: 3, 24: 4 }
@@ -81,6 +82,7 @@ function clearDraft() {
 
 export default function App() {
   const [qualityEnabled] = useState(() => isQualityPipelineEnabled())
+  const [qualityIntelligenceEnabled] = useState(() => isQualityIntelligenceEnabled())
   const [paletteMode] = useState<PaletteMode>(() => (
     new URLSearchParams(window.location.search).get('paletteMode') === 'fixed'
       ? 'fixed'
@@ -161,7 +163,28 @@ export default function App() {
     const sourceSide = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height)
     return renderCrop(img, crop, Math.min(1600, Math.max(640, sourceSide)))
   }, [img, crop])
-  const sourceCanvas = optimizeApplied && optimizeResult ? optimizeResult.canvas : cropped
+  const style = STYLES.find((s) => s.id === styleId) ?? STYLES[0]
+  const baselineSourceCanvas = optimizeApplied && optimizeResult ? optimizeResult.canvas : cropped
+  const qualityGeometry = useMemo(() => selectQualityGeometry({
+    preferredSizeIn: sizeIn,
+    sourceWidth: baselineSourceCanvas?.width ?? 640,
+    sourceHeight: baselineSourceCanvas?.height ?? 640,
+    faces: optimizeResult?.report.faces ?? 0,
+    subjectCoverage: subjectCoverage(optimizeApplied ? optimizeResult?.subjectMask : undefined),
+  }), [sizeIn, baselineSourceCanvas, optimizeResult, optimizeApplied])
+  const basePanelGrid = GRID_FOR_SIZE[sizeIn] ?? 2
+  const gridSize = qualityEnabled ? qualityGeometry.gridSize : basePanelGrid * PANEL_SIZE_TILES
+  const intelligenceResult = useMemo(() => (
+    qualityIntelligenceEnabled && optimizeApplied && optimizeResult && baselineSourceCanvas
+      ? applyQualityIntelligence(baselineSourceCanvas, {
+          subjectMask: optimizeResult.subjectMask,
+          faceAnalysis: optimizeResult.faceAnalysis,
+          report: optimizeResult.report,
+          gridSize,
+        })
+      : null
+  ), [qualityIntelligenceEnabled, optimizeApplied, optimizeResult, baselineSourceCanvas, gridSize])
+  const sourceCanvas = intelligenceResult?.canvas ?? baselineSourceCanvas
   const sourceSal: Saliency = useMemo(
     () => (sourceCanvas ? computeSaliency(sourceCanvas) : { cx: 0.5, cy: 0.5, spread: 0.35 }),
     [sourceCanvas]
@@ -169,17 +192,6 @@ export default function App() {
   const croppedSrc = useMemo(() => sourceCanvas?.toDataURL('image/jpeg', 0.9) ?? '', [sourceCanvas])
   const originalCroppedSrc = useMemo(() => optimizationInput?.toDataURL('image/jpeg', 0.9) ?? '', [optimizationInput])
   const optimizedSrc = useMemo(() => optimizeResult?.canvas.toDataURL('image/jpeg', 0.9) ?? '', [optimizeResult])
-
-  const style = STYLES.find((s) => s.id === styleId) ?? STYLES[0]
-  const qualityGeometry = useMemo(() => selectQualityGeometry({
-    preferredSizeIn: sizeIn,
-    sourceWidth: sourceCanvas?.width ?? 640,
-    sourceHeight: sourceCanvas?.height ?? 640,
-    faces: optimizeResult?.report.faces ?? 0,
-    subjectCoverage: subjectCoverage(optimizeApplied ? optimizeResult?.subjectMask : undefined),
-  }), [sizeIn, sourceCanvas, optimizeResult, optimizeApplied])
-  const basePanelGrid = GRID_FOR_SIZE[sizeIn] ?? 2
-  const gridSize = qualityEnabled ? qualityGeometry.gridSize : basePanelGrid * PANEL_SIZE_TILES
   const panelGrid = qualityEnabled ? gridSize / PANEL_SIZE_TILES : basePanelGrid
   const paletteTiers = useMemo(() => qualityPaletteTiers(
     TIERS.filter((tier) => PRICES[sizeIn]?.[tier.id] != null),
@@ -194,6 +206,8 @@ export default function App() {
       ? featureAwareDownscale(sourceCanvas, gridSize, optimizeApplied ? optimizeResult?.subjectMask : undefined)
       : sourceCanvas
   ), [qualityEnabled, sourceCanvas, gridSize, optimizeApplied, optimizeResult])
+  const adaptiveWeightMask = intelligenceResult?.paletteWeightMask
+    ?? (optimizeApplied ? optimizeResult?.subjectMask : undefined)
   const adaptiveReadyForVariants = paletteMode !== 'adaptive' || adaptivePreview !== null
   const proofRequestEnabled = paletteMode === 'fixed'
   const customerPreviewThumb = useMemo(() => {
@@ -356,7 +370,7 @@ export default function App() {
           Math.max(10, Math.round(672 / gridSize)),
           paletteCount,
           Boolean(optimizeResult?.report.skinRgb),
-          optimizeApplied ? optimizeResult?.subjectMask : undefined,
+          adaptiveWeightMask,
         )
         if (qualityEnabled) {
           preview.mosaic = suppressIsolatedTiles(preview.mosaic, preview.palette.colors)
@@ -376,7 +390,7 @@ export default function App() {
       cancelled = true
       clearTimeout(timeout)
     }
-  }, [paletteMode, pipelineSource, stage, gridSize, style, tune, sourceSal, paletteCount, optimizeApplied, optimizeResult, qualityEnabled])
+  }, [paletteMode, pipelineSource, stage, gridSize, style, tune, sourceSal, paletteCount, optimizeResult, qualityEnabled, adaptiveWeightMask])
 
   // Curated finished looks render sequentially to keep mobile interaction responsive.
   useEffect(() => {
@@ -401,7 +415,7 @@ export default function App() {
             thumbnailTilePx,
             thumbnailPaletteCount,
             Boolean(optimizeResult?.report.skinRgb),
-            optimizeApplied ? optimizeResult?.subjectMask : undefined,
+            adaptiveWeightMask,
           )
           const variantMosaic = qualityEnabled
             ? suppressIsolatedTiles(preview.mosaic, preview.palette.colors)
@@ -458,7 +472,7 @@ export default function App() {
     }
     const start = setTimeout(() => run(0), 120)
     return () => { cancelled = true; clearTimeout(start) }
-  }, [pipelineSource, sourceSal, gridSize, paletteCount, paletteMode, optimizeApplied, optimizeResult, stage, adaptiveReadyForVariants, qualityEnabled])
+  }, [pipelineSource, sourceSal, gridSize, paletteCount, paletteMode, optimizeApplied, optimizeResult, stage, adaptiveReadyForVariants, qualityEnabled, adaptiveWeightMask])
 
   const onPhoto = useCallback(async (src: string) => {
     try {
@@ -726,6 +740,7 @@ export default function App() {
             adaptiveFailed={adaptivePreviewFailed}
             paletteMode={paletteMode}
             qualityEnabled={qualityEnabled}
+            qualityIntelligence={intelligenceResult}
             qualityGeometry={qualityGeometry}
             subjectMask={optimizeApplied ? optimizeResult?.subjectMask : undefined}
             paletteTiers={paletteTiers}

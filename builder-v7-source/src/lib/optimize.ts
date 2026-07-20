@@ -5,6 +5,19 @@ export interface FaceBox {
   height: number
 }
 
+export interface FaceLandmark {
+  x: number
+  y: number
+  label: 'right-eye' | 'left-eye' | 'nose' | 'mouth' | 'right-ear' | 'left-ear' | 'unknown'
+  score?: number
+}
+
+export interface FaceAnalysis {
+  boxes: FaceBox[]
+  primaryFace: FaceBox | null
+  landmarks: FaceLandmark[]
+}
+
 export interface IssueReport {
   resolution: string
   faces: number
@@ -44,11 +57,13 @@ export interface OptimizeResult {
   appliedFixes: string[]
   flags: string[]
   bgMode: BackgroundMode
+  faceAnalysis: FaceAnalysis
 }
 
 interface DetectionSummary {
   face: FaceBox | null
   faces: number
+  faceAnalysis: FaceAnalysis
 }
 
 interface SizePolicy {
@@ -72,7 +87,7 @@ let visionPromise: Promise<{
   segmenter: import('@mediapipe/tasks-vision').ImageSegmenter
   faceDetector: import('@mediapipe/tasks-vision').FaceDetector
 }> | null = null
-const analysisCache = new WeakMap<object, Promise<{ mask: ImageData; face: FaceBox | null; faces: number }>>()
+const analysisCache = new WeakMap<object, Promise<{ mask: ImageData; face: FaceBox | null; faces: number; faceAnalysis: FaceAnalysis }>>()
 
 function sourceSize(source: OptimizeSource): { width: number; height: number } {
   if (source instanceof HTMLImageElement) {
@@ -235,20 +250,35 @@ async function detectFaces(bitmap: OptimizeSource): Promise<DetectionSummary> {
   const work = drawWorkingCopy(bitmap)
   const { faceDetector } = await loadVision()
   const detections = faceDetector.detect(work).detections
-  const boxes = detections
-    .map((d) => d.boundingBox)
-    .filter((box): box is NonNullable<typeof box> => Boolean(box))
-  const largest = boxes.sort((a, b) => b.width * b.height - a.width * a.height)[0]
+  const labels: FaceLandmark['label'][] = ['right-eye', 'left-eye', 'nose', 'mouth', 'right-ear', 'left-ear']
+  const entries = detections.flatMap((detection) => {
+    const box = detection.boundingBox
+    if (!box) return []
+    const clipped: FaceBox = {
+      x: Math.max(0, box.originX),
+      y: Math.max(0, box.originY),
+      width: Math.min(work.width - box.originX, box.width),
+      height: Math.min(work.height - box.originY, box.height),
+    }
+    return [{
+      box: clipped,
+      landmarks: detection.keypoints.map((point, index): FaceLandmark => ({
+        x: point.x * work.width,
+        y: point.y * work.height,
+        label: labels[index] ?? 'unknown',
+        score: point.score,
+      })),
+    }]
+  }).sort((a, b) => b.box.width * b.box.height - a.box.width * a.box.height)
+  const primary = entries[0]
   return {
-    face: largest
-      ? {
-          x: Math.max(0, largest.originX),
-          y: Math.max(0, largest.originY),
-          width: Math.min(work.width - largest.originX, largest.width),
-          height: Math.min(work.height - largest.originY, largest.height),
-        }
-      : null,
-    faces: boxes.length,
+    face: primary?.box ?? null,
+    faces: entries.length,
+    faceAnalysis: {
+      boxes: entries.map((entry) => entry.box),
+      primaryFace: primary?.box ?? null,
+      landmarks: primary?.landmarks ?? [],
+    },
   }
 }
 
@@ -905,7 +935,16 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
   const brightness = opts.brightness ?? 0
   const zoom = opts.zoom ?? 0
   const analysis = opts.analysisOverride
-    ? { mask: opts.analysisOverride.mask, face: opts.analysisOverride.face, faces: opts.analysisOverride.faces ?? (opts.analysisOverride.face ? 1 : 0) }
+    ? {
+        mask: opts.analysisOverride.mask,
+        face: opts.analysisOverride.face,
+        faces: opts.analysisOverride.faces ?? (opts.analysisOverride.face ? 1 : 0),
+        faceAnalysis: {
+          boxes: opts.analysisOverride.face ? [opts.analysisOverride.face] : [],
+          primaryFace: opts.analysisOverride.face,
+          landmarks: [],
+        } satisfies FaceAnalysis,
+      }
     : await (() => {
         let cached = analysisCache.get(bitmap)
         if (!cached) {
@@ -913,6 +952,7 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
             mask,
             face: detection.face,
             faces: detection.faces,
+            faceAnalysis: detection.faceAnalysis,
           }))
           analysisCache.set(bitmap, cached)
         }
@@ -960,6 +1000,22 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
   const context = output.getContext('2d', { willReadFrequently: true })!
   context.drawImage(source, crop.x, crop.y, crop.side, crop.side, 0, 0, outputSize, outputSize)
   const outputMask = cropMask(processingMaskImage, crop, outputSize)
+  const cropScale = outputSize / crop.side
+  const transformBox = (box: FaceBox): FaceBox => ({
+    x: (box.x - crop.x) * cropScale,
+    y: (box.y - crop.y) * cropScale,
+    width: box.width * cropScale,
+    height: box.height * cropScale,
+  })
+  const outputFaceAnalysis: FaceAnalysis = {
+    boxes: analysis.faceAnalysis.boxes.map(transformBox),
+    primaryFace: analysis.faceAnalysis.primaryFace ? transformBox(analysis.faceAnalysis.primaryFace) : null,
+    landmarks: analysis.faceAnalysis.landmarks.map((point) => ({
+      ...point,
+      x: (point.x - crop.x) * cropScale,
+      y: (point.y - crop.y) * cropScale,
+    })),
+  }
   const outputRawMask = maskValues(outputMask)
   const hardMask = confidenceAwareErode(outputRawMask, outputSize, outputSize)
   const pixels = context.getImageData(0, 0, outputSize, outputSize)
@@ -985,5 +1041,6 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
     appliedFixes,
     flags: issueFlags(report, sizeIn),
     bgMode,
+    faceAnalysis: outputFaceAnalysis,
   }
 }
