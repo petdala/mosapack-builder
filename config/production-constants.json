@@ -133,7 +133,11 @@
     "min_board_number_font_pt": 6.0,
     "ghost_tint_fraction": 0.22,
     "seconds_per_sticker": 6,
-    "lookalike_delta_e00": 14.0
+    "lookalike_delta_e00": 14.0,
+    "support_contact": "support@mosapack.com",
+    "help_url": "https://mosapack.com/help",
+    "share_line": "#MosaPack",
+    "pack_version": "customer-pack.v2"
   },
   "color_targets": {
     "master_25": [

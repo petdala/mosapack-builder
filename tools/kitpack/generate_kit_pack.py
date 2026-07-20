@@ -24,6 +24,9 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from reportlab.graphics import renderPDF
+from reportlab.graphics.barcode.qr import QrCodeWidget
+from reportlab.graphics.shapes import Drawing
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -547,7 +550,11 @@ def customer_board_regions(grid: int, constants: dict[str, Any]) -> list[dict[st
 def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> dict[str, Any]:
     counts = Counter(int(value) for value in design["cell_map"])
     spare_rate = float(constants.get("spares", {}).get("rate", 0.05))
-    ranked = sorted(design["palette"], key=lambda color: (-counts.get(color["index"], 0), color["index"]))
+    ranked = sorted(
+        (color for color in design["palette"] if counts.get(color["index"], 0) > 0),
+        key=lambda color: (-counts[color["index"]], color["index"]),
+    )
+    total_placed = sum(counts[color["index"]] for color in ranked)
     colors = []
     number_by_index: dict[int, int] = {}
     for number, color in enumerate(ranked, start=1):
@@ -564,6 +571,7 @@ def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> 
                 "placed": placed,
                 "spares": spares,
                 "total": placed + spares,
+                "progress_percent": round(placed * 100.0 / total_placed) if total_placed else 0,
             }
         )
 
@@ -600,7 +608,6 @@ def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> 
                 continue
             if cursor % cols:
                 cursor += cols - cursor % cols
-            first_for_kind = True
             remaining = quantity
             while remaining:
                 if cursor >= per_sheet:
@@ -608,19 +615,24 @@ def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> 
                     cursor = 0
                 if palette_index not in sheet["colors"]:
                     sheet["colors"].append(palette_index)
-                row = cursor // cols
-                available = cols - cursor % cols
-                take = min(remaining, available)
-                if first_for_kind:
+                if not any(segment["palette_index"] == palette_index for segment in sheet["segments"]):
+                    continued = any(
+                        palette_index in prior_sheet["colors"]
+                        for prior_sheet in sheets[:-1]
+                    )
                     sheet["segments"].append(
                         {
                             "slot": cursor,
                             "color_number": color["number"],
                             "palette_index": palette_index,
                             "is_spare": is_spare,
+                            "continued": continued,
+                            "remaining_count": remaining,
                         }
                     )
-                    first_for_kind = False
+                row = cursor // cols
+                available = cols - cursor % cols
+                take = min(remaining, available)
                 sheet["row_labels"][row] = {
                     "color_number": color["number"],
                     "is_spare": is_spare,
@@ -1855,22 +1867,68 @@ def draw_customer_step(cv: canvas.Canvas, number: int, title: str, body: str, x:
     return min(line_y - 0.12 * IN, y - 0.70 * IN)
 
 
+def is_memorial_design(design: dict[str, Any]) -> bool:
+    descriptor = " ".join(
+        str(design.get(field, "")).strip().lower()
+        for field in ("photo_category", "vertical")
+    )
+    return any(term in descriptor for term in ("memorial", "remembrance", "in memory"))
+
+
+def customer_pack_value(constants: dict[str, Any], key: str) -> str:
+    return str(constants.get("customer_pack", {}).get(key, "")).strip()
+
+
+def customer_rescue_line(constants: dict[str, Any]) -> str:
+    contact = customer_pack_value(constants, "support_contact")
+    if not contact:
+        return ""
+    return f"Missing or ran out of a color? Email us at {contact} - we'll send replacements."
+
+
+def quantity_label(count: int, singular: str) -> str:
+    return f"{count} {singular if count == 1 else singular + 's'}"
+
+
+def draw_help_qr(cv: canvas.Canvas, url: str, x: float, y: float, size: float) -> bool:
+    if not url:
+        return False
+    widget = QrCodeWidget(url)
+    left, bottom, right, top = widget.getBounds()
+    scale = size / max(right - left, top - bottom)
+    drawing = Drawing(size, size, transform=[scale, 0, 0, scale, -left * scale, -bottom * scale])
+    drawing.add(widget)
+    renderPDF.draw(drawing, cv, x, y)
+    return True
+
+
 def page_customer_start(
     cv: canvas.Canvas,
     design: dict[str, Any],
+    constants: dict[str, Any],
     customer_plan: dict[str, Any],
     page_w: float,
     page_h: float,
 ) -> None:
+    memorial = is_memorial_design(design)
+    subtitle = f"About {customer_plan['estimated_minutes']} minutes."
+    if not memorial:
+        subtitle = f"Three steps. No experience needed. {subtitle}"
     customer_header(
         cv,
         page_w,
         page_h,
         "Start Here",
-        f"Three steps. No experience needed. About {customer_plan['estimated_minutes']} minutes.",
+        subtitle,
     )
     margin = 0.52 * IN
+    dedication = str(design.get("dedication", "")).strip()
     y = page_h - 1.02 * IN
+    if dedication:
+        cv.setFillColor(GRAY if memorial else HexColor("#08795F"))
+        cv.setFont("Helvetica" if memorial else "Helvetica-Bold", 8.2)
+        cv.drawString(margin, y, dedication)
+        y -= 0.28 * IN
     y = draw_customer_step(
         cv,
         1,
@@ -1889,7 +1947,7 @@ def page_customer_start(
         y,
         page_w - 2 * margin,
     )
-    draw_customer_step(
+    y = draw_customer_step(
         cv,
         3,
         "Cover the numbers",
@@ -1899,16 +1957,17 @@ def page_customer_start(
         page_w - 2 * margin,
     )
 
-    preview_size = 2.45 * IN
+    preview_size = 2.55 * IN
     preview_x = margin
-    preview_y = 1.72 * IN
+    content_top = y + 0.05 * IN
+    preview_y = content_top - preview_size
     draw_grid_preview(cv, design, None, preview_x, preview_y, preview_size)
     cv.setFillColor(GRAY)
     cv.setFont("Helvetica-Bold", 6.8)
     cv.drawString(preview_x, preview_y - 0.16 * IN, "Your finished picture")
 
     list_x = preview_x + preview_size + 0.35 * IN
-    list_y = 5.88 * IN
+    list_y = content_top
     list_w = page_w - margin - list_x
     cv.setFillColor(INK)
     cv.setFont("Helvetica-Bold", 10)
@@ -1932,26 +1991,68 @@ def page_customer_start(
         cv.drawString(
             x + 0.23 * IN,
             item_y,
-            f"Color {color['number']} - {color['placed']} stickers (+ {color['spares']} spares)",
+            f"Color {color['number']} - {quantity_label(color['placed'], 'sticker')}"
+            f" (+ {quantity_label(color['spares'], 'spare')})",
         )
 
+    footer_y = 0.72 * IN
     cv.setFillColor(INK)
-    cv.setFont("Helvetica-Bold", 8.5)
-    cv.drawString(margin, 0.68 * IN, "Wrong spot? These stickers peel off and re-stick.")
+    cv.setFont("Helvetica-Bold", 7.3)
+    cv.drawString(margin, footer_y, "Wrong spot? These stickers peel off and re-stick.")
+    rescue = customer_rescue_line(constants)
+    if rescue:
+        cv.setFillColor(GRAY)
+        cv.setFont("Helvetica", 6.2)
+        cv.drawString(margin, footer_y - 0.18 * IN, rescue)
     cv.setFillColor(GRAY)
     cv.setFont("Helvetica", 6.5)
-    cv.drawRightString(page_w - margin, 0.68 * IN, f"Finished board: {customer_plan['finished_size_in']:.1f} in square")
+    cv.drawRightString(page_w - margin, footer_y, f"Finished board: {customer_plan['finished_size_in']:.1f} in square")
+    help_url = customer_pack_value(constants, "help_url")
+    if draw_help_qr(cv, help_url, page_w - margin - 0.58 * IN, 0.98 * IN, 0.58 * IN):
+        cv.setFillColor(GRAY)
+        cv.setFont("Helvetica", 5.5)
+        cv.drawCentredString(page_w - margin - 0.29 * IN, 0.89 * IN, "Build help")
     cv.showPage()
 
 
 def customer_board_layout(page_w: float, page_h: float, region: dict[str, int], min_font: float) -> dict[str, float]:
-    left = 0.68 * IN
-    bottom = 0.82 * IN
-    available_w = page_w - left - 0.38 * IN
-    available_h = page_h - 1.28 * IN - bottom
+    left_bound = 0.68 * IN
+    right_bound = page_w - 0.38 * IN
+    bottom_bound = 0.76 * IN
+    top_bound = page_h - 0.92 * IN
+    available_w = right_bound - left_bound
+    available_h = top_bound - bottom_bound
     cell = min(available_w / region["width"], available_h / region["height"])
     font_size = max(min_font, min(10.0, cell * 0.34))
-    return {"x": left, "y": bottom, "cell": cell, "font_size": font_size}
+    grid_w = region["width"] * cell
+    grid_h = region["height"] * cell
+    return {
+        "x": left_bound + (available_w - grid_w) / 2.0,
+        "y": bottom_bound + (available_h - grid_h) / 2.0,
+        "cell": cell,
+        "font_size": font_size,
+    }
+
+
+def board_panel_markers(grid: int, region: dict[str, int], panel_cells: int) -> list[dict[str, int]]:
+    panels_across = math.ceil(grid / panel_cells)
+    row_start = region["row"]
+    row_end = row_start + region["height"]
+    col_start = region["col"]
+    col_end = col_start + region["width"]
+    first_panel_row = row_start // panel_cells
+    last_panel_row = (row_end - 1) // panel_cells
+    first_panel_col = col_start // panel_cells
+    last_panel_col = (col_end - 1) // panel_cells
+    return [
+        {
+            "number": panel_row * panels_across + panel_col + 1,
+            "row": max(row_start, panel_row * panel_cells),
+            "col": max(col_start, panel_col * panel_cells),
+        }
+        for panel_row in range(first_panel_row, last_panel_row + 1)
+        for panel_col in range(first_panel_col, last_panel_col + 1)
+    ]
 
 
 def draw_locator(cv: canvas.Canvas, grid: int, region: dict[str, int], x: float, y: float, size: float) -> None:
@@ -2027,6 +2128,20 @@ def draw_customer_board_region(
     cv.setLineWidth(0.9)
     cv.rect(x0, y0, region["width"] * cell, region["height"] * cell, stroke=1, fill=0)
 
+    panel_cells = int(constants.get("customer_pack", {}).get("panel_cells", 12))
+    markers = board_panel_markers(grid, region, panel_cells)
+    for marker in markers:
+        local_row = marker["row"] - region["row"]
+        local_col = marker["col"] - region["col"]
+        marker_x = x0 + local_col * cell + 0.06 * cell
+        marker_y = y0 + (region["height"] - local_row) * cell - 0.33 * cell
+        marker_size = max(7.0, min(13.0, cell * 0.32))
+        cv.setFillColor(INK)
+        cv.circle(marker_x + marker_size / 2.0, marker_y + marker_size / 2.0, marker_size / 2.0, stroke=0, fill=1)
+        cv.setFillColor(HexColor("#FFFFFF"))
+        cv.setFont("Helvetica-Bold", max(5.0, marker_size * 0.48))
+        cv.drawCentredString(marker_x + marker_size / 2.0, marker_y + marker_size * 0.34, str(marker["number"]))
+
     cv.setFillColor(GRAY)
     cv.setFont("Helvetica", max(5.5, layout["font_size"] - 1.0))
     for local_col in range(region["width"]):
@@ -2039,12 +2154,13 @@ def draw_customer_board_region(
     cv.setFont("Helvetica", 6.5)
     cv.drawString(0.68 * IN, 0.48 * IN, "Bold lines split the board into panels - finish one panel before starting the next.")
     cv.showPage()
-    return {"covered": covered, "font_size": layout["font_size"], "region": region}
+    return {"covered": covered, "font_size": layout["font_size"], "region": region, "panel_markers": markers}
 
 
 def page_customer_sticker_sheets(
     cv: canvas.Canvas,
     design: dict[str, Any],
+    constants: dict[str, Any],
     customer_plan: dict[str, Any],
     profile: dict[str, Any],
     page_w: float,
@@ -2099,14 +2215,23 @@ def page_customer_sticker_sheets(
             cv.drawCentredString(x + 0.14 * IN, banner_y + 0.045 * IN, str(color["number"]))
             cv.setFillColor(INK)
             cv.setFont("Helvetica-Bold", 6.2)
-            label = f"Color {color['number']} - {color['placed']} stickers + {color['spares']} spares"
-            if segment["is_spare"]:
-                label += " - spare row"
+            if segment.get("continued"):
+                label = (
+                    f"Color {color['number']} - continued - {segment['remaining_count']} remaining"
+                    f" - {color['progress_percent']}% of your picture"
+                )
+            else:
+                label = (
+                    f"Color {color['number']} - {quantity_label(color['placed'], 'sticker')}"
+                    f" - {color['progress_percent']}% of your picture"
+                )
+                if color["spares"]:
+                    label += f" (+ {quantity_label(color['spares'], 'spare')})"
             cv.drawString(x + 0.34 * IN, banner_y + 0.05 * IN, label)
 
         cv.setFillColor(INK)
         cv.setFont("Helvetica-Bold", 5.3)
-        cv.drawString(margin, 0.28 * IN, "Finished a color? Check it off:")
+        cv.drawString(margin, 0.35 * IN, "Finished a color? Check it off:")
         colors = customer_plan["colors"]
         checks_per_row = math.ceil(len(colors) / 2) if len(colors) > 24 else len(colors)
         available = page_w - 2 * margin - 1.20 * IN
@@ -2114,13 +2239,167 @@ def page_customer_sticker_sheets(
         for index, color in enumerate(colors):
             row, col = divmod(index, checks_per_row)
             check_x = margin + 1.20 * IN + col * spacing
-            check_y = (0.27 - row * 0.14) * IN
+            check_y = (0.34 - row * 0.14) * IN
             cv.setStrokeColor(INK)
             cv.rect(check_x, check_y - 0.03 * IN, 0.09 * IN, 0.09 * IN, stroke=1, fill=0)
             cv.setFillColor(INK)
             cv.setFont("Helvetica", 4.5)
             cv.drawString(check_x + 0.11 * IN, check_y - 0.01 * IN, str(color["number"]))
+        if sheet_index == len(sheets):
+            rescue = customer_rescue_line(constants)
+            if rescue:
+                cv.setFillColor(GRAY)
+                cv.setFont("Helvetica", 5.2)
+                cv.drawCentredString(page_w / 2.0, 0.08 * IN, rescue)
         cv.showPage()
+
+
+def page_customer_closing(
+    cv: canvas.Canvas,
+    design: dict[str, Any],
+    constants: dict[str, Any],
+    page_w: float,
+    page_h: float,
+) -> None:
+    memorial = is_memorial_design(design)
+    title = "Your piece is complete" if memorial else "You did it"
+    subtitle = "A finished picture, built one color at a time."
+    if memorial:
+        subtitle = "A finished piece made with care."
+    customer_header(cv, page_w, page_h, title, subtitle)
+    margin = 0.70 * IN
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 15 if not memorial else 13)
+    cv.drawString(margin, page_h - 1.62 * IN, "Your MosaPack is ready to display.")
+    cv.setFillColor(GRAY)
+    cv.setFont("Helvetica", 9)
+    draw_wrapped_text(
+        cv,
+        "Hang it where the light is even and the whole picture can be seen at a comfortable distance.",
+        margin,
+        page_h - 1.98 * IN,
+        page_w - 2 * margin,
+        size=9,
+        leading=13,
+    )
+    cv.setStrokeColor(HexColor("#DDE3E2"))
+    cv.setLineWidth(0.8)
+    cv.line(margin, page_h - 2.62 * IN, page_w - margin, page_h - 2.62 * IN)
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 11)
+    cv.drawString(margin, page_h - 3.12 * IN, "A record of the finished piece" if memorial else "Keep the before & after")
+    cv.setFillColor(GRAY)
+    cv.setFont("Helvetica", 9)
+    photo_copy = "Photograph your finished piece next to the original photo - share your before & after."
+    if memorial:
+        photo_copy = "If you wish, photograph the finished piece beside the original photo."
+    draw_wrapped_text(
+        cv,
+        photo_copy,
+        margin,
+        page_h - 3.47 * IN,
+        page_w - 2 * margin,
+        size=9,
+        leading=13,
+    )
+    share_line = customer_pack_value(constants, "share_line")
+    if share_line and not memorial:
+        cv.setFillColor(HexColor("#08795F") if not memorial else GRAY)
+        cv.setFont("Helvetica-Bold" if not memorial else "Helvetica", 10)
+        cv.drawString(margin, page_h - 4.15 * IN, share_line)
+    cv.showPage()
+
+
+def render_customer_qc_checklist(
+    design: dict[str, Any],
+    constants: dict[str, Any],
+    customer_plan: dict[str, Any],
+    output_path: str | Path,
+    *,
+    board_included: bool,
+) -> dict[str, Any]:
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    cv = canvas.Canvas(str(out), pagesize=letter)
+    page_w, page_h = letter
+    margin = 0.55 * IN
+    pack_version = customer_pack_value(constants, "pack_version") or "customer-pack.v2"
+    cv.setTitle(f"MosaPack {proof_ref_for(design)} packer QC checklist")
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 20)
+    cv.drawString(margin, page_h - 0.72 * IN, "MosaPack Packer QC Checklist")
+    cv.setFillColor(TEAL)
+    cv.setFont("Helvetica-Bold", 11)
+    cv.drawString(margin, page_h - 1.02 * IN, proof_ref_for(design))
+    cv.setFillColor(GRAY)
+    cv.setFont("Helvetica", 8)
+    cv.drawRightString(page_w - margin, page_h - 1.02 * IN, pack_version)
+
+    summary_rows = [
+        ("Order reference", proof_ref_for(design)),
+        ("Sticker sheets", str(len(customer_plan["sheets"]))),
+        ("Board included", "YES" if board_included else "NO"),
+        ("Placed stickers", str(customer_plan["total_placed"])),
+        ("Spare stickers", str(customer_plan["total_spares"])),
+    ]
+    y = page_h - 1.48 * IN
+    for label, value in summary_rows:
+        cv.setStrokeColor(INK)
+        cv.rect(margin, y - 0.03 * IN, 0.12 * IN, 0.12 * IN, stroke=1, fill=0)
+        cv.setFillColor(GRAY)
+        cv.setFont("Helvetica-Bold", 7.5)
+        cv.drawString(margin + 0.22 * IN, y, label)
+        cv.setFillColor(INK)
+        cv.setFont("Helvetica", 8)
+        cv.drawString(margin + 1.38 * IN, y, value)
+        y -= 0.26 * IN
+
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 10)
+    cv.drawString(margin, y - 0.06 * IN, "Per-color count check")
+    y -= 0.38 * IN
+    colors = customer_plan["colors"]
+    columns = 2 if len(colors) > 20 else 1
+    rows_per_column = max(1, math.ceil(len(colors) / columns))
+    column_width = (page_w - 2 * margin) / columns
+    row_height = min(0.28 * IN, (y - 0.65 * IN) / rows_per_column)
+    for index, color in enumerate(colors):
+        col, row = divmod(index, rows_per_column)
+        item_x = margin + col * column_width
+        item_y = y - row * row_height
+        cv.setStrokeColor(INK)
+        cv.rect(item_x, item_y - 0.03 * IN, 0.11 * IN, 0.11 * IN, stroke=1, fill=0)
+        cv.setFillColor(HexColor(color["hex"]))
+        cv.roundRect(item_x + 0.20 * IN, item_y - 0.05 * IN, 0.16 * IN, 0.16 * IN, 2, stroke=0, fill=1)
+        cv.setFillColor(INK)
+        cv.setFont("Helvetica", 7.2)
+        cv.drawString(
+            item_x + 0.44 * IN,
+            item_y,
+            f"Color {color['number']}: {color['placed']} placed + {quantity_label(color['spares'], 'spare')}",
+        )
+    cv.setFillColor(GRAY)
+    cv.setFont("Helvetica", 6.5)
+    cv.drawString(margin, 0.42 * IN, "Internal fulfillment document - do not include in the customer pack.")
+    cv.showPage()
+    cv.save()
+    return {
+        "output": str(out),
+        "page_count": 1,
+        "pack_version": pack_version,
+        "sheet_count": len(customer_plan["sheets"]),
+        "board_included": board_included,
+        "total_placed": customer_plan["total_placed"],
+        "total_spares": customer_plan["total_spares"],
+        "colors": [
+            {
+                "number": color["number"],
+                "placed": color["placed"],
+                "spares": color["spares"],
+            }
+            for color in colors
+        ],
+    }
 
 
 def render_board_art(
@@ -2173,6 +2452,10 @@ def render_board_art(
     cv.setStrokeColor(INK)
     cv.setLineWidth(0.9)
     cv.rect(bleed, bleed, board_size, board_size, stroke=1, fill=0)
+    proof_ref = proof_ref_for(design)
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica", 4.5)
+    cv.drawString(bleed, 0.035 * IN, proof_ref)
     cv.showPage()
     cv.save()
     return {
@@ -2182,6 +2465,7 @@ def render_board_art(
         "bleed_in": round(bleed / IN, 4),
         "page_count": 1,
         "number_font_pt": font_size,
+        "proof_ref": proof_ref,
     }
 
 
@@ -2228,6 +2512,7 @@ def render_pdf(
     measurement_log_path: Path | None = None
     board_page_stats: list[dict[str, Any]] = []
     board_art_result: dict[str, Any] | None = None
+    qc_checklist_result: dict[str, Any] | None = None
     page_count = 0
     if vendor_pack:
         cv.setTitle(f"MosaPack {proof_ref_for(design)} vendor qualification pack")
@@ -2262,13 +2547,14 @@ def render_pdf(
             )
         cv.setTitle("MosaPack customer build guide")
         assert customer_plan is not None
-        page_customer_start(cv, design, customer_plan, page_w, page_h)
+        page_customer_start(cv, design, constants, customer_plan, page_w, page_h)
         for region in customer_plan["board_regions"]:
             board_page_stats.append(
                 draw_customer_board_region(cv, design, constants, customer_plan, region, page_w, page_h)
             )
-        page_customer_sticker_sheets(cv, design, customer_plan, profile, page_w, page_h, main_bleed)
-        page_count = 1 + len(customer_plan["board_regions"]) + len(customer_plan["sheets"])
+        page_customer_sticker_sheets(cv, design, constants, customer_plan, profile, page_w, page_h, main_bleed)
+        page_customer_closing(cv, design, constants, page_w, page_h)
+        page_count = 2 + len(customer_plan["board_regions"]) + len(customer_plan["sheets"])
     else:
         cv.setTitle(f"MosaPack {proof_ref_for(design)} ({design['project_id']}) kit pack")
         page_cover(cv, design, constants, plan, warnings, page_w, page_h)
@@ -2287,6 +2573,15 @@ def render_pdf(
     if customer_pack and board_art_path:
         assert customer_plan is not None
         board_art_result = render_board_art(design, constants, customer_plan, board_art_path)
+    if customer_pack:
+        assert customer_plan is not None
+        qc_checklist_result = render_customer_qc_checklist(
+            design,
+            constants,
+            customer_plan,
+            out.with_suffix(".qc-checklist.pdf"),
+            board_included=bool(board_art_path),
+        )
     manifest = build_manifest(
         design,
         constants,
@@ -2320,8 +2615,11 @@ def render_pdf(
             "board_art": board_art_result,
         }
         manifest["customer_sheet_count"] = len(customer_plan["sheets"])
-        manifest["customer_page_count"] = 1 + len(customer_plan["board_regions"]) + len(customer_plan["sheets"])
+        manifest["customer_page_count"] = page_count
         manifest["customer_estimated_minutes"] = customer_plan["estimated_minutes"]
+        manifest["customer_tone"] = "memorial" if is_memorial_design(design) else "standard"
+        manifest["customer_help_qr"] = bool(customer_pack_value(constants, "help_url"))
+        manifest["customer_qc_checklist"] = qc_checklist_result
     pack_mode = "vendor" if vendor_pack else "operator" if operator_pack else "customer" if customer_pack else "legacy"
     if pack_mode != "legacy":
         manifest["pack_mode"] = pack_mode
@@ -2343,6 +2641,7 @@ def render_pdf(
         "spares": plan["total_spares"],
         "sheets": len(customer_plan["sheets"]) if customer_plan else plan["printed_mixed_sheets"],
         "board_art": board_art_result,
+        "qc_checklist": qc_checklist_result,
         "gate_a_mode": gate_a,
         "pack_mode": pack_mode,
         "page_count": page_count,

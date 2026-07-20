@@ -112,7 +112,8 @@ not include the vendor instructions or measurement target.
 `--customer-pack` emits the customer Start Here guide, numbered board pages, and color-grouped
 sticker pages. Internal profile IDs, palette IDs, and bleed values remain in the sidecar manifest and
 are not printed in customer copy. Use `--board-art` with this mode to write the standalone true-size
-board artwork PDF.
+board artwork PDF. Customer mode also emits a separate `.qc-checklist.pdf` for packing verification;
+that internal checklist is not part of the customer PDF.
 
 In the legacy/default output, Gate A mode emits only sheet 1 at `0.03in` and `0.05in` bleed. The new
 `--operator-pack --gate-a` path emits every planned sheet in both variants. `--color-target-strip`

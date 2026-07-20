@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import csv
 import hashlib
 import importlib.util
 import json
@@ -52,6 +53,18 @@ class KitPackTests(unittest.TestCase):
             "black_base": False,
             "sheet_profile": "sl680_0375",
         }
+
+    def separated_palette(self, count: int) -> list[str]:
+        candidates = []
+        for red in range(24, 233, 32):
+            for green in range(24, 233, 32):
+                for blue in range(24, 233, 32):
+                    value = f"#{red:02X}{green:02X}{blue:02X}"
+                    lab = KITPACK.rgb_to_lab(KITPACK.hex_to_rgb(value))
+                    if all(KITPACK.delta_e00(lab, prior) >= 8 for _, prior in candidates):
+                        candidates.append((value, lab))
+        self.assertGreaterEqual(len(candidates), count)
+        return [value for value, _ in candidates[:count]]
 
     def test_sl680_geometry_extremes(self) -> None:
         profile = self.constants["sheet_profiles"]["sl680_0375"]
@@ -181,6 +194,113 @@ class KitPackTests(unittest.TestCase):
             self.assertEqual(slot_counts.get((color["palette_index"], True), 0), color["spares"])
         self.assertEqual(len(plan["colors"]), len(design["palette"]))
 
+    def test_customer_surfaces_omit_zero_count_colors_and_number_used_colors_contiguously(self) -> None:
+        from pypdf import PdfReader
+
+        design = self.adaptive_design(self.separated_palette(20))
+        design["cell_map"] = [index % 12 for index in range(24 * 24)]
+        KITPACK.validate_design(design, self.constants)
+        plan = KITPACK.compute_customer_plan(design, self.constants)
+        self.assertEqual(len(plan["colors"]), 12)
+        self.assertEqual([color["number"] for color in plan["colors"]], list(range(1, 13)))
+        self.assertEqual(set(plan["number_by_index"]), set(range(12)))
+        self.assertTrue(all(slot["palette_index"] < 12 for sheet in plan["sheets"] for slot in sheet["slots"] if slot))
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            design_path = temp / "used-12-of-20.json"
+            output_path = temp / "customer.pdf"
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            KITPACK.generate(design_path, output_path, customer_pack=True)
+            reader = PdfReader(output_path)
+            text = "\n".join(page.extract_text() or "" for page in reader.pages)
+            self.assertIn("Color 12", text)
+            self.assertNotIn("Color 13", text)
+            manifest = json.loads(output_path.with_suffix(".manifest.json").read_text())
+            self.assertEqual(len(manifest["customer_color_numbering"]), 12)
+
+    def test_customer_color_continuation_banner_repeats_on_every_sheet(self) -> None:
+        from pypdf import PdfReader
+
+        design = self.adaptive_design()
+        design["cell_map"] = [0] * (24 * 24)
+        KITPACK.validate_design(design, self.constants)
+        plan = KITPACK.compute_customer_plan(design, self.constants)
+        self.assertGreaterEqual(len(plan["sheets"]), 2)
+        for sheet_index, sheet in enumerate(plan["sheets"]):
+            self.assertEqual(len(sheet["segments"]), 1)
+            self.assertEqual(sheet["segments"][0]["continued"], sheet_index > 0)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            design_path = temp / "continuation.json"
+            output_path = temp / "customer.pdf"
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            result = KITPACK.generate(design_path, output_path, customer_pack=True)
+            reader = PdfReader(output_path)
+            first_sheet_page = 1 + len(plan["board_regions"])
+            sheet_text = [reader.pages[first_sheet_page + index].extract_text() or "" for index in range(len(plan["sheets"]))]
+            self.assertNotIn("continued", sheet_text[0].lower())
+            self.assertTrue(all("continued" in text.lower() for text in sheet_text[1:]))
+            self.assertEqual(result["sheets"], len(plan["sheets"]))
+
+    def test_customer_enhancements_render_and_qc_matches_plan(self) -> None:
+        from pypdf import PdfReader
+
+        design = self.adaptive_design()
+        design["dedication"] = "Made for Grandma - December 2026"
+        design["photo_category"] = "memorial portrait"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            design_path = temp / "memorial.json"
+            output_path = temp / "customer.pdf"
+            board_path = temp / "board.pdf"
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            result = KITPACK.generate(design_path, output_path, customer_pack=True, board_art_path=board_path)
+            reader = PdfReader(output_path)
+            self.assertIn(design["dedication"], reader.pages[0].extract_text() or "")
+            closing_text = reader.pages[-1].extract_text() or ""
+            self.assertIn("Your piece is complete", closing_text)
+            self.assertNotIn("You did it", closing_text)
+            self.assertIn("If you wish, photograph the finished piece beside the original photo", closing_text)
+            self.assertNotIn("#MosaPack", closing_text)
+
+            manifest = json.loads(output_path.with_suffix(".manifest.json").read_text())
+            self.assertEqual(manifest["customer_tone"], "memorial")
+            self.assertTrue(manifest["customer_help_qr"])
+            markers = manifest["customer_board"]["guide_pages"][0]["panel_markers"]
+            self.assertEqual([marker["number"] for marker in markers], [1, 2, 3, 4])
+            progress_total = sum(color["progress_percent"] for color in manifest["customer_color_numbering"])
+            self.assertLessEqual(abs(progress_total - 100), len(manifest["customer_color_numbering"]) / 2)
+
+            qc = result["qc_checklist"]
+            self.assertTrue(Path(qc["output"]).exists())
+            self.assertEqual(qc["total_placed"], manifest["total_placed_stickers"])
+            self.assertEqual(qc["total_spares"], manifest["total_spares"])
+            self.assertEqual(sum(color["placed"] for color in qc["colors"]), qc["total_placed"])
+            self.assertEqual(sum(color["spares"] for color in qc["colors"]), qc["total_spares"])
+            self.assertIn(design["proof_ref"], PdfReader(board_path).pages[0].extract_text() or "")
+
+    def test_customer_optional_dedication_and_qr_omit_cleanly(self) -> None:
+        from pypdf import PdfReader
+
+        design = self.adaptive_design()
+        constants = json.loads(json.dumps(self.constants))
+        constants["customer_pack"]["help_url"] = ""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            constants_path = temp / "constants.json"
+            design_path = temp / "plain.json"
+            output_path = temp / "customer.pdf"
+            constants_path.write_text(json.dumps(constants), encoding="utf-8")
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            KITPACK.generate(design_path, output_path, constants_path, customer_pack=True)
+            first_text = PdfReader(output_path).pages[0].extract_text() or ""
+            self.assertNotIn("Made for", first_text)
+            self.assertNotIn("Build help", first_text)
+            manifest = json.loads(output_path.with_suffix(".manifest.json").read_text())
+            self.assertFalse(manifest["customer_help_qr"])
+
     def test_customer_pack_copy_board_art_and_cell_coverage(self) -> None:
         from pypdf import PdfReader
 
@@ -203,6 +323,10 @@ class KitPackTests(unittest.TestCase):
                 "Wrong spot? These stickers peel off and re-stick.",
             ):
                 self.assertIn(phrase, first_text)
+            closing_text = reader.pages[-1].extract_text() or ""
+            self.assertIn("You did it", closing_text)
+            self.assertIn("Photograph your finished piece next to the original photo", closing_text)
+            self.assertIn(self.constants["customer_pack"]["share_line"], closing_text)
             for forbidden in ("mosaic protocol", "section map", "row-major", "sl680_0375", "bleed"):
                 self.assertNotIn(forbidden, "\n".join(page.extract_text() or "" for page in reader.pages).lower())
 

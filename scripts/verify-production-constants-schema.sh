@@ -57,6 +57,10 @@ if (constants) {
   assert(constants.sheet_profiles?.sl680_0375?.die_in + constants.grout_in === constants.board_pitch_in, 'board pitch equals sticker die plus grout allowance');
   assert(constants.customer_pack?.board_bleed_in === 0.125, 'customer board artwork bleed is 0.125in');
   assert(constants.customer_pack?.seconds_per_sticker > 0, 'customer placement estimate is configured');
+  assert(typeof constants.customer_pack?.support_contact === 'string', 'customer replacement support contact is configured');
+  assert(typeof constants.customer_pack?.help_url === 'string', 'customer help URL is configurable');
+  assert(typeof constants.customer_pack?.share_line === 'string', 'customer share line is configurable');
+  assert(constants.customer_pack?.pack_version === 'customer-pack.v2', 'customer pack version is v2');
   assert(constants.color_targets?.master_25?.length === 25, 'Master color target has 25 patches');
   const sampler = constants.color_targets?.full_gamut_sampler;
   assert(sampler?.l_star_ramp?.length + sampler?.hue_steps * sampler?.chroma_levels?.length === 40, 'full-gamut sampler has 40 patches');
