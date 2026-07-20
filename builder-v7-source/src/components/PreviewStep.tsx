@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { FineTune, MosaicResult } from '@/lib/mosaic'
-import { PALETTE, TIERS, PRICES } from '@/lib/palette'
+import { PALETTE } from '@/lib/palette'
 import { track } from '@/lib/api'
 import { TrustLine } from './TrustLine'
 import type { AdaptiveMosaicPreview, PaletteMode } from '@/lib/adaptivePalette'
@@ -8,6 +8,9 @@ import type { OptimizeControls } from './OptimizeStep'
 import { CURATED_VARIANTS } from '@/lib/magicResults'
 import { renderFramedMockup, renderPhysicalTiles } from '@/lib/tileRenderer'
 import type { GroutTone } from '@/lib/tileRenderer'
+import { edgeBlendStrength } from '@/lib/qualityPipeline'
+import type { QualityGeometry, QualityPaletteTier } from '@/lib/qualityPipeline'
+import { renderQualityTiles } from '@/lib/qualityRenderer'
 
 export const FORMATS = [
   { id: 'sticker_ready', label: 'Sticker-ready', note: 'Peel-and-place tiles' },
@@ -35,6 +38,10 @@ interface Props {
   adaptiveRendering: boolean
   adaptiveFailed: boolean
   paletteMode: PaletteMode
+  qualityEnabled: boolean
+  qualityGeometry: QualityGeometry
+  subjectMask?: ImageData
+  paletteTiers: QualityPaletteTier[]
   proofRequestEnabled: boolean
   styleThumbs: Record<string, string>
   styleId: string
@@ -107,22 +114,30 @@ export function PreviewStep(p: Props) {
   const [view, setView] = useState<'tiles' | 'wall' | 'photo'>('tiles')
   const [grout, setGrout] = useState<GroutTone>('grey')
   const [tuneOpen, setTuneOpen] = useState(false)
-  const availableTiers = TIERS.filter((t) => PRICES[p.sizeIn]?.[t.id] != null)
+  const availableTiers = p.paletteTiers
   const panelCount = p.panelGrid * p.panelGrid
   const panelCopy = panelCount === 1 ? '1 panel' : `${panelCount} panels`
   const sittingCopy = panelCount === 1 ? '1 sitting' : `${panelCount} sittings`
   const panelMetaCopy = panelCount === 9 ? '9 panels · a panel an evening for a week' : `${panelCopy} · builds in ${sittingCopy}`
-  const fixedPalette = PALETTE.slice(0, TIERS.find((tier) => tier.id === p.tierId)?.colors ?? 12)
+  const fixedPalette = PALETTE.slice(0, p.paletteTiers.find((tier) => tier.id === p.tierId)?.colors ?? 12)
   const customerMosaic = p.paletteMode === 'adaptive' && p.adaptivePreview ? p.adaptivePreview.mosaic : p.mosaic
   const customerPalette = p.paletteMode === 'adaptive' && p.adaptivePreview
     ? p.adaptivePreview.palette.colors
     : fixedPalette
+  const qualityRender = useMemo(() => customerMosaic && p.qualityEnabled
+    ? renderQualityTiles(customerMosaic, customerPalette, {
+      grout,
+      tilePx: Math.max(8, Math.floor(672 / customerMosaic.gridSize)),
+      subjectMask: p.subjectMask,
+      edgeBlend: edgeBlendStrength(p.styleId),
+    })
+    : null, [customerMosaic, customerPalette, grout, p.qualityEnabled, p.subjectMask, p.styleId])
   const tileCanvas = useMemo(() => customerMosaic
-    ? renderPhysicalTiles(customerMosaic, customerPalette, {
+    ? qualityRender?.canvas ?? renderPhysicalTiles(customerMosaic, customerPalette, {
       grout,
       tilePx: Math.max(8, Math.floor(672 / customerMosaic.gridSize)),
     })
-    : null, [customerMosaic, customerPalette, grout])
+    : null, [customerMosaic, customerPalette, grout, qualityRender])
   const tileSrc = useMemo(() => tileCanvas?.toDataURL('image/png') ?? '', [tileCanvas])
   const framedSrc = useMemo(() => tileCanvas ? renderFramedMockup(tileCanvas).toDataURL('image/png') : '', [tileCanvas])
 
@@ -174,6 +189,12 @@ export function PreviewStep(p: Props) {
           className="relative mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white"
           data-palette-mode={p.paletteMode}
           data-adaptive-fallback={p.adaptiveFailed ? 'fixed' : 'none'}
+          data-quality-pipeline={p.qualityEnabled ? 'p2a' : 'off'}
+          data-grid-size={customerMosaic?.gridSize ?? ''}
+          data-cell-size-in={p.qualityEnabled ? p.qualityGeometry.cellSizeIn : ''}
+          data-finished-size-in={p.qualityEnabled ? p.qualityGeometry.finishedSizeIn : ''}
+          data-palette-count={customerPalette.length}
+          data-hybrid-tile-count={qualityRender?.hybrid.tileCount ?? customerMosaic?.grid.length ?? ''}
         >
           {view === 'tiles' && tileSrc ? (
             <div className="relative bg-neutral-100 p-2 sm:p-3">
@@ -231,7 +252,7 @@ export function PreviewStep(p: Props) {
               ))}
             </div>
             <span className="text-xs text-neutral-500">
-              {customerMosaic.gridSize}×{customerMosaic.gridSize} tiles · {Object.keys(customerMosaic.counts).length} colors
+              {customerMosaic.gridSize}×{customerMosaic.gridSize} grid · {qualityRender?.hybrid.tileCount ?? customerMosaic.grid.length} tiles · {Object.keys(customerMosaic.counts).length} colors
             </span>
           </div>
         )}
@@ -360,7 +381,10 @@ export function PreviewStep(p: Props) {
                   {t.label} · {t.colors}
                 </span>
                 <span className="mt-1 flex h-2.5 overflow-hidden rounded" aria-hidden="true">
-                  {PALETTE.slice(0, t.colors).map((c) => (
+                  {(t.id === 'gallery_52' && p.adaptivePreview
+                    ? p.adaptivePreview.palette.colors
+                    : PALETTE.slice(0, t.colors)
+                  ).map((c) => (
                     <span key={c.hex} style={{ background: c.hex, flex: 1 }} />
                   ))}
                 </span>
@@ -428,7 +452,7 @@ export function PreviewStep(p: Props) {
         <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3" aria-live="polite">
           <span className="text-xs leading-5 text-neutral-500">
             <span className="block text-sm font-bold text-ink">{p.sizeIn}″ Sticker kit</span>
-            {p.mosaic ? `${p.mosaic.gridSize * p.mosaic.gridSize} tiles` : '—'} · {TIERS.find((t) => t.id === p.tierId)?.colors} colors
+            {p.mosaic ? `${p.mosaic.gridSize * p.mosaic.gridSize} grid cells` : '—'} · {p.paletteTiers.find((t) => t.id === p.tierId)?.colors} colors
             <span className="block">{panelMetaCopy}</span>
           </span>
           <span className="text-right">

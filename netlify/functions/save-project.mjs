@@ -174,6 +174,8 @@ export default async function handler(request) {
     crop_state: payload.crop_state,
     render_settings: payload.render_settings,
     grid_size: payload.grid_size,
+    cell_size_in: payload.cell_size_in ?? null,
+    finished_size_in: payload.finished_size_in ?? null,
     preview_shape: payload.preview_shape || '',
     palette: payload.palette || null,
     color_counts: payload.color_counts || null,

@@ -511,7 +511,7 @@ function twoNearestPaletteIndices(lab: Lab, palette: readonly AdaptivePaletteCol
   return [first, second, firstDistance / (firstDistance + secondDistance + 1e-9)]
 }
 
-function renderAdaptiveGrid(
+export function renderAdaptiveGrid(
   sample: AdaptiveGridSample,
   palette: AdaptivePaletteResult,
   tilePx: number,
