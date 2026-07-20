@@ -56,16 +56,60 @@ class KitPackTests(unittest.TestCase):
         }
 
     def separated_palette(self, count: int) -> list[str]:
+        return self.separated_palette_at_distance(count, 8)
+
+    def separated_palette_at_distance(self, count: int, minimum_delta_e: float) -> list[str]:
         candidates = []
         for red in range(24, 233, 32):
             for green in range(24, 233, 32):
                 for blue in range(24, 233, 32):
                     value = f"#{red:02X}{green:02X}{blue:02X}"
                     lab = KITPACK.rgb_to_lab(KITPACK.hex_to_rgb(value))
-                    if all(KITPACK.delta_e00(lab, prior) >= 8 for _, prior in candidates):
+                    if all(KITPACK.delta_e00(lab, prior) >= minimum_delta_e for _, prior in candidates):
                         candidates.append((value, lab))
         self.assertGreaterEqual(len(candidates), count)
         return [value for value, _ in candidates[:count]]
+
+    def assert_customer_sheet_annotations_clear(self, plan: dict, profile: dict) -> None:
+        page_w, page_h = KITPACK.page_size_for(profile)
+        die_w = KITPACK.profile_die_w(profile) * KITPACK.IN
+        die_h = KITPACK.profile_die_h(profile) * KITPACK.IN
+        die_rects = []
+        for position in range(int(profile["stickers_per_sheet"])):
+            x, y_top = KITPACK.die_origin(position, profile, page_h)
+            die_rects.append((x, y_top - die_h, x + die_w, y_top))
+
+        def intersects(left: tuple[float, float, float, float], right: tuple[float, float, float, float]) -> bool:
+            return left[0] < right[2] and left[2] > right[0] and left[1] < right[3] and left[3] > right[1]
+
+        for sheet in plan["sheets"]:
+            annotations = KITPACK.customer_sheet_annotation_boxes(sheet, plan, profile, page_w, page_h)
+            for annotation in annotations:
+                bbox = annotation["bbox"]
+                if annotation["kind"] in {"margin_chip", "spares_label"}:
+                    grid_left = float(profile["margin_left_in"]) * KITPACK.IN
+                    self.assertLessEqual(bbox[2] + 2, grid_left, f"{annotation['kind']} lacks 2pt margin clearance")
+                for die_rect in die_rects:
+                    self.assertFalse(
+                        intersects(bbox, die_rect),
+                        f"{annotation['kind']} {bbox} intersects die cell {die_rect}",
+                    )
+                if annotation["kind"].startswith("banner"):
+                    padded = (bbox[0] - 2, bbox[1] - 2, bbox[2] + 2, bbox[3] + 2)
+                    for die_rect in die_rects:
+                        self.assertFalse(
+                            intersects(padded, die_rect),
+                            f"{annotation['kind']} lacks 2pt die clearance",
+                        )
+
+            for segment_index, segment in enumerate(sheet["segments"]):
+                if segment_index == 0:
+                    self.assertIsNone(segment["banner_row"])
+                    continue
+                banner_row = segment["banner_row"]
+                self.assertIsNotNone(banner_row)
+                row_slots = sheet["slots"][banner_row * int(profile["cols"]):(banner_row + 1) * int(profile["cols"])]
+                self.assertTrue(all(slot is None for slot in row_slots))
 
     def test_sl680_geometry_extremes(self) -> None:
         profile = self.constants["sheet_profiles"]["sl680_0375"]
@@ -286,11 +330,11 @@ class KitPackTests(unittest.TestCase):
             self.assertTrue(all("continued" in text.lower() for text in sheet_text[1:]))
             self.assertEqual(result["sheets"], len(plan["sheets"]))
 
-    def test_pixel_portrait_small_groups_fill_forward_to_reduce_sheet_count(self) -> None:
+    def test_pixel_portrait_packing_preserves_counts_with_banner_row_capacity(self) -> None:
         design = KITPACK.load_design(ROOT / "fixtures" / "designs" / "sample-design-pixel-portrait.v1_2.json")
         KITPACK.validate_design(design, self.constants)
         plan = KITPACK.compute_customer_plan(design, self.constants)
-        self.assertLessEqual(len(plan["sheets"]), 5)
+        self.assertEqual(len(plan["sheets"]), 6)
 
         actual = Counter()
         for sheet in plan["sheets"]:
@@ -307,6 +351,30 @@ class KitPackTests(unittest.TestCase):
         for color in plan["colors"]:
             self.assertEqual(actual[(color["palette_index"], False)], color["placed"])
             self.assertEqual(actual[(color["palette_index"], True)], color["spares"])
+
+    def test_customer_sheet_annotations_never_intersect_die_cells(self) -> None:
+        profile = self.constants["sheet_profiles"]["sl680_0375"]
+        portrait = KITPACK.load_design(ROOT / "fixtures" / "designs" / "sample-design-pixel-portrait.v1_2.json")
+        KITPACK.validate_design(portrait, self.constants)
+        portrait_plan = KITPACK.compute_customer_plan(portrait, self.constants)
+        self.assert_customer_sheet_annotations_clear(portrait_plan, profile)
+
+        multi = self.adaptive_design(self.separated_palette_at_distance(7, 14))
+        multi["cell_map"] = [0] * 504 + [index for index in range(1, 7) for _ in range(12)]
+        KITPACK.validate_design(multi, self.constants)
+        multi_plan = KITPACK.compute_customer_plan(multi, self.constants)
+        self.assertTrue(any(len(sheet["segments"]) >= 3 for sheet in multi_plan["sheets"]))
+        self.assert_customer_sheet_annotations_clear(multi_plan, profile)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            for name, design, plan in (("portrait", portrait, portrait_plan), ("multi", multi, multi_plan)):
+                design_path = temp / f"{name}.json"
+                output_path = temp / f"{name}.pdf"
+                design_path.write_text(json.dumps(design), encoding="utf-8")
+                result = KITPACK.generate(design_path, output_path, customer_pack=True)
+                self.assertTrue(output_path.exists())
+                self.assertEqual(result["sheets"], len(plan["sheets"]))
 
     def test_customer_enhancements_render_and_qc_matches_plan(self) -> None:
         from pypdf import PdfReader
