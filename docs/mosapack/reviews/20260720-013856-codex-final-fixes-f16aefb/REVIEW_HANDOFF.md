@@ -8,9 +8,9 @@ This branch adds the ChatGPT review handoff workflow, including a review-package
 
 - Path: `/Users/dereksolas/Developer/mosapack-clean`
 - Branch: `codex/final-fixes`
-- Source commit reviewed: `32b4775`
+- Source commit reviewed: `f16aefb`
 - Report commit: generated after this report is committed
-- Timestamp: `20260720-015136`
+- Timestamp: `20260720-013856`
 - Production URL: https://mosapack.netlify.app
 - Preview URL: [Paste preview URL here if applicable]
 - GitHub branch/PR link: [Paste GitHub link here after push]
@@ -38,15 +38,10 @@ This branch adds the ChatGPT review handoff workflow, including a review-package
 - `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/NEXT_PROMPT.md`
 - `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/REVIEW_HANDOFF.md`
 - `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/VERIFICATION.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/ARTIFACTS.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/DIFF_STAT.txt`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/FILES_CHANGED.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/GIT_STATUS.txt`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/NEXT_PROMPT.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/REVIEW_HANDOFF.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/VERIFICATION.md`
 - `docs/mosapack/reviews/latest/ARTIFACTS.md`
+- `docs/mosapack/reviews/latest/DIFF_STAT.txt`
 - `docs/mosapack/reviews/latest/FILES_CHANGED.md`
+- `docs/mosapack/reviews/latest/GIT_STATUS.txt`
 - `docs/mosapack/reviews/latest/REVIEW_HANDOFF.md`
 - `docs/mosapack/reviews/latest/VERIFICATION.md`
 
@@ -56,7 +51,7 @@ This branch adds the ChatGPT review handoff workflow, including a review-package
 
 ### Generated visual artifacts
 
-- Referenced only, not committed: `/tmp/mosapack-banner-centered-review`
+- Referenced only, not committed: `/tmp/mosapack-customer-banner-row-review`
 
 ## Review Focus
 

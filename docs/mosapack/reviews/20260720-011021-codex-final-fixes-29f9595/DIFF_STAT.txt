@@ -1,0 +1,9 @@
+Diff before report generation
+
+ docs/mosapack/reviews/latest/ARTIFACTS.md      | 11 ++---
+ docs/mosapack/reviews/latest/FILES_CHANGED.md  | 38 ++++++++++++++-
+ docs/mosapack/reviews/latest/REVIEW_HANDOFF.md |  8 ++--
+ docs/mosapack/reviews/latest/VERIFICATION.md   | 65 ++++++++++----------------
+ 4 files changed, 71 insertions(+), 51 deletions(-)
+
+Report files are generated after this diff snapshot.

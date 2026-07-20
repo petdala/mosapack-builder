@@ -9,6 +9,7 @@ import importlib.util
 import json
 import tempfile
 import unittest
+from collections import Counter
 from pathlib import Path
 
 
@@ -55,16 +56,88 @@ class KitPackTests(unittest.TestCase):
         }
 
     def separated_palette(self, count: int) -> list[str]:
+        return self.separated_palette_at_distance(count, 8)
+
+    def separated_palette_at_distance(self, count: int, minimum_delta_e: float) -> list[str]:
         candidates = []
         for red in range(24, 233, 32):
             for green in range(24, 233, 32):
                 for blue in range(24, 233, 32):
                     value = f"#{red:02X}{green:02X}{blue:02X}"
                     lab = KITPACK.rgb_to_lab(KITPACK.hex_to_rgb(value))
-                    if all(KITPACK.delta_e00(lab, prior) >= 8 for _, prior in candidates):
+                    if all(KITPACK.delta_e00(lab, prior) >= minimum_delta_e for _, prior in candidates):
                         candidates.append((value, lab))
         self.assertGreaterEqual(len(candidates), count)
         return [value for value, _ in candidates[:count]]
+
+    def assert_customer_sheet_annotations_clear(self, plan: dict, profile: dict) -> None:
+        page_w, page_h = KITPACK.page_size_for(profile)
+        die_w = KITPACK.profile_die_w(profile) * KITPACK.IN
+        die_h = KITPACK.profile_die_h(profile) * KITPACK.IN
+        die_rects = []
+        for position in range(int(profile["stickers_per_sheet"])):
+            x, y_top = KITPACK.die_origin(position, profile, page_h)
+            die_rects.append((x, y_top - die_h, x + die_w, y_top))
+
+        def intersects(left: tuple[float, float, float, float], right: tuple[float, float, float, float]) -> bool:
+            return left[0] < right[2] and left[2] > right[0] and left[1] < right[3] and left[3] > right[1]
+
+        for sheet in plan["sheets"]:
+            annotations = KITPACK.customer_sheet_annotation_boxes(sheet, plan, profile, page_w, page_h)
+            mid_banner_chips = [
+                annotation
+                for annotation in annotations
+                if annotation["kind"] == "banner_chip" and annotation.get("banner_row") is not None
+            ]
+            self.assertEqual(len(mid_banner_chips), max(0, len(sheet["segments"]) - 1))
+            for annotation in annotations:
+                bbox = annotation["bbox"]
+                if annotation["kind"] in {"margin_chip", "spares_label"}:
+                    grid_left = float(profile["margin_left_in"]) * KITPACK.IN
+                    self.assertLessEqual(bbox[2] + 2, grid_left, f"{annotation['kind']} lacks 2pt margin clearance")
+                if annotation["kind"].startswith("banner") and annotation.get("banner_row") is not None:
+                    banner_row = int(annotation["banner_row"])
+                    _, row_top = KITPACK.die_origin(banner_row * int(profile["cols"]), profile, page_h)
+                    row_bottom = row_top - die_h
+                    self.assertGreaterEqual(bbox[1], row_bottom + 2, f"{annotation['kind']} is below its reserved row")
+                    self.assertLessEqual(bbox[3], row_top - 2, f"{annotation['kind']} is above its reserved row")
+                    continue
+                for die_rect in die_rects:
+                    self.assertFalse(
+                        intersects(bbox, die_rect),
+                        f"{annotation['kind']} {bbox} intersects die cell {die_rect}",
+                    )
+                if annotation["kind"].startswith("banner"):
+                    padded = (bbox[0] - 2, bbox[1] - 2, bbox[2] + 2, bbox[3] + 2)
+                    for die_rect in die_rects:
+                        self.assertFalse(
+                            intersects(padded, die_rect),
+                            f"{annotation['kind']} lacks 2pt die clearance",
+                        )
+
+            for segment_index, segment in enumerate(sheet["segments"]):
+                if segment_index == 0:
+                    self.assertIsNone(segment["banner_row"])
+                    continue
+                banner_row = segment["banner_row"]
+                self.assertIsNotNone(banner_row)
+                row_slots = sheet["slots"][banner_row * int(profile["cols"]):(banner_row + 1) * int(profile["cols"])]
+                self.assertTrue(all(slot is None for slot in row_slots))
+                previous_palette = sheet["segments"][segment_index - 1]["palette_index"]
+                previous_rows = {
+                    position // int(profile["cols"])
+                    for position, slot in enumerate(sheet["slots"])
+                    if slot and slot["palette_index"] == previous_palette
+                }
+                current_rows = {
+                    position // int(profile["cols"])
+                    for position, slot in enumerate(sheet["slots"])
+                    if slot and slot["palette_index"] == segment["palette_index"]
+                }
+                self.assertEqual(banner_row, max(previous_rows) + 1)
+                self.assertEqual(min(current_rows), banner_row + 1)
+                intervening_pitch = (min(current_rows) - max(previous_rows) - 1) * KITPACK.profile_pitch_y(profile) * KITPACK.IN
+                self.assertAlmostEqual(intervening_pitch, KITPACK.profile_pitch_y(profile) * KITPACK.IN, delta=1)
 
     def test_sl680_geometry_extremes(self) -> None:
         profile = self.constants["sheet_profiles"]["sl680_0375"]
@@ -161,6 +234,47 @@ class KitPackTests(unittest.TestCase):
             "cf490e38d7214834862bad91b9a26f9d687b16f65a00293d57525facd74348d7",
         )
 
+    def test_v12_size_model_validates_and_propagates_to_manifest_and_qc(self) -> None:
+        from pypdf import PdfReader
+
+        design_path = ROOT / "fixtures" / "designs" / "sample-design-pixel-portrait.v1_2.json"
+        design = KITPACK.load_design(design_path)
+        KITPACK.validate_design(design, self.constants)
+        self.assertNotIn("size_in", design)
+        self.assertEqual(design["cell_size_in"], 0.375)
+        self.assertEqual(design["finished_size_in"], 9.6)
+        plan = KITPACK.compute_customer_plan(design, self.constants)
+        self.assertEqual(plan["finished_size_in"], 9.6)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            output_path = temp / "customer.pdf"
+            board_path = temp / "board.pdf"
+            result = KITPACK.generate(design_path, output_path, customer_pack=True, board_art_path=board_path)
+            manifest = json.loads(output_path.with_suffix(".manifest.json").read_text())
+            self.assertEqual(manifest["schema_version"], 1.2)
+            self.assertEqual(manifest["finished_size_in"], 9.6)
+            self.assertEqual(manifest["cell_size_in"], 0.375)
+            self.assertNotIn("size_in", manifest)
+            self.assertEqual(result["qc_checklist"]["finished_size_in"], 9.6)
+            self.assertEqual(result["qc_checklist"]["cell_size_in"], 0.375)
+            qc_text = PdfReader(result["qc_checklist"]["output"]).pages[0].extract_text() or ""
+            self.assertIn("Finished size", qc_text)
+            self.assertIn("9.6 in", qc_text)
+            self.assertIn("Sticker size", qc_text)
+
+    def test_v12_size_model_rejects_wrong_finished_or_cell_size(self) -> None:
+        source = KITPACK.load_design(ROOT / "fixtures" / "designs" / "sample-design-pixel-portrait.v1_2.json")
+        wrong_finished = json.loads(json.dumps(source))
+        wrong_finished["finished_size_in"] = 12
+        with self.assertRaisesRegex(ValueError, "grid x board_pitch_in"):
+            KITPACK.validate_design(wrong_finished, self.constants)
+
+        wrong_cell = json.loads(json.dumps(source))
+        wrong_cell["cell_size_in"] = 0.5
+        with self.assertRaisesRegex(ValueError, "must match sheet profile"):
+            KITPACK.validate_design(wrong_cell, self.constants)
+
     def test_color_target_contains_master_and_full_gamut_patches(self) -> None:
         patches = KITPACK.color_target_patches(self.constants)
         self.assertEqual(len(patches), 65)
@@ -244,6 +358,52 @@ class KitPackTests(unittest.TestCase):
             self.assertTrue(all("continued" in text.lower() for text in sheet_text[1:]))
             self.assertEqual(result["sheets"], len(plan["sheets"]))
 
+    def test_pixel_portrait_packing_preserves_counts_with_banner_row_capacity(self) -> None:
+        design = KITPACK.load_design(ROOT / "fixtures" / "designs" / "sample-design-pixel-portrait.v1_2.json")
+        KITPACK.validate_design(design, self.constants)
+        plan = KITPACK.compute_customer_plan(design, self.constants)
+        self.assertEqual(len(plan["sheets"]), 6)
+
+        actual = Counter()
+        for sheet in plan["sheets"]:
+            for slot in sheet["slots"]:
+                if slot:
+                    actual[(slot["palette_index"], slot["is_spare"])] += 1
+            for left_index, left in enumerate(sheet["colors"]):
+                for right in sheet["colors"][left_index + 1:]:
+                    distance = KITPACK.delta_e00(
+                        KITPACK.rgb_to_lab(KITPACK.hex_to_rgb(design["palette"][left]["hex"])),
+                        KITPACK.rgb_to_lab(KITPACK.hex_to_rgb(design["palette"][right]["hex"])),
+                    )
+                    self.assertGreaterEqual(distance, self.constants["customer_pack"]["lookalike_delta_e00"])
+        for color in plan["colors"]:
+            self.assertEqual(actual[(color["palette_index"], False)], color["placed"])
+            self.assertEqual(actual[(color["palette_index"], True)], color["spares"])
+
+    def test_customer_sheet_annotations_never_intersect_die_cells(self) -> None:
+        profile = self.constants["sheet_profiles"]["sl680_0375"]
+        portrait = KITPACK.load_design(ROOT / "fixtures" / "designs" / "sample-design-pixel-portrait.v1_2.json")
+        KITPACK.validate_design(portrait, self.constants)
+        portrait_plan = KITPACK.compute_customer_plan(portrait, self.constants)
+        self.assert_customer_sheet_annotations_clear(portrait_plan, profile)
+
+        multi = self.adaptive_design(self.separated_palette_at_distance(7, 14))
+        multi["cell_map"] = [0] * 504 + [index for index in range(1, 7) for _ in range(12)]
+        KITPACK.validate_design(multi, self.constants)
+        multi_plan = KITPACK.compute_customer_plan(multi, self.constants)
+        self.assertTrue(any(len(sheet["segments"]) >= 3 for sheet in multi_plan["sheets"]))
+        self.assert_customer_sheet_annotations_clear(multi_plan, profile)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            for name, design, plan in (("portrait", portrait, portrait_plan), ("multi", multi, multi_plan)):
+                design_path = temp / f"{name}.json"
+                output_path = temp / f"{name}.pdf"
+                design_path.write_text(json.dumps(design), encoding="utf-8")
+                result = KITPACK.generate(design_path, output_path, customer_pack=True)
+                self.assertTrue(output_path.exists())
+                self.assertEqual(result["sheets"], len(plan["sheets"]))
+
     def test_customer_enhancements_render_and_qc_matches_plan(self) -> None:
         from pypdf import PdfReader
 
@@ -300,6 +460,35 @@ class KitPackTests(unittest.TestCase):
             self.assertNotIn("Build help", first_text)
             manifest = json.loads(output_path.with_suffix(".manifest.json").read_text())
             self.assertFalse(manifest["customer_help_qr"])
+
+    def test_customer_contact_help_and_share_are_constants_driven(self) -> None:
+        from pypdf import PdfReader
+
+        design = self.adaptive_design()
+        constants = json.loads(json.dumps(self.constants))
+        constants["customer_pack"]["support_contact"] = "replacements@example.test"
+        constants["customer_pack"]["help_url"] = "https://example.test/build-help"
+        constants["customer_pack"]["share_line"] = "#CustomShareLine"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            constants_path = temp / "constants.json"
+            design_path = temp / "design.json"
+            output_path = temp / "customer.pdf"
+            constants_path.write_text(json.dumps(constants), encoding="utf-8")
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            KITPACK.generate(design_path, output_path, constants_path, customer_pack=True)
+            reader = PdfReader(output_path)
+            first_text = reader.pages[0].extract_text() or ""
+            last_text = reader.pages[-1].extract_text() or ""
+            self.assertIn("replacements@example.test", first_text)
+            self.assertIn("#CustomShareLine", last_text)
+            manifest = json.loads(output_path.with_suffix(".manifest.json").read_text())
+            self.assertTrue(manifest["customer_help_qr"])
+
+        source = MODULE_PATH.read_text(encoding="utf-8")
+        self.assertNotIn("support@mosapack.com", source)
+        self.assertNotIn("https://mosapack.com/help", source)
+        self.assertNotIn("#MosaPack", source)
 
     def test_customer_pack_copy_board_art_and_cell_coverage(self) -> None:
         from pypdf import PdfReader

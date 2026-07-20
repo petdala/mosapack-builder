@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mosapack-design-schema-v1.2",
+  "title": "MosaPack Canonical Design JSON v1.2",
+  "$comment": "Adds an honest production-size model. cell_size_in is the physical sticker die. finished_size_in is the board size and must equal grid multiplied by production board_pitch_in within 0.05in. size_in is retained only as optional legacy/informational metadata. Cross-field production checks are enforced by the kit-pack loader.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "project_id",
+    "grid",
+    "cell_size_in",
+    "finished_size_in",
+    "palette_id",
+    "palette",
+    "cell_map",
+    "black_base"
+  ],
+  "properties": {
+    "schema_version": { "const": 1.2 },
+    "project_id": {
+      "type": "string",
+      "minLength": 8,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,}$"
+    },
+    "proof_ref": {
+      "type": "string",
+      "pattern": "^MP-[A-Z0-9]{4,8}$"
+    },
+    "grid": {
+      "type": "integer",
+      "enum": [24, 32, 48, 64]
+    },
+    "cell_size_in": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "$comment": "Physical sticker die size. Must match the selected sheet profile die."
+    },
+    "finished_size_in": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "$comment": "Physical board size. Loader enforces grid * board_pitch_in within +/-0.05in."
+    },
+    "size_in": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "deprecated": true,
+      "$comment": "Deprecated v1.1-era nominal size. Never use for customer-facing production dimensions."
+    },
+    "preferred_size_in": {
+      "type": ["number", "string", "null"],
+      "$comment": "Informational customer preference copied from the proof payload; not production geometry."
+    },
+    "preferred_size_label": {
+      "type": ["string", "null"]
+    },
+    "sheet_profile": {
+      "type": "string",
+      "default": "sl680_0375"
+    },
+    "palette_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "palette_mode": {
+      "type": "string",
+      "enum": ["fixed", "adaptive"]
+    },
+    "gamut_profile_id": {
+      "type": "string"
+    },
+    "palette": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "hex"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "name": { "type": "string" },
+          "hex": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+          "index": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "cell_map": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 }
+    },
+    "black_base": { "type": "boolean" },
+    "dedication": { "type": "string" },
+    "photo_category": { "type": "string" },
+    "vertical": { "type": "string" },
+    "kit": { "type": "string" },
+    "kit_format": { "type": "string" },
+    "render_style": { "type": "string" },
+    "pipeline_variant": { "type": "string" },
+    "proof_status": { "type": "string" },
+    "production": { "type": "object", "additionalProperties": true },
+    "source": { "type": "object", "additionalProperties": true }
+  },
+  "additionalProperties": true
+}

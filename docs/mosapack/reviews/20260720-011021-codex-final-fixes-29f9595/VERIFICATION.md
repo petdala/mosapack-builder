@@ -1,6 +1,6 @@
 # Verification
 
-Generated: 20260720-015136
+Generated: 20260720-011021
 
 ## Common Scripts
 
@@ -27,7 +27,7 @@ WARNING: archive files found:
 .netlify/functions/delete-project.zip
 Public Kit/ConvertKit reference scan: no matches.
 High-confidence credential scan: no matches.
-Low-confidence sensitive identifier hits: 550
+Low-confidence sensitive identifier hits: 546
 Docs/scripts may mention discontinued providers or scanner patterns; inspect new hits before release.
 Security scan complete.
 ```

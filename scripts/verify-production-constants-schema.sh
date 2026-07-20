@@ -4,11 +4,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONSTANTS="$ROOT/config/production-constants.json"
 SCHEMA="$ROOT/config/design-schema.v1.json"
+SCHEMA_V12="$ROOT/config/design-schema.v1_2.json"
 SAMPLE="$ROOT/fixtures/designs/sample-design-first-hello.v1_1.json"
+SAMPLE_V12="$ROOT/fixtures/designs/sample-design-pixel-portrait.v1_2.json"
 
-node - "$CONSTANTS" "$SCHEMA" "$SAMPLE" <<'NODE'
+node - "$CONSTANTS" "$SCHEMA" "$SCHEMA_V12" "$SAMPLE" "$SAMPLE_V12" <<'NODE'
 const fs = require('fs');
-const [constantsPath, schemaPath, samplePath] = process.argv.slice(2);
+const [constantsPath, schemaPath, schemaV12Path, samplePath, sampleV12Path] = process.argv.slice(2);
 let fail = 0;
 
 function readJson(path) {
@@ -30,7 +32,9 @@ function assert(condition, message) {
 
 const constants = readJson(constantsPath);
 const schema = readJson(schemaPath);
+const schemaV12 = readJson(schemaV12Path);
 const sample = readJson(samplePath);
+const sampleV12 = readJson(sampleV12Path);
 
 if (constants) {
   assert(constants.sheet_profiles && constants.sheet_profiles.OL2050, 'OL2050 sheet profile exists');
@@ -62,6 +66,15 @@ if (constants) {
   assert(typeof constants.customer_pack?.share_line === 'string', 'customer share line is configurable');
   assert(constants.customer_pack?.pack_version === 'customer-pack.v2', 'customer pack version is v2');
   assert(constants.color_targets?.master_25?.length === 25, 'Master color target has 25 patches');
+  assert(constants.palettes?.master_25?.length === 25, 'Master-25 proof mapping has 25 colors');
+  assert(
+    constants.palettes?.master_25?.map((entry) => entry.hex.toUpperCase()).join(',') ===
+      constants.color_targets?.master_25?.map((entry) => entry.hex.toUpperCase()).join(','),
+    'Master-25 proof mapping matches the production target order'
+  );
+  assert(constants.customer_pack?.support_contact === 'support@mosapack.com', 'customer replacement contact is production configured');
+  assert(constants.customer_pack?.help_url === 'https://mosapack.com/help', 'customer help URL is production configured');
+  assert(constants.customer_pack?.share_line === '#MosaPack', 'customer share line is production configured');
   const sampler = constants.color_targets?.full_gamut_sampler;
   assert(sampler?.l_star_ramp?.length + sampler?.hue_steps * sampler?.chroma_levels?.length === 40, 'full-gamut sampler has 40 patches');
   const grids = [24, 32, 48];
@@ -92,6 +105,14 @@ if (schema) {
   assert(pairs.includes('48->24'), 'schema enforces 48->24 grid/size pair');
 }
 
+if (schemaV12) {
+  for (const field of ['schema_version', 'project_id', 'grid', 'cell_size_in', 'finished_size_in', 'palette_id', 'palette', 'cell_map', 'black_base']) {
+    assert((schemaV12.required || []).includes(field), `v1.2 schema requires ${field}`);
+  }
+  assert(schemaV12.properties?.schema_version?.const === 1.2, 'v1.2 schema fixes schema_version at 1.2');
+  assert(schemaV12.properties?.size_in?.deprecated === true, 'v1.2 schema deprecates size_in');
+}
+
 if (sample && schema && constants) {
   assert(sample.schema_version === 1.1, 'sample schema_version is 1.1');
   assert(typeof sample.project_id === 'string' && sample.project_id.length >= 8, 'sample project_id present');
@@ -103,6 +124,15 @@ if (sample && schema && constants) {
   const maxCell = Math.max(...sample.cell_map);
   const minCell = Math.min(...sample.cell_map);
   assert(minCell >= 0 && maxCell < sample.palette.length, 'sample cell_map indexes are within palette');
+}
+
+
+if (sampleV12 && schemaV12 && constants) {
+  const profile = constants.sheet_profiles?.[sampleV12.sheet_profile];
+  assert(sampleV12.schema_version === 1.2, 'v1.2 sample schema_version is 1.2');
+  assert(sampleV12.cell_map.length === sampleV12.grid * sampleV12.grid, 'v1.2 sample cell_map length equals grid^2');
+  assert(Math.abs(sampleV12.finished_size_in - sampleV12.grid * constants.board_pitch_in) <= 0.05, 'v1.2 sample finished size matches board pitch');
+  assert(sampleV12.cell_size_in === profile?.die_in, 'v1.2 sample cell size matches sheet profile die');
 }
 
 if (fail) process.exit(1);

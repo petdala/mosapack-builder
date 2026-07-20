@@ -3,8 +3,17 @@
 ## Previous Commit
 
 ```text
+A	config/design-schema.v1_2.json
+M	config/production-constants.json
+A	fixtures/designs/sample-design-pixel-portrait.v1_2.json
+A	fixtures/proofs/sample-adaptive-proof-payload.json
+A	fixtures/proofs/sample-fixed-proof-payload.json
+M	scripts/verify-production-constants-schema.sh
+M	tools/kitpack/README.md
 M	tools/kitpack/generate_kit_pack.py
+A	tools/kitpack/proof_to_design.py
 M	tools/kitpack/test_generate_kit_pack.py
+A	tools/kitpack/test_proof_to_design.py
 ```
 
 ## Branch Against main
@@ -12,24 +21,6 @@ M	tools/kitpack/test_generate_kit_pack.py
 ```text
 A	config/design-schema.v1_2.json
 M	config/production-constants.json
-A	docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/ARTIFACTS.md
-A	docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/DIFF_STAT.txt
-A	docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/FILES_CHANGED.md
-A	docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/GIT_STATUS.txt
-A	docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/NEXT_PROMPT.md
-A	docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/REVIEW_HANDOFF.md
-A	docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/VERIFICATION.md
-A	docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/ARTIFACTS.md
-A	docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/DIFF_STAT.txt
-A	docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/FILES_CHANGED.md
-A	docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/GIT_STATUS.txt
-A	docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/NEXT_PROMPT.md
-A	docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/REVIEW_HANDOFF.md
-A	docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/VERIFICATION.md
-M	docs/mosapack/reviews/latest/ARTIFACTS.md
-M	docs/mosapack/reviews/latest/FILES_CHANGED.md
-M	docs/mosapack/reviews/latest/REVIEW_HANDOFF.md
-M	docs/mosapack/reviews/latest/VERIFICATION.md
 A	fixtures/designs/sample-design-pixel-portrait.v1_2.json
 A	fixtures/proofs/sample-adaptive-proof-payload.json
 A	fixtures/proofs/sample-fixed-proof-payload.json
@@ -874,45 +865,6 @@ output/lighthouse-builder-mobile-prod-final-forms.json
 output/lighthouse-builder-mobile-prod-final.json
 output/lighthouse-builder-mobile.json
 output/lighthouse-classics-mobile-local.json
-output/pdf/customer-banner-centered/pixel-portrait.customer-pack.manifest.json
-output/pdf/customer-banner-centered/pixel-portrait.customer-pack.pdf
-output/pdf/customer-banner-centered/pixel-portrait.customer-pack.qc-checklist.pdf
-output/pdf/customer-banner-centered/png/portrait/page-01.png
-output/pdf/customer-banner-centered/png/portrait/page-02.png
-output/pdf/customer-banner-centered/png/portrait/page-03.png
-output/pdf/customer-banner-centered/png/portrait/page-04.png
-output/pdf/customer-banner-centered/png/portrait/page-05.png
-output/pdf/customer-banner-centered/png/portrait/page-06.png
-output/pdf/customer-banner-centered/png/portrait/page-07.png
-output/pdf/customer-banner-centered/png/portrait/page-08.png
-output/pdf/customer-banner-centered/png/portrait/page-09.png
-output/pdf/customer-banner-centered/png/qa-kid/page-01.png
-output/pdf/customer-banner-centered/png/qa-kid/page-02.png
-output/pdf/customer-banner-centered/png/qa-kid/page-03.png
-output/pdf/customer-banner-centered/png/qa-kid/page-04.png
-output/pdf/customer-banner-centered/png/qa-kid/page-05.png
-output/pdf/customer-banner-centered/png/qa-kid/page-06.png
-output/pdf/customer-banner-centered/png/qa-kid/page-07.png
-output/pdf/customer-banner-centered/png/qa-kid/page-08.png
-output/pdf/customer-banner-centered/portrait-transition-sheet.png
-output/pdf/customer-banner-centered/qa-kid-transition-sheet.png
-output/pdf/customer-banner-centered/qa-kid.customer-pack.manifest.json
-output/pdf/customer-banner-centered/qa-kid.customer-pack.pdf
-output/pdf/customer-banner-centered/qa-kid.customer-pack.qc-checklist.pdf
-output/pdf/customer-banner-row-fix/pixel-portrait.customer-pack.manifest.json
-output/pdf/customer-banner-row-fix/pixel-portrait.customer-pack.pdf
-output/pdf/customer-banner-row-fix/pixel-portrait.customer-pack.qc-checklist.pdf
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack-page-01.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack-page-02.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack-page-03.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack-page-04.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack-page-05.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack-page-06.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack-page-07.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack-page-08.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack-page-09.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.customer-pack.qc-checklist-page-01.png
-output/pdf/customer-banner-row-fix/png/pixel-portrait.transition-sheet-4.png
 output/pdf/customer-pack-round2/pixel-portrait-board-art.pdf
 output/pdf/customer-pack-round2/pixel-portrait-customer-pack.manifest.json
 output/pdf/customer-pack-round2/pixel-portrait-customer-pack.pdf
@@ -955,7 +907,6 @@ output/pdf/final-fixes-proof-chain/png/customer-5.png
 output/pdf/final-fixes-proof-chain/png/customer-6.png
 output/pdf/final-fixes-proof-chain/png/customer-7.png
 output/pdf/final-fixes-proof-chain/png/customer-8.png
-output/pdf/final-fixes-proof-chain/png/qc-checklist-1.png
 output/playwright/brief3-build-map-desktop-12.png
 output/playwright/brief3-build-map-desktop-18.png
 output/playwright/brief3-build-map-desktop-24.png
@@ -1003,20 +954,6 @@ Warning: important untracked docs may not be visible to GitHub/ChatGPT unless co
 
 ### docs/
 
-- `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/ARTIFACTS.md`
-- `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/DIFF_STAT.txt`
-- `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/FILES_CHANGED.md`
-- `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/GIT_STATUS.txt`
-- `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/NEXT_PROMPT.md`
-- `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/REVIEW_HANDOFF.md`
-- `docs/mosapack/reviews/20260720-011021-codex-final-fixes-29f9595/VERIFICATION.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/ARTIFACTS.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/DIFF_STAT.txt`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/FILES_CHANGED.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/GIT_STATUS.txt`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/NEXT_PROMPT.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/REVIEW_HANDOFF.md`
-- `docs/mosapack/reviews/20260720-013856-codex-final-fixes-f16aefb/VERIFICATION.md`
 - `docs/mosapack/reviews/latest/ARTIFACTS.md`
 - `docs/mosapack/reviews/latest/FILES_CHANGED.md`
 - `docs/mosapack/reviews/latest/REVIEW_HANDOFF.md`
@@ -1028,4 +965,4 @@ Warning: important untracked docs may not be visible to GitHub/ChatGPT unless co
 
 ## Generated Review References
 
-- `/tmp/mosapack-banner-centered-review`
+- `/tmp/mosapack-final-fixes-review`

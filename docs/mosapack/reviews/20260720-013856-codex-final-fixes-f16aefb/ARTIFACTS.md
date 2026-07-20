@@ -1,14 +1,14 @@
 # Artifacts
 
-- Review ZIP path: `/tmp/mosapack-chatgpt-review-20260720-015136.zip`
-- Review folder path: `/tmp/mosapack-chatgpt-review-20260720-015136`
+- Review ZIP path: `/tmp/mosapack-chatgpt-review-20260720-013856.zip`
+- Review folder path: `/tmp/mosapack-chatgpt-review-20260720-013856`
 - Preview URL: [Paste preview URL here if applicable]
 - Netlify deploy URL: [Paste deploy URL here if applicable]
 
 ## Generated Visual Review
 
-- Generated review folder: /tmp/mosapack-banner-centered-review
-- Generated review ZIP sibling: /tmp/mosapack-banner-centered-review.zip (no)
+- Generated review folder: /tmp/mosapack-customer-banner-row-review
+- Generated review ZIP sibling: /tmp/mosapack-customer-banner-row-review.zip (no)
 - index.html: yes
 - README.md: yes
 - data/: no

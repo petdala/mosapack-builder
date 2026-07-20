@@ -29,6 +29,7 @@ from reportlab.graphics.barcode.qr import QrCodeWidget
 from reportlab.graphics.shapes import Drawing
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
 IN = 72.0
@@ -287,6 +288,19 @@ def load_design(path: str | Path) -> dict[str, Any]:
     return normalize_legacy_design(load_json(path))
 
 
+def design_schema_version(design: dict[str, Any]) -> float:
+    version = design.get("schema_version")
+    if version not in (1.1, 1.2):
+        raise ValueError("schema_version must be 1.1 or 1.2")
+    return float(version)
+
+
+def design_finished_size_in(design: dict[str, Any], constants: dict[str, Any]) -> float:
+    if design.get("schema_version") == 1.2:
+        return float(design["finished_size_in"])
+    return int(design["grid"]) * float(constants["board_pitch_in"])
+
+
 def validate_design(design: dict[str, Any], constants: dict[str, Any]) -> list[str]:
     warnings: list[str] = []
     scan_for_forbidden_payload(design)
@@ -298,12 +312,32 @@ def validate_design(design: dict[str, Any], constants: dict[str, Any]) -> list[s
     grid = design.get("grid")
     if grid not in SUPPORTED_GRIDS:
         raise ValueError("grid must be 24, 32, 48, or 64")
-    if design.get("size_in") != grid // 2:
-        raise ValueError("size_in must equal grid / 2")
+    schema_version = design_schema_version(design)
     profile_id = design.get("sheet_profile") or constants.get("default_profile")
     if profile_id not in constants.get("sheet_profiles", {}):
         raise ValueError(f"sheet_profile not found in constants: {profile_id}")
     profile = constants["sheet_profiles"][profile_id]
+    if schema_version == 1.1:
+        if design.get("size_in") != grid // 2:
+            raise ValueError("v1.1 size_in must equal grid / 2")
+    else:
+        cell_size = design.get("cell_size_in")
+        finished_size = design.get("finished_size_in")
+        if isinstance(cell_size, bool) or not isinstance(cell_size, (int, float)) or cell_size <= 0:
+            raise ValueError("v1.2 cell_size_in must be a positive number")
+        if isinstance(finished_size, bool) or not isinstance(finished_size, (int, float)) or finished_size <= 0:
+            raise ValueError("v1.2 finished_size_in must be a positive number")
+        die_w = profile_die_w(profile)
+        die_h = profile_die_h(profile)
+        if not math.isclose(float(cell_size), die_w, abs_tol=1e-9) or not math.isclose(float(cell_size), die_h, abs_tol=1e-9):
+            raise ValueError(
+                f"v1.2 cell_size_in {float(cell_size):.4f} must match sheet profile {profile_id} die {die_w:.4f} x {die_h:.4f}"
+            )
+        expected_finished = grid * float(constants["board_pitch_in"])
+        if abs(float(finished_size) - expected_finished) > 0.05 + 1e-9:
+            raise ValueError(
+                f"v1.2 finished_size_in {float(finished_size):.4f} must equal grid x board_pitch_in ({expected_finished:.4f}) within 0.05in"
+            )
     if profile.get("verified") is False:
         warnings.append(f"{profile_id} is not production verified: {profile.get('verification_status', 'unverified')}")
     palette = normalize_palette(design.get("palette") or [])
@@ -547,6 +581,144 @@ def customer_board_regions(grid: int, constants: dict[str, Any]) -> list[dict[st
     ]
 
 
+def customer_sheet_groups(sheets: list[dict[str, Any]]) -> list[list[dict[str, int]]]:
+    grouped_sheets: list[list[dict[str, int]]] = []
+    for sheet in sheets:
+        order: list[int] = []
+        counts: dict[int, dict[str, int]] = {}
+        for slot in sheet["slots"]:
+            if not slot:
+                continue
+            palette_index = int(slot["palette_index"])
+            if palette_index not in counts:
+                order.append(palette_index)
+                counts[palette_index] = {"palette_index": palette_index, "placed": 0, "spares": 0}
+            key = "spares" if slot["is_spare"] else "placed"
+            counts[palette_index][key] += 1
+        grouped_sheets.append([counts[palette_index] for palette_index in order])
+    return grouped_sheets
+
+
+def customer_group_footprint(group: dict[str, int], cols: int) -> int:
+    return sum(math.ceil(int(group[key]) / cols) * cols for key in ("placed", "spares") if group[key] > 0)
+
+
+def customer_sheet_group_footprint(groups: list[dict[str, int]], cols: int) -> int:
+    transition_rows = max(0, len(groups) - 1)
+    return sum(customer_group_footprint(group, cols) for group in groups) + transition_rows * cols
+
+
+def optimize_customer_sheet_groups(
+    grouped_sheets: list[list[dict[str, int]]],
+    labs: dict[int, tuple[float, float, float]],
+    lookalike_threshold: float,
+    cols: int,
+    per_sheet: int,
+) -> list[list[dict[str, int]]]:
+    appearances = Counter(group["palette_index"] for groups in grouped_sheets for group in groups)
+    for source_index in range(len(grouped_sheets) - 1, 0, -1):
+        source = grouped_sheets[source_index]
+        for group in list(reversed(source)):
+            palette_index = group["palette_index"]
+            if appearances[palette_index] != 1:
+                continue
+            candidates: list[tuple[int, int]] = []
+            for target_index in range(source_index):
+                target = grouped_sheets[target_index]
+                if any(
+                    delta_e00(labs[palette_index], labs[existing["palette_index"]]) < lookalike_threshold
+                    for existing in target
+                    if existing["palette_index"] != palette_index
+                ):
+                    continue
+                candidate_groups = [*target, group]
+                used = customer_sheet_group_footprint(candidate_groups, cols)
+                if used <= per_sheet:
+                    candidates.append((per_sheet - used, target_index))
+            if not candidates:
+                continue
+            _, target_index = min(candidates)
+            source.remove(group)
+            grouped_sheets[target_index].append(group)
+    return [groups for groups in grouped_sheets if groups]
+
+
+def rebuild_customer_sheets(
+    grouped_sheets: list[list[dict[str, int]]],
+    colors: list[dict[str, Any]],
+    rows: int,
+    cols: int,
+) -> list[dict[str, Any]]:
+    per_sheet = rows * cols
+    colors_by_index = {color["palette_index"]: color for color in colors}
+    remaining = {color["palette_index"]: color["total"] for color in colors}
+    seen: set[int] = set()
+    sheets: list[dict[str, Any]] = []
+    for groups in grouped_sheets:
+        sheet = {
+            "slots": [None] * per_sheet,
+            "colors": [],
+            "row_labels": {},
+            "segments": [],
+            "reserved_banner_rows": [],
+        }
+        cursor = 0
+        for group in groups:
+            palette_index = group["palette_index"]
+            color = colors_by_index[palette_index]
+            sheet["colors"].append(palette_index)
+            continued = palette_index in seen
+            if cursor % cols:
+                cursor += cols - cursor % cols
+            banner_row = None
+            if cursor:
+                if per_sheet - cursor < 2 * cols:
+                    raise ValueError("customer sheet transition requires one banner row and one sticker row")
+                banner_row = cursor // cols
+                sheet["reserved_banner_rows"].append(banner_row)
+                cursor += cols
+            sheet["segments"].append(
+                {
+                    "slot": cursor,
+                    "banner_row": banner_row,
+                    "color_number": color["number"],
+                    "palette_index": palette_index,
+                    "is_spare": group["placed"] == 0,
+                    "continued": continued,
+                    "remaining_count": remaining[palette_index],
+                }
+            )
+            seen.add(palette_index)
+            for is_spare, key in ((False, "placed"), (True, "spares")):
+                quantity = int(group[key])
+                if quantity <= 0:
+                    continue
+                if cursor % cols:
+                    cursor += cols - cursor % cols
+                while quantity:
+                    if cursor >= per_sheet:
+                        raise ValueError("customer sheet optimization overflowed the die grid")
+                    row = cursor // cols
+                    take = min(quantity, cols - cursor % cols)
+                    sheet["row_labels"][row] = {
+                        "color_number": color["number"],
+                        "is_spare": is_spare,
+                    }
+                    for offset in range(take):
+                        sheet["slots"][cursor + offset] = {
+                            "palette_index": palette_index,
+                            "color_number": color["number"],
+                            "is_spare": is_spare,
+                        }
+                    cursor += take
+                    quantity -= take
+                if cursor % cols:
+                    cursor += cols - cursor % cols
+            remaining[palette_index] -= int(group["placed"]) + int(group["spares"])
+        sheets.append(sheet)
+    return sheets
+
+
 def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> dict[str, Any]:
     counts = Counter(int(value) for value in design["cell_map"])
     spare_rate = float(constants.get("spares", {}).get("rate", 0.05))
@@ -584,7 +756,13 @@ def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> 
     sheets: list[dict[str, Any]] = []
 
     def new_sheet() -> dict[str, Any]:
-        sheet = {"slots": [None] * per_sheet, "colors": [], "row_labels": {}, "segments": []}
+        sheet = {
+            "slots": [None] * per_sheet,
+            "colors": [],
+            "row_labels": {},
+            "segments": [],
+            "reserved_banner_rows": [],
+        }
         sheets.append(sheet)
         return sheet
 
@@ -603,6 +781,12 @@ def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> 
             cursor = 0
         if cursor % cols:
             cursor += cols - cursor % cols
+        if sheet["colors"]:
+            if per_sheet - cursor < 2 * cols:
+                sheet = new_sheet()
+                cursor = 0
+            else:
+                cursor += cols
         for is_spare, quantity in ((False, color["placed"]), (True, color["spares"])):
             if quantity <= 0:
                 continue
@@ -650,6 +834,15 @@ def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> 
 
     if sheets and not any(slot for slot in sheets[-1]["slots"]):
         sheets.pop()
+    grouped_sheets = customer_sheet_groups(sheets)
+    grouped_sheets = optimize_customer_sheet_groups(
+        grouped_sheets,
+        labs,
+        lookalike_threshold,
+        cols,
+        per_sheet,
+    )
+    sheets = rebuild_customer_sheets(grouped_sheets, colors, rows, cols)
     seconds_per_sticker = int(constants.get("customer_pack", {}).get("seconds_per_sticker", 6))
     raw_minutes = sum(color["placed"] for color in colors) * seconds_per_sticker / 60.0
     estimated_minutes = max(5, int(math.ceil(raw_minutes / 5.0) * 5))
@@ -664,7 +857,7 @@ def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> 
         "estimated_minutes": estimated_minutes,
         "board_pitch_in": float(constants["board_pitch_in"]),
         "grout_in": float(constants["grout_in"]),
-        "finished_size_in": int(design["grid"]) * float(constants["board_pitch_in"]),
+        "finished_size_in": design_finished_size_in(design, constants),
         "rows_per_sheet": rows,
         "cols_per_sheet": cols,
     }
@@ -833,6 +1026,15 @@ def build_manifest(
     for index, (start, end) in enumerate(plan["section_ranges"], start=1):
         sections.append({"section": index, "start_sequence_index": start, "end_sequence_index": end, "placed_count": end - start})
     active_summary = active_fulfillment_summary(plan, fulfillment)
+    size_fields = (
+        {"size_in": design["size_in"]}
+        if design["schema_version"] == 1.1
+        else {
+            "schema_version": 1.2,
+            "cell_size_in": float(design["cell_size_in"]),
+            "finished_size_in": float(design["finished_size_in"]),
+        }
+    )
     return {
         "manifest_version": "gate-a-pdf-mode-v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -844,7 +1046,7 @@ def build_manifest(
         "sheet_profile": design["sheet_profile"],
         "page_size": {"width_in": round(page_w / IN, 4), "height_in": round(page_h / IN, 4)},
         "grid": design["grid"],
-        "size_in": design["size_in"],
+        **size_fields,
         "palette_id": design.get("palette_id"),
         "palette_mode": design["palette_mode"],
         "gamut_profile_id": design.get("gamut_profile_id"),
@@ -1358,7 +1560,7 @@ def page_cover(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, A
     rows = [
         ("Project ID", str(design["project_id"])),
         ("Grid", f"{design['grid']} x {design['grid']}"),
-        ("Finished size", f"{design['size_in']} in"),
+        ("Finished size", f"{design.get('finished_size_in', design.get('size_in'))} in"),
         ("Sheet profile", str(design["sheet_profile"])),
         ("Palette colors", str(len(design["palette"]))),
         ("Placed stickers", str(plan["total_placed"])),
@@ -1558,7 +1760,7 @@ def page_operator_cover(
     rows = [
         ("Project ID", str(design["project_id"])),
         ("Grid", f"{design['grid']} x {design['grid']}"),
-        ("Finished size", f"{design['size_in']} in"),
+        ("Finished size", f"{design.get('finished_size_in', design.get('size_in'))} in"),
         ("Sheet profile", str(design["sheet_profile"])),
         ("Placed stickers", str(plan["total_placed"])),
         ("Spares", str(plan["total_spares"])),
@@ -2157,6 +2359,147 @@ def draw_customer_board_region(
     return {"covered": covered, "font_size": layout["font_size"], "region": region, "panel_markers": markers}
 
 
+def customer_text_bbox(
+    text: str,
+    x: float,
+    baseline: float,
+    font: str,
+    size: float,
+    anchor: str = "left",
+) -> tuple[float, float, float, float]:
+    width = stringWidth(text, font, size)
+    x_left = x - width if anchor == "right" else x - width / 2.0 if anchor == "center" else x
+    return (x_left, baseline - size * 0.24, x_left + width, baseline + size * 0.78)
+
+
+def customer_banner_label(color: dict[str, Any], segment: dict[str, Any]) -> str:
+    if segment.get("continued"):
+        return (
+            f"Color {color['number']} - continued - {segment['remaining_count']} remaining"
+            f" - {color['progress_percent']}% of your picture"
+        )
+    label = (
+        f"Color {color['number']} - {quantity_label(color['placed'], 'sticker')}"
+        f" - {color['progress_percent']}% of your picture"
+    )
+    if color["spares"]:
+        label += f" (+ {quantity_label(color['spares'], 'spare')})"
+    return label
+
+
+def customer_banner_geometry(
+    segment: dict[str, Any],
+    color: dict[str, Any],
+    profile: dict[str, Any],
+    page_h: float,
+) -> dict[str, Any]:
+    cols = int(profile["cols"])
+    banner_row = segment.get("banner_row")
+    position = int(segment["slot"]) if banner_row is None else int(banner_row) * cols
+    x, y_top = die_origin(position, profile, page_h)
+    if banner_row is None:
+        banner_y = y_top + 0.055 * IN
+        chip_h = 0.18 * IN
+    else:
+        chip_h = 0.15 * IN
+        die_h = profile_die_h(profile) * IN
+        if die_h - chip_h < 4:
+            raise ValueError("customer banner row cannot provide 2pt vertical clearance")
+        # The row is sacrificial: center the banner inside it so no extra gap band is introduced.
+        banner_y = y_top - die_h + (die_h - chip_h) / 2.0
+    chip_bbox = (x, banner_y, x + 0.28 * IN, banner_y + chip_h)
+    label = customer_banner_label(color, segment)
+    label_x = x + 0.34 * IN
+    label_baseline = banner_y + 0.05 * IN
+    return {
+        "chip_bbox": chip_bbox,
+        "label": label,
+        "label_x": label_x,
+        "label_baseline": label_baseline,
+        "label_bbox": customer_text_bbox(label, label_x, label_baseline, "Helvetica-Bold", 6.2),
+    }
+
+
+def customer_margin_geometry(
+    row: int,
+    label: dict[str, Any],
+    color: dict[str, Any],
+    profile: dict[str, Any],
+    page_h: float,
+) -> dict[str, Any]:
+    _, y_top = die_origin(row * int(profile["cols"]), profile, page_h)
+    chip_x = 0.14 * IN
+    chip_y = y_top - profile_die_h(profile) * IN / 2.0 - 0.11 * IN
+    chip_bbox = (chip_x, chip_y, chip_x + 0.28 * IN, chip_y + 0.22 * IN)
+    spare_bbox = None
+    if label["is_spare"]:
+        spare_bbox = customer_text_bbox("SPARES", chip_x, chip_y - 0.07 * IN, "Helvetica-Bold", 4.8)
+    return {"chip_bbox": chip_bbox, "spare_bbox": spare_bbox, "color": color}
+
+
+def customer_sheet_annotation_boxes(
+    sheet: dict[str, Any],
+    customer_plan: dict[str, Any],
+    profile: dict[str, Any],
+    page_w: float,
+    page_h: float,
+) -> list[dict[str, Any]]:
+    margin = float(profile["margin_left_in"]) * IN
+    colors_by_index = {color["palette_index"]: color for color in customer_plan["colors"]}
+    annotations = [
+        {
+            "kind": "sheet_header",
+            "bbox": customer_text_bbox("MosaPack Sticker Sheet 1 of 1", margin, page_h - 0.20 * IN, "Helvetica-Bold", 9),
+        },
+        {
+            "kind": "sheet_instruction",
+            "bbox": customer_text_bbox(
+                "Finish one color before opening the next",
+                page_w - margin,
+                page_h - 0.20 * IN,
+                "Helvetica",
+                5.5,
+                "right",
+            ),
+        },
+        {
+            "kind": "checkoff_label",
+            "bbox": customer_text_bbox("Finished a color? Check it off:", margin, 0.35 * IN, "Helvetica-Bold", 5.3),
+        },
+    ]
+    for row, label in sheet["row_labels"].items():
+        color = customer_plan["colors"][label["color_number"] - 1]
+        geometry = customer_margin_geometry(int(row), label, color, profile, page_h)
+        annotations.append({"kind": "margin_chip", "bbox": geometry["chip_bbox"]})
+        if geometry["spare_bbox"]:
+            annotations.append({"kind": "spares_label", "bbox": geometry["spare_bbox"]})
+    for segment in sheet["segments"]:
+        color = colors_by_index[segment["palette_index"]]
+        geometry = customer_banner_geometry(segment, color, profile, page_h)
+        annotations.append(
+            {"kind": "banner_chip", "bbox": geometry["chip_bbox"], "banner_row": segment.get("banner_row")}
+        )
+        annotations.append(
+            {"kind": "banner_label", "bbox": geometry["label_bbox"], "banner_row": segment.get("banner_row")}
+        )
+
+    colors = customer_plan["colors"]
+    checks_per_row = math.ceil(len(colors) / 2) if len(colors) > 24 else len(colors)
+    available = page_w - 2 * margin - 1.20 * IN
+    spacing = min(0.36 * IN, available / max(1, checks_per_row))
+    for index, color in enumerate(colors):
+        row, col = divmod(index, checks_per_row)
+        check_x = margin + 1.20 * IN + col * spacing
+        check_y = (0.34 - row * 0.14) * IN
+        annotations.append(
+            {
+                "kind": "checkoff_number",
+                "bbox": customer_text_bbox(str(color["number"]), check_x + 0.11 * IN, check_y - 0.01 * IN, "Helvetica", 4.5),
+            }
+        )
+    return annotations
+
+
 def page_customer_sticker_sheets(
     cv: canvas.Canvas,
     design: dict[str, Any],
@@ -2190,12 +2533,11 @@ def page_customer_sticker_sheets(
             cv.setFillColor(HexColor(color["hex"]))
             cv.roundRect(x - bleed, y_top - die_h - bleed, die_w + 2 * bleed, die_h + 2 * bleed, 4, stroke=0, fill=1)
         for row, label in sheet["row_labels"].items():
-            _, y_top = die_origin(row * int(profile["cols"]), profile, page_h)
             color = customer_plan["colors"][label["color_number"] - 1]
-            chip_x = 0.14 * IN
-            chip_y = y_top - die_h / 2.0 - 0.11 * IN
+            geometry = customer_margin_geometry(int(row), label, color, profile, page_h)
+            chip_x, chip_y, chip_right, chip_top = geometry["chip_bbox"]
             cv.setFillColor(HexColor(color["hex"]))
-            cv.roundRect(chip_x, chip_y, 0.28 * IN, 0.22 * IN, 3, stroke=0, fill=1)
+            cv.roundRect(chip_x, chip_y, chip_right - chip_x, chip_top - chip_y, 3, stroke=0, fill=1)
             cv.setFillColor(readable_text_color(color["hex"]))
             cv.setFont("Helvetica-Bold", 7.5)
             cv.drawCentredString(chip_x + 0.14 * IN, chip_y + 0.07 * IN, str(color["number"]))
@@ -2204,30 +2546,17 @@ def page_customer_sticker_sheets(
                 cv.setFont("Helvetica-Bold", 4.8)
                 cv.drawString(chip_x, chip_y - 0.07 * IN, "SPARES")
         for segment in sheet["segments"]:
-            position = segment["slot"]
-            x, y_top = die_origin(position, profile, page_h)
             color = colors_by_index[segment["palette_index"]]
-            banner_y = y_top + 0.055 * IN
+            geometry = customer_banner_geometry(segment, color, profile, page_h)
+            x, banner_y, chip_right, chip_top = geometry["chip_bbox"]
             cv.setFillColor(HexColor(color["hex"]))
-            cv.roundRect(x, banner_y, 0.28 * IN, 0.18 * IN, 3, stroke=0, fill=1)
+            cv.roundRect(x, banner_y, chip_right - x, chip_top - banner_y, 3, stroke=0, fill=1)
             cv.setFillColor(readable_text_color(color["hex"]))
             cv.setFont("Helvetica-Bold", 8)
             cv.drawCentredString(x + 0.14 * IN, banner_y + 0.045 * IN, str(color["number"]))
             cv.setFillColor(INK)
             cv.setFont("Helvetica-Bold", 6.2)
-            if segment.get("continued"):
-                label = (
-                    f"Color {color['number']} - continued - {segment['remaining_count']} remaining"
-                    f" - {color['progress_percent']}% of your picture"
-                )
-            else:
-                label = (
-                    f"Color {color['number']} - {quantity_label(color['placed'], 'sticker')}"
-                    f" - {color['progress_percent']}% of your picture"
-                )
-                if color["spares"]:
-                    label += f" (+ {quantity_label(color['spares'], 'spare')})"
-            cv.drawString(x + 0.34 * IN, banner_y + 0.05 * IN, label)
+            cv.drawString(geometry["label_x"], geometry["label_baseline"], geometry["label"])
 
         cv.setFillColor(INK)
         cv.setFont("Helvetica-Bold", 5.3)
@@ -2342,6 +2671,11 @@ def render_customer_qc_checklist(
         ("Placed stickers", str(customer_plan["total_placed"])),
         ("Spare stickers", str(customer_plan["total_spares"])),
     ]
+    if design["schema_version"] == 1.2:
+        summary_rows[3:3] = [
+            ("Finished size", f"{float(design['finished_size_in']):g} in"),
+            ("Sticker size", f"{float(design['cell_size_in']):g} in"),
+        ]
     y = page_h - 1.48 * IN
     for label, value in summary_rows:
         cv.setStrokeColor(INK)
@@ -2383,7 +2717,7 @@ def render_customer_qc_checklist(
     cv.drawString(margin, 0.42 * IN, "Internal fulfillment document - do not include in the customer pack.")
     cv.showPage()
     cv.save()
-    return {
+    result = {
         "output": str(out),
         "page_count": 1,
         "pack_version": pack_version,
@@ -2400,6 +2734,10 @@ def render_customer_qc_checklist(
             for color in colors
         ],
     }
+    if design["schema_version"] == 1.2:
+        result["finished_size_in"] = float(design["finished_size_in"])
+        result["cell_size_in"] = float(design["cell_size_in"])
+    return result
 
 
 def render_board_art(
@@ -2633,7 +2971,9 @@ def render_pdf(
         "proof_ref": proof_ref_for(design),
         "project_id": design["project_id"],
         "grid": design["grid"],
-        "size_in": design["size_in"],
+        "size_in": design.get("size_in"),
+        "finished_size_in": design.get("finished_size_in"),
+        "cell_size_in": design.get("cell_size_in"),
         "sheet_profile": design["sheet_profile"],
         "palette_mode": design["palette_mode"],
         "gamut_profile_id": design.get("gamut_profile_id"),
