@@ -8,10 +8,28 @@ This tool is not part of the public builder runtime and is not deployed to Netli
 
 The generator consumes:
 
-- canonical design JSON shaped by `config/design-schema.v1.json`
+- canonical design JSON shaped by `config/design-schema.v1.json` (v1.1) or
+  `config/design-schema.v1_2.json` (v1.2)
 - production constants from `config/production-constants.json`
 
 The canonical design JSON is the design truth. Production constants are the production-physics truth. The generator is only a downstream renderer.
+
+Schema v1.2 separates the physical sticker size (`cell_size_in`) from the finished board size
+(`finished_size_in`). For the SL680 profile, a 24x24 board uses 0.375in stickers on a 0.40in board
+pitch and finishes at approximately 9.6in. Legacy v1.1 inputs remain supported unchanged.
+
+Convert a saved builder proof/project into canonical design v1.2 before generating fulfillment files:
+
+```bash
+python3 tools/kitpack/proof_to_design.py \
+  path/to/saved-project.json \
+  /tmp/order.design.v1_2.json \
+  --dedication "Made for Grandma - December 2026"
+```
+
+The converter validates the grid, tile map, palette indices, profile geometry, and fixed-palette
+mapping before it writes anything. It prints the exact customer/board and vendor-pack commands to run
+next. It performs no network access and does not modify the saved proof.
 
 ## Usage
 

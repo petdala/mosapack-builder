@@ -204,6 +204,33 @@
     "label_hex": "#4A4E55"
   },
   "palettes": {
+    "master_25": [
+      { "id": "black", "name": "Black", "hex": "#1B1B1B" },
+      { "id": "white", "name": "White", "hex": "#F4F4F4" },
+      { "id": "light_gray", "name": "Light Gray", "hex": "#BFC5CA" },
+      { "id": "dark_gray", "name": "Dark Gray", "hex": "#7A838C" },
+      { "id": "tan", "name": "Tan", "hex": "#D9C49F" },
+      { "id": "light_nougat", "name": "Light Nougat", "hex": "#E7C6B1" },
+      { "id": "reddish_brown", "name": "Reddish Brown", "hex": "#7B3F00" },
+      { "id": "blue", "name": "Blue", "hex": "#1653A4" },
+      { "id": "medium_nougat", "name": "Medium Nougat", "hex": "#CC8E68" },
+      { "id": "red", "name": "Red", "hex": "#C40000" },
+      { "id": "yellow", "name": "Yellow", "hex": "#F1D54E" },
+      { "id": "green", "name": "Green", "hex": "#589E61" },
+      { "id": "very_light_gray", "name": "Very Light Gray", "hex": "#DBE1E6" },
+      { "id": "medium_gray", "name": "Medium Gray", "hex": "#9CA3A8" },
+      { "id": "dark_brown", "name": "Dark Brown", "hex": "#4E2D1B" },
+      { "id": "orange", "name": "Orange", "hex": "#E58E2A" },
+      { "id": "dark_green", "name": "Dark Green", "hex": "#2B5B3D" },
+      { "id": "light_blue", "name": "Light Blue", "hex": "#7EAED6" },
+      { "id": "very_dark_gray", "name": "Very Dark Gray", "hex": "#4A4E52" },
+      { "id": "dark_tan", "name": "Dark Tan", "hex": "#C2B280" },
+      { "id": "dark_red", "name": "Dark Red", "hex": "#8B0000" },
+      { "id": "bright_red", "name": "Bright Red", "hex": "#FF0000" },
+      { "id": "bright_green", "name": "Bright Green", "hex": "#75B844" },
+      { "id": "sand_green", "name": "Sand Green", "hex": "#8DA59B" },
+      { "id": "magenta", "name": "Magenta", "hex": "#B3277E" }
+    ],
     "standard_v1": [
       {
         "id": "snow_white",

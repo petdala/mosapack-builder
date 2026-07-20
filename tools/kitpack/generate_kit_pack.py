@@ -287,6 +287,19 @@ def load_design(path: str | Path) -> dict[str, Any]:
     return normalize_legacy_design(load_json(path))
 
 
+def design_schema_version(design: dict[str, Any]) -> float:
+    version = design.get("schema_version")
+    if version not in (1.1, 1.2):
+        raise ValueError("schema_version must be 1.1 or 1.2")
+    return float(version)
+
+
+def design_finished_size_in(design: dict[str, Any], constants: dict[str, Any]) -> float:
+    if design.get("schema_version") == 1.2:
+        return float(design["finished_size_in"])
+    return int(design["grid"]) * float(constants["board_pitch_in"])
+
+
 def validate_design(design: dict[str, Any], constants: dict[str, Any]) -> list[str]:
     warnings: list[str] = []
     scan_for_forbidden_payload(design)
@@ -298,12 +311,32 @@ def validate_design(design: dict[str, Any], constants: dict[str, Any]) -> list[s
     grid = design.get("grid")
     if grid not in SUPPORTED_GRIDS:
         raise ValueError("grid must be 24, 32, 48, or 64")
-    if design.get("size_in") != grid // 2:
-        raise ValueError("size_in must equal grid / 2")
+    schema_version = design_schema_version(design)
     profile_id = design.get("sheet_profile") or constants.get("default_profile")
     if profile_id not in constants.get("sheet_profiles", {}):
         raise ValueError(f"sheet_profile not found in constants: {profile_id}")
     profile = constants["sheet_profiles"][profile_id]
+    if schema_version == 1.1:
+        if design.get("size_in") != grid // 2:
+            raise ValueError("v1.1 size_in must equal grid / 2")
+    else:
+        cell_size = design.get("cell_size_in")
+        finished_size = design.get("finished_size_in")
+        if isinstance(cell_size, bool) or not isinstance(cell_size, (int, float)) or cell_size <= 0:
+            raise ValueError("v1.2 cell_size_in must be a positive number")
+        if isinstance(finished_size, bool) or not isinstance(finished_size, (int, float)) or finished_size <= 0:
+            raise ValueError("v1.2 finished_size_in must be a positive number")
+        die_w = profile_die_w(profile)
+        die_h = profile_die_h(profile)
+        if not math.isclose(float(cell_size), die_w, abs_tol=1e-9) or not math.isclose(float(cell_size), die_h, abs_tol=1e-9):
+            raise ValueError(
+                f"v1.2 cell_size_in {float(cell_size):.4f} must match sheet profile {profile_id} die {die_w:.4f} x {die_h:.4f}"
+            )
+        expected_finished = grid * float(constants["board_pitch_in"])
+        if abs(float(finished_size) - expected_finished) > 0.05 + 1e-9:
+            raise ValueError(
+                f"v1.2 finished_size_in {float(finished_size):.4f} must equal grid x board_pitch_in ({expected_finished:.4f}) within 0.05in"
+            )
     if profile.get("verified") is False:
         warnings.append(f"{profile_id} is not production verified: {profile.get('verification_status', 'unverified')}")
     palette = normalize_palette(design.get("palette") or [])
@@ -547,6 +580,123 @@ def customer_board_regions(grid: int, constants: dict[str, Any]) -> list[dict[st
     ]
 
 
+def customer_sheet_groups(sheets: list[dict[str, Any]]) -> list[list[dict[str, int]]]:
+    grouped_sheets: list[list[dict[str, int]]] = []
+    for sheet in sheets:
+        order: list[int] = []
+        counts: dict[int, dict[str, int]] = {}
+        for slot in sheet["slots"]:
+            if not slot:
+                continue
+            palette_index = int(slot["palette_index"])
+            if palette_index not in counts:
+                order.append(palette_index)
+                counts[palette_index] = {"palette_index": palette_index, "placed": 0, "spares": 0}
+            key = "spares" if slot["is_spare"] else "placed"
+            counts[palette_index][key] += 1
+        grouped_sheets.append([counts[palette_index] for palette_index in order])
+    return grouped_sheets
+
+
+def customer_group_footprint(group: dict[str, int], cols: int) -> int:
+    return sum(math.ceil(int(group[key]) / cols) * cols for key in ("placed", "spares") if group[key] > 0)
+
+
+def optimize_customer_sheet_groups(
+    grouped_sheets: list[list[dict[str, int]]],
+    labs: dict[int, tuple[float, float, float]],
+    lookalike_threshold: float,
+    cols: int,
+    per_sheet: int,
+) -> list[list[dict[str, int]]]:
+    appearances = Counter(group["palette_index"] for groups in grouped_sheets for group in groups)
+    for source_index in range(len(grouped_sheets) - 1, 0, -1):
+        source = grouped_sheets[source_index]
+        for group in list(reversed(source)):
+            palette_index = group["palette_index"]
+            if appearances[palette_index] != 1:
+                continue
+            footprint = customer_group_footprint(group, cols)
+            candidates: list[tuple[int, int]] = []
+            for target_index in range(source_index):
+                target = grouped_sheets[target_index]
+                if any(
+                    delta_e00(labs[palette_index], labs[existing["palette_index"]]) < lookalike_threshold
+                    for existing in target
+                    if existing["palette_index"] != palette_index
+                ):
+                    continue
+                used = sum(customer_group_footprint(existing, cols) for existing in target)
+                if used + footprint <= per_sheet:
+                    candidates.append((per_sheet - used - footprint, target_index))
+            if not candidates:
+                continue
+            _, target_index = min(candidates)
+            source.remove(group)
+            grouped_sheets[target_index].append(group)
+    return [groups for groups in grouped_sheets if groups]
+
+
+def rebuild_customer_sheets(
+    grouped_sheets: list[list[dict[str, int]]],
+    colors: list[dict[str, Any]],
+    rows: int,
+    cols: int,
+) -> list[dict[str, Any]]:
+    per_sheet = rows * cols
+    colors_by_index = {color["palette_index"]: color for color in colors}
+    remaining = {color["palette_index"]: color["total"] for color in colors}
+    seen: set[int] = set()
+    sheets: list[dict[str, Any]] = []
+    for groups in grouped_sheets:
+        sheet = {"slots": [None] * per_sheet, "colors": [], "row_labels": {}, "segments": []}
+        cursor = 0
+        for group in groups:
+            palette_index = group["palette_index"]
+            color = colors_by_index[palette_index]
+            sheet["colors"].append(palette_index)
+            continued = palette_index in seen
+            sheet["segments"].append(
+                {
+                    "slot": cursor,
+                    "color_number": color["number"],
+                    "palette_index": palette_index,
+                    "is_spare": group["placed"] == 0,
+                    "continued": continued,
+                    "remaining_count": remaining[palette_index],
+                }
+            )
+            seen.add(palette_index)
+            for is_spare, key in ((False, "placed"), (True, "spares")):
+                quantity = int(group[key])
+                if quantity <= 0:
+                    continue
+                if cursor % cols:
+                    cursor += cols - cursor % cols
+                while quantity:
+                    if cursor >= per_sheet:
+                        raise ValueError("customer sheet optimization overflowed the die grid")
+                    row = cursor // cols
+                    take = min(quantity, cols - cursor % cols)
+                    sheet["row_labels"][row] = {
+                        "color_number": color["number"],
+                        "is_spare": is_spare,
+                    }
+                    for offset in range(take):
+                        sheet["slots"][cursor + offset] = {
+                            "palette_index": palette_index,
+                            "color_number": color["number"],
+                            "is_spare": is_spare,
+                        }
+                    cursor += take
+                    quantity -= take
+                if cursor % cols:
+                    cursor += cols - cursor % cols
+            remaining[palette_index] -= int(group["placed"]) + int(group["spares"])
+        sheets.append(sheet)
+    return sheets
+
+
 def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> dict[str, Any]:
     counts = Counter(int(value) for value in design["cell_map"])
     spare_rate = float(constants.get("spares", {}).get("rate", 0.05))
@@ -650,6 +800,15 @@ def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> 
 
     if sheets and not any(slot for slot in sheets[-1]["slots"]):
         sheets.pop()
+    grouped_sheets = customer_sheet_groups(sheets)
+    grouped_sheets = optimize_customer_sheet_groups(
+        grouped_sheets,
+        labs,
+        lookalike_threshold,
+        cols,
+        per_sheet,
+    )
+    sheets = rebuild_customer_sheets(grouped_sheets, colors, rows, cols)
     seconds_per_sticker = int(constants.get("customer_pack", {}).get("seconds_per_sticker", 6))
     raw_minutes = sum(color["placed"] for color in colors) * seconds_per_sticker / 60.0
     estimated_minutes = max(5, int(math.ceil(raw_minutes / 5.0) * 5))
@@ -664,7 +823,7 @@ def compute_customer_plan(design: dict[str, Any], constants: dict[str, Any]) -> 
         "estimated_minutes": estimated_minutes,
         "board_pitch_in": float(constants["board_pitch_in"]),
         "grout_in": float(constants["grout_in"]),
-        "finished_size_in": int(design["grid"]) * float(constants["board_pitch_in"]),
+        "finished_size_in": design_finished_size_in(design, constants),
         "rows_per_sheet": rows,
         "cols_per_sheet": cols,
     }
@@ -833,6 +992,15 @@ def build_manifest(
     for index, (start, end) in enumerate(plan["section_ranges"], start=1):
         sections.append({"section": index, "start_sequence_index": start, "end_sequence_index": end, "placed_count": end - start})
     active_summary = active_fulfillment_summary(plan, fulfillment)
+    size_fields = (
+        {"size_in": design["size_in"]}
+        if design["schema_version"] == 1.1
+        else {
+            "schema_version": 1.2,
+            "cell_size_in": float(design["cell_size_in"]),
+            "finished_size_in": float(design["finished_size_in"]),
+        }
+    )
     return {
         "manifest_version": "gate-a-pdf-mode-v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -844,7 +1012,7 @@ def build_manifest(
         "sheet_profile": design["sheet_profile"],
         "page_size": {"width_in": round(page_w / IN, 4), "height_in": round(page_h / IN, 4)},
         "grid": design["grid"],
-        "size_in": design["size_in"],
+        **size_fields,
         "palette_id": design.get("palette_id"),
         "palette_mode": design["palette_mode"],
         "gamut_profile_id": design.get("gamut_profile_id"),
@@ -1358,7 +1526,7 @@ def page_cover(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, A
     rows = [
         ("Project ID", str(design["project_id"])),
         ("Grid", f"{design['grid']} x {design['grid']}"),
-        ("Finished size", f"{design['size_in']} in"),
+        ("Finished size", f"{design.get('finished_size_in', design.get('size_in'))} in"),
         ("Sheet profile", str(design["sheet_profile"])),
         ("Palette colors", str(len(design["palette"]))),
         ("Placed stickers", str(plan["total_placed"])),
@@ -1558,7 +1726,7 @@ def page_operator_cover(
     rows = [
         ("Project ID", str(design["project_id"])),
         ("Grid", f"{design['grid']} x {design['grid']}"),
-        ("Finished size", f"{design['size_in']} in"),
+        ("Finished size", f"{design.get('finished_size_in', design.get('size_in'))} in"),
         ("Sheet profile", str(design["sheet_profile"])),
         ("Placed stickers", str(plan["total_placed"])),
         ("Spares", str(plan["total_spares"])),
@@ -2342,6 +2510,11 @@ def render_customer_qc_checklist(
         ("Placed stickers", str(customer_plan["total_placed"])),
         ("Spare stickers", str(customer_plan["total_spares"])),
     ]
+    if design["schema_version"] == 1.2:
+        summary_rows[3:3] = [
+            ("Finished size", f"{float(design['finished_size_in']):g} in"),
+            ("Sticker size", f"{float(design['cell_size_in']):g} in"),
+        ]
     y = page_h - 1.48 * IN
     for label, value in summary_rows:
         cv.setStrokeColor(INK)
@@ -2383,7 +2556,7 @@ def render_customer_qc_checklist(
     cv.drawString(margin, 0.42 * IN, "Internal fulfillment document - do not include in the customer pack.")
     cv.showPage()
     cv.save()
-    return {
+    result = {
         "output": str(out),
         "page_count": 1,
         "pack_version": pack_version,
@@ -2400,6 +2573,10 @@ def render_customer_qc_checklist(
             for color in colors
         ],
     }
+    if design["schema_version"] == 1.2:
+        result["finished_size_in"] = float(design["finished_size_in"])
+        result["cell_size_in"] = float(design["cell_size_in"])
+    return result
 
 
 def render_board_art(
@@ -2633,7 +2810,9 @@ def render_pdf(
         "proof_ref": proof_ref_for(design),
         "project_id": design["project_id"],
         "grid": design["grid"],
-        "size_in": design["size_in"],
+        "size_in": design.get("size_in"),
+        "finished_size_in": design.get("finished_size_in"),
+        "cell_size_in": design.get("cell_size_in"),
         "sheet_profile": design["sheet_profile"],
         "palette_mode": design["palette_mode"],
         "gamut_profile_id": design.get("gamut_profile_id"),
