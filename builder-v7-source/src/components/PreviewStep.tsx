@@ -11,6 +11,7 @@ import type { GroutTone } from '@/lib/tileRenderer'
 import { edgeBlendStrength } from '@/lib/qualityPipeline'
 import type { QualityGeometry, QualityPaletteTier } from '@/lib/qualityPipeline'
 import { renderQualityTiles } from '@/lib/qualityRenderer'
+import type { IntelligenceResult } from '@/lib/qualityIntelligence'
 
 export const FORMATS = [
   { id: 'sticker_ready', label: 'Sticker-ready', note: 'Peel-and-place tiles' },
@@ -39,6 +40,7 @@ interface Props {
   adaptiveFailed: boolean
   paletteMode: PaletteMode
   qualityEnabled: boolean
+  qualityIntelligence?: IntelligenceResult | null
   qualityGeometry: QualityGeometry
   subjectMask?: ImageData
   paletteTiers: QualityPaletteTier[]
@@ -189,7 +191,10 @@ export function PreviewStep(p: Props) {
           className="relative mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white"
           data-palette-mode={p.paletteMode}
           data-adaptive-fallback={p.adaptiveFailed ? 'fixed' : 'none'}
-          data-quality-pipeline={p.qualityEnabled ? 'p2a' : 'off'}
+          data-quality-pipeline={p.qualityIntelligence ? 'p2b' : p.qualityEnabled ? 'p2a' : 'off'}
+          data-auto-category={p.qualityIntelligence?.category ?? ''}
+          data-no-harm-guardrail={p.qualityIntelligence?.guardrail ?? ''}
+          data-skin-red-artifacts={p.qualityIntelligence?.metrics.redArtifactPixels ?? ''}
           data-grid-size={customerMosaic?.gridSize ?? ''}
           data-cell-size-in={p.qualityEnabled ? p.qualityGeometry.cellSizeIn : ''}
           data-finished-size-in={p.qualityEnabled ? p.qualityGeometry.finishedSizeIn : ''}
