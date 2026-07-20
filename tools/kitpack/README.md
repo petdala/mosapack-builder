@@ -109,6 +109,11 @@ numbered target colors and blank measured Lab / Delta E 00 columns.
 `--operator-pack` emits the internal cover, every planned sticker sheet, and the build guide. It does
 not include the vendor instructions or measurement target.
 
+`--customer-pack` emits the customer Start Here guide, numbered board pages, and color-grouped
+sticker pages. Internal profile IDs, palette IDs, and bleed values remain in the sidecar manifest and
+are not printed in customer copy. Use `--board-art` with this mode to write the standalone true-size
+board artwork PDF.
+
 In the legacy/default output, Gate A mode emits only sheet 1 at `0.03in` and `0.05in` bleed. The new
 `--operator-pack --gate-a` path emits every planned sheet in both variants. `--color-target-strip`
 remains available for legacy combined packs; vendor measurement work should use `--vendor-pack`.

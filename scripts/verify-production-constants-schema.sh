@@ -52,6 +52,11 @@ if (constants) {
   assert(sl680?.registration_status === 'pending_rederivation', 'SL680 registration budget is pending rederivation');
   assert(constants.adaptive_palette?.gamut_profile_id in (constants.gamut_profiles || {}), 'adaptive gamut profile exists');
   assert(constants.adaptive_palette?.min_delta_e00 === 8, 'adaptive minimum deltaE00 is 8');
+  assert(constants.board_pitch_in === 0.4, 'customer board pitch is 0.40in');
+  assert(constants.grout_in === 0.025, 'customer board grout is 0.025in');
+  assert(constants.sheet_profiles?.sl680_0375?.die_in + constants.grout_in === constants.board_pitch_in, 'board pitch equals sticker die plus grout allowance');
+  assert(constants.customer_pack?.board_bleed_in === 0.125, 'customer board artwork bleed is 0.125in');
+  assert(constants.customer_pack?.seconds_per_sticker > 0, 'customer placement estimate is configured');
   assert(constants.color_targets?.master_25?.length === 25, 'Master color target has 25 patches');
   const sampler = constants.color_targets?.full_gamut_sampler;
   assert(sampler?.l_star_ramp?.length + sampler?.hue_steps * sampler?.chroma_levels?.length === 40, 'full-gamut sampler has 40 patches');

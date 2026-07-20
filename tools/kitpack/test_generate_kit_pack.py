@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import importlib.util
 import json
@@ -154,6 +153,150 @@ class KitPackTests(unittest.TestCase):
         self.assertEqual(len(patches), 65)
         self.assertEqual(sum(patch["group"] == "master_25" for patch in patches), 25)
         self.assertTrue(all(KITPACK.HEX_COLOR_RE.match(patch["hex"]) for patch in patches))
+
+    def test_customer_plan_is_usage_ranked_and_color_grouped(self) -> None:
+        design = self.adaptive_design()
+        design["cell_map"] = [3] * 200 + [1] * 150 + [7] * 100 + [0] * 60 + [2] * 40 + [4] * 20 + [5] * 5 + [6]
+        KITPACK.validate_design(design, self.constants)
+        plan = KITPACK.compute_customer_plan(design, self.constants)
+        self.assertEqual([color["palette_index"] for color in plan["colors"][:4]], [3, 1, 7, 0])
+        self.assertEqual([color["placed"] for color in plan["colors"]], sorted((color["placed"] for color in plan["colors"]), reverse=True))
+        slot_counts = {}
+        for sheet in plan["sheets"]:
+            for slot in sheet["slots"]:
+                if slot:
+                    key = (slot["palette_index"], slot["is_spare"])
+                    slot_counts[key] = slot_counts.get(key, 0) + 1
+                    self.assertEqual(slot["color_number"], plan["number_by_index"][slot["palette_index"]])
+            sheet_colors = list(sheet["colors"])
+            for left_index, left in enumerate(sheet_colors):
+                for right in sheet_colors[left_index + 1:]:
+                    distance = KITPACK.delta_e00(
+                        KITPACK.rgb_to_lab(KITPACK.hex_to_rgb(design["palette"][left]["hex"])),
+                        KITPACK.rgb_to_lab(KITPACK.hex_to_rgb(design["palette"][right]["hex"])),
+                    )
+                    self.assertGreaterEqual(distance, self.constants["customer_pack"]["lookalike_delta_e00"])
+        for color in plan["colors"]:
+            self.assertEqual(slot_counts.get((color["palette_index"], False), 0), color["placed"])
+            self.assertEqual(slot_counts.get((color["palette_index"], True), 0), color["spares"])
+        self.assertEqual(len(plan["colors"]), len(design["palette"]))
+
+    def test_customer_pack_copy_board_art_and_cell_coverage(self) -> None:
+        from pypdf import PdfReader
+
+        design = self.adaptive_design()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            design_path = temp / "adaptive.json"
+            output_path = temp / "customer.pdf"
+            board_path = temp / "board.pdf"
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            result = KITPACK.generate(design_path, output_path, customer_pack=True, board_art_path=board_path)
+            reader = PdfReader(output_path)
+            self.assertEqual(len(reader.pages), result["page_count"])
+            first_text = reader.pages[0].extract_text() or ""
+            for phrase in (
+                "Lay the board flat",
+                "Peel by color",
+                "Cover the numbers",
+                "Every square on the board shows a small number",
+                "Wrong spot? These stickers peel off and re-stick.",
+            ):
+                self.assertIn(phrase, first_text)
+            for forbidden in ("mosaic protocol", "section map", "row-major", "sl680_0375", "bleed"):
+                self.assertNotIn(forbidden, "\n".join(page.extract_text() or "" for page in reader.pages).lower())
+
+            manifest = json.loads(output_path.with_suffix(".manifest.json").read_text())
+            guide_pages = manifest["customer_board"]["guide_pages"]
+            covered = [index for page in guide_pages for index in page["covered"]]
+            self.assertEqual(len(covered), 24 * 24)
+            self.assertEqual(sorted(covered), list(range(24 * 24)))
+            self.assertTrue(all(page["font_size"] >= 6 for page in guide_pages))
+            self.assertEqual(len(manifest["customer_color_numbering"]), len(design["palette"]))
+
+            board_reader = PdfReader(board_path)
+            self.assertEqual(len(board_reader.pages), 1)
+            expected_points = (24 * self.constants["board_pitch_in"] + 2 * self.constants["customer_pack"]["board_bleed_in"]) * KITPACK.IN
+            self.assertAlmostEqual(float(board_reader.pages[0].mediabox.width), expected_points)
+            self.assertAlmostEqual(float(board_reader.pages[0].mediabox.height), expected_points)
+
+    def test_customer_board_light_cells_keep_outline_and_number(self) -> None:
+        style = KITPACK.customer_board_cell_style("#FFFFFF", self.constants)
+        geometry = KITPACK.customer_board_cell_geometry(0.4 * KITPACK.IN, self.constants)
+        self.assertEqual(style["fill_hex"], "#FFFFFF")
+        self.assertNotEqual(style["outline_hex"], style["fill_hex"])
+        self.assertNotEqual(style["number_hex"], style["fill_hex"])
+        self.assertAlmostEqual(geometry["grout"] / KITPACK.IN, 0.025)
+        self.assertAlmostEqual(geometry["face"] / KITPACK.IN, 0.375)
+
+    def test_customer_adaptive_52_color_numbers_remain_legible(self) -> None:
+        from pypdf import PdfReader
+
+        candidates = []
+        for red in range(24, 233, 32):
+            for green in range(24, 233, 32):
+                for blue in range(24, 233, 32):
+                    value = f"#{red:02X}{green:02X}{blue:02X}"
+                    lab = KITPACK.rgb_to_lab(KITPACK.hex_to_rgb(value))
+                    if all(KITPACK.delta_e00(lab, prior) >= 8 for _, prior in candidates):
+                        candidates.append((value, lab))
+        palette = [value for value, _ in candidates[:52]]
+        design = self.adaptive_design(palette)
+        KITPACK.validate_design(design, self.constants)
+        plan = KITPACK.compute_customer_plan(design, self.constants)
+        self.assertEqual(len(plan["colors"]), 52)
+        self.assertEqual(max(plan["number_by_index"].values()), 52)
+        region = plan["board_regions"][0]
+        layout = KITPACK.customer_board_layout(8.5 * KITPACK.IN, 11 * KITPACK.IN, region, 6)
+        self.assertGreaterEqual(layout["font_size"], 6)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            design_path = temp / "adaptive-52.json"
+            output_path = temp / "adaptive-52-customer.pdf"
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            KITPACK.generate(design_path, output_path, customer_pack=True)
+            board_text = PdfReader(output_path).pages[1].extract_text() or ""
+            self.assertIn("52", board_text)
+
+    def test_customer_64_grid_splits_into_sixteen_complete_panels(self) -> None:
+        from pypdf import PdfReader
+
+        regions = KITPACK.customer_board_regions(64, self.constants)
+        self.assertEqual(len(regions), 16)
+        self.assertTrue(all(region["width"] == 16 and region["height"] == 16 for region in regions))
+        covered = set()
+        for region in regions:
+            for row in range(region["row"], region["row"] + region["height"]):
+                for col in range(region["col"], region["col"] + region["width"]):
+                    covered.add(row * 64 + col)
+        self.assertEqual(covered, set(range(64 * 64)))
+        design = {
+            "schema_version": 1.1,
+            "project_id": "customer-64-grid-fixture",
+            "proof_ref": "MP-CUST64",
+            "grid": 64,
+            "size_in": 32,
+            "palette_id": "customer_test",
+            "palette": [
+                {"id": "dark", "name": "Dark", "hex": "#1B1B1B"},
+                {"id": "light", "name": "Light", "hex": "#F4F4F4"},
+            ],
+            "cell_map": [index % 2 for index in range(64 * 64)],
+            "black_base": False,
+            "sheet_profile": "sl680_0375",
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            design_path = temp / "grid-64.json"
+            output_path = temp / "grid-64-customer.pdf"
+            board_path = temp / "grid-64-board.pdf"
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            result = KITPACK.generate(design_path, output_path, customer_pack=True, board_art_path=board_path)
+            reader = PdfReader(output_path)
+            self.assertEqual(len(reader.pages), result["page_count"])
+            self.assertIn("Board - Panel 1 of 16", reader.pages[1].extract_text() or "")
+            self.assertIn("Board - Panel 16 of 16", reader.pages[16].extract_text() or "")
+            self.assertEqual(len(PdfReader(board_path).pages), 1)
 
     def test_vendor_pack_has_three_pages_solid_targets_gradients_and_measurement_log(self) -> None:
         from pypdf import PdfReader
