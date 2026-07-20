@@ -287,11 +287,12 @@ export function planHybridTiles(
       const indices = canMerge
         ? [index, index + 1, index + mosaic.gridSize, index + mosaic.gridSize + 1]
         : [index]
+      const available = indices.every((candidate) => !consumed[candidate])
       const sameColor = indices.every((candidate) => mosaic.grid[candidate] === mosaic.grid[index])
       const subjectAverage = maskData
         ? indices.reduce((sum, candidate) => sum + maskData[candidate * 4] / 255, 0) / indices.length
         : 1
-      if (canMerge && sameColor && subjectAverage < 0.35) {
+      if (canMerge && available && sameColor && subjectAverage < 0.35) {
         indices.forEach((candidate) => { consumed[candidate] = 1 })
         tiles.push({ x, y, width: 2, height: 2, paletteIndex: mosaic.grid[index], merged: true })
         mergedBlocks++

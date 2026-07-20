@@ -1,5 +1,88 @@
 import { expect, test } from '@playwright/test'
 
+test('hybrid plans cover every grid cell exactly once', async ({ page }) => {
+  await page.goto('/')
+  const results = await page.evaluate(async () => {
+    const { planHybridTiles } = await import('/src/lib/qualityPipeline.ts')
+
+    const fixtures = [
+      {
+        name: 'flat-4',
+        gridSize: 4,
+        grid: Array.from({ length: 16 }, () => 0),
+        mask: new ImageData(4, 4),
+      },
+      {
+        name: 'offset-7',
+        gridSize: 7,
+        grid: Array.from({ length: 49 }, (_, index) => Math.floor(index / 7) === 3 ? 1 : 0),
+        mask: new ImageData(7, 7),
+      },
+      {
+        name: 'subject-48',
+        gridSize: 48,
+        grid: Array.from({ length: 48 * 48 }, (_, index) => {
+          const x = index % 48
+          const y = Math.floor(index / 48)
+          if (x >= 14 && x < 34 && y >= 8 && y < 42) return (x + Math.floor(y / 3)) % 4
+          return Math.floor(x / 12) % 2
+        }),
+        mask: (() => {
+          const mask = new ImageData(48, 48)
+          for (let y = 0; y < 48; y++) {
+            for (let x = 0; x < 48; x++) {
+              const index = (y * 48 + x) * 4
+              const subject = x >= 12 && x < 36 && y >= 6 && y < 44
+              mask.data[index] = subject ? 255 : 0
+              mask.data[index + 3] = 255
+            }
+          }
+          return mask
+        })(),
+      },
+    ]
+
+    return fixtures.map((fixture) => {
+      const plan = planHybridTiles({ grid: fixture.grid, gridSize: fixture.gridSize }, fixture.mask)
+      const coverage = new Uint16Array(fixture.gridSize * fixture.gridSize)
+      let area = 0
+      let outOfBounds = 0
+      for (const tile of plan.tiles) {
+        area += tile.width * tile.height
+        for (let dy = 0; dy < tile.height; dy++) {
+          for (let dx = 0; dx < tile.width; dx++) {
+            const x = tile.x + dx
+            const y = tile.y + dy
+            if (x < 0 || y < 0 || x >= fixture.gridSize || y >= fixture.gridSize) {
+              outOfBounds++
+            } else {
+              coverage[y * fixture.gridSize + x]++
+            }
+          }
+        }
+      }
+      return {
+        name: fixture.name,
+        area,
+        expectedArea: fixture.gridSize ** 2,
+        gaps: Array.from(coverage).filter((count) => count === 0).length,
+        overlaps: Array.from(coverage).filter((count) => count > 1).length,
+        outOfBounds,
+        tileCount: plan.tileCount,
+        mergedBlocks: plan.mergedBlocks,
+      }
+    })
+  })
+
+  for (const result of results) {
+    expect(result.area, result.name).toBe(result.expectedArea)
+    expect(result.gaps, result.name).toBe(0)
+    expect(result.overlaps, result.name).toBe(0)
+    expect(result.outOfBounds, result.name).toBe(0)
+    expect(result.tileCount, result.name).toBe(result.expectedArea - 3 * result.mergedBlocks)
+  }
+})
+
 test('quality geometry, feature sampling, coherence, and hybrid planning are deterministic', async ({ page }) => {
   await page.goto('/')
   const result = await page.evaluate(async () => {
