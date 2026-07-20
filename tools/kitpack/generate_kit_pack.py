@@ -12,6 +12,8 @@ physics truth; it renders those inputs for local QA and physical sample gates.
 from __future__ import annotations
 
 import argparse
+import colorsys
+import csv
 import json
 import math
 import re
@@ -20,6 +22,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import letter
@@ -798,10 +801,14 @@ def draw_feed_fiducials(cv: canvas.Canvas, page_w: float, page_h: float) -> None
     cv.drawString(page_w / 2 + 0.04 * IN, y - 0.08 * IN, "feed/skew fiducials")
 
 
-def color_target_patches(constants: dict[str, Any]) -> list[dict[str, str]]:
+def color_target_patches(constants: dict[str, Any]) -> list[dict[str, Any]]:
     targets = constants.get("color_targets", {})
     patches = [
-        {"group": "master_25", "hex": str(color["hex"]).upper()}
+        {
+            "group": "master_25",
+            "name": str(color["name"]),
+            "hex": str(color["hex"]).upper(),
+        }
         for color in targets.get("master_25", [])
     ]
     sampler = targets.get("full_gamut_sampler", {})
@@ -811,7 +818,7 @@ def color_target_patches(constants: dict[str, Any]) -> list[dict[str, str]]:
         raise ValueError(f"color target gamut profile is not configured: {profile_id}")
     for lightness in sampler.get("l_star_ramp", []):
         lab = printable_lab((float(lightness), 0.0, 0.0), profile)
-        patches.append({"group": "l_star_ramp", "hex": lab_to_hex(lab)})
+        patches.append({"group": "l_star_ramp", "name": f"Neutral L* {lightness:g}", "hex": lab_to_hex(lab)})
     hue_steps = int(sampler.get("hue_steps", 0))
     ring_lightness = float(sampler.get("hue_ring_l_star", 55))
     for chroma in sampler.get("chroma_levels", []):
@@ -822,6 +829,10 @@ def color_target_patches(constants: dict[str, Any]) -> list[dict[str, str]]:
                 profile,
             )
             patches.append({"group": f"hue_ring_c{chroma}", "hex": lab_to_hex(lab)})
+            patches[-1]["name"] = f"Hue {step + 1:02d} C* {float(chroma):g}"
+    for index, patch in enumerate(patches, start=1):
+        patch["number"] = index
+        patch["lab"] = rgb_to_lab(hex_to_rgb(patch["hex"]))
     return patches
 
 
@@ -848,6 +859,304 @@ def draw_color_target_strip(
         cv.setFillColor(BLACK if luminance >= 150 else HexColor("#FFFFFF"))
         cv.setFont("Helvetica-Bold", 3.0)
         cv.drawCentredString(x + die_w / 2.0, y_top - die_h / 2.0 - 1.0, patch["hex"])
+
+
+def measurement_log_path_for(output_path: str | Path) -> Path:
+    return Path(output_path).with_suffix(".measurement-log.csv")
+
+
+def write_measurement_log(constants: dict[str, Any], output_path: str | Path) -> Path:
+    path = measurement_log_path_for(output_path)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(
+            [
+                "patch_number",
+                "name",
+                "target_hex",
+                "target_L",
+                "target_a",
+                "target_b",
+                "measured_L",
+                "measured_a",
+                "measured_b",
+                "delta_E00",
+            ]
+        )
+        for patch in color_target_patches(constants):
+            lightness, axis_a, axis_b = patch["lab"]
+            writer.writerow(
+                [
+                    f"{patch['number']:02d}",
+                    patch["name"],
+                    patch["hex"],
+                    f"{lightness:.4f}",
+                    f"{axis_a:.4f}",
+                    f"{axis_b:.4f}",
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+    return path
+
+
+def vendor_color_layout(page_w: float, page_h: float, patch_count: int = 65) -> list[dict[str, tuple[float, float, float, float]]]:
+    del page_h
+    patch_size = 0.62 * IN
+    pitch_x = 0.85 * IN
+    pitch_y = 0.87 * IN
+    columns = 9
+    left = (page_w - ((columns - 1) * pitch_x + patch_size)) / 2.0
+    top = 9.92 * IN
+    layout = []
+    for index in range(patch_count):
+        row, col = divmod(index, columns)
+        x = left + col * pitch_x
+        y = top - row * pitch_y - patch_size
+        layout.append(
+            {
+                "patch": (x, y, patch_size, patch_size),
+                "label": (x, y - 0.14 * IN, patch_size, 0.10 * IN),
+            }
+        )
+    return layout
+
+
+def boxes_overlap(left: tuple[float, float, float, float], right: tuple[float, float, float, float]) -> bool:
+    left_x, left_y, left_w, left_h = left
+    right_x, right_y, right_w, right_h = right
+    return not (
+        left_x + left_w <= right_x
+        or right_x + right_w <= left_x
+        or left_y + left_h <= right_y
+        or right_y + right_h <= left_y
+    )
+
+
+def draw_wrapped_text(
+    cv: canvas.Canvas,
+    text: str,
+    x: float,
+    y: float,
+    max_width: float,
+    *,
+    font: str = "Helvetica",
+    size: float = 9.0,
+    leading: float = 12.0,
+) -> float:
+    words = text.split()
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if current and cv.stringWidth(candidate, font, size) > max_width:
+            lines.append(current)
+            current = word
+        else:
+            current = candidate
+    if current:
+        lines.append(current)
+    cv.setFont(font, size)
+    for line in lines:
+        cv.drawString(x, y, line)
+        y -= leading
+    return y
+
+
+def qualification_date_for(design: dict[str, Any]) -> str:
+    explicit = design.get("qualification_date") or (design.get("source") or {}).get("qualification_date")
+    if explicit:
+        return str(explicit)
+    return datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+
+
+def page_vendor_cover(
+    cv: canvas.Canvas,
+    design: dict[str, Any],
+    profile: dict[str, Any],
+    warnings: list[str],
+    page_w: float,
+    page_h: float,
+    ship_to: str,
+    contact: str,
+) -> None:
+    proof_ref = proof_ref_for(design)
+    margin = 0.62 * IN
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 22)
+    cv.drawString(margin, page_h - 0.72 * IN, "MosaPack - Vendor Qualification Test Pack")
+    cv.setFillColor(TEAL)
+    cv.setFont("Helvetica-Bold", 13)
+    cv.drawString(margin, page_h - 1.08 * IN, f"Reference {proof_ref}")
+    cv.setFillColor(GRAY)
+    cv.setFont("Helvetica", 8.5)
+    cv.drawRightString(page_w - margin, page_h - 1.06 * IN, f"Date {qualification_date_for(design)}")
+
+    y = page_h - 1.58 * IN
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 12)
+    cv.drawString(margin, y, "Production instructions")
+    y -= 0.28 * IN
+    instructions = [
+        "Print at 100% / Actual Size with no scaling.",
+        "Material: removable white MATTE vinyl, or your closest equivalent. Note any substitution on the physical sample.",
+        "Use your standard production color management. NO auto-enhance and NO color correction.",
+        "Kiss-cut squares at 0.375 in (9.5 mm). Rounded corners are acceptable.",
+        "If your die layout differs from ours, print our art at 100% and apply your standard cut. Do NOT rescale the art to fit your die.",
+    ]
+    for index, instruction in enumerate(instructions, start=1):
+        cv.setFillColor(TEAL)
+        cv.setFont("Helvetica-Bold", 9)
+        cv.drawString(margin, y, f"{index}.")
+        cv.setFillColor(INK)
+        y = draw_wrapped_text(cv, instruction, margin + 0.25 * IN, y, page_w - 2 * margin - 0.25 * IN, size=9, leading=12)
+        y -= 0.10 * IN
+
+    cv.setFillColor(LIGHT)
+    cv.roundRect(margin, y - 1.36 * IN, page_w - 2 * margin, 1.22 * IN, 4, stroke=0, fill=1)
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 10)
+    cv.drawString(margin + 0.18 * IN, y - 0.30 * IN, "Ship printed sample sheets to")
+    cv.setFont("Helvetica", 9)
+    draw_wrapped_text(cv, ship_to, margin + 0.18 * IN, y - 0.52 * IN, page_w - 2 * margin - 0.36 * IN, size=9, leading=11)
+    cv.setFont("Helvetica-Bold", 10)
+    cv.drawString(margin + 0.18 * IN, y - 0.88 * IN, "Contact")
+    cv.setFont("Helvetica", 9)
+    cv.drawString(margin + 0.88 * IN, y - 0.88 * IN, contact)
+    y -= 1.58 * IN
+
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 10)
+    cv.drawString(margin, y, "Test profile")
+    cv.setFont("Helvetica", 9)
+    cv.drawString(margin + 1.12 * IN, y, f"{profile['profile_id']} - 0.375 in die - {profile['cols']} x {profile['rows']} layout")
+    y -= 0.33 * IN
+    cv.setFillColor(WARN)
+    cv.setFont("Helvetica-Bold", 8)
+    warning_text = warnings[0] if warnings else "Physical registration qualification is required before production approval."
+    draw_wrapped_text(cv, f"Constants warning: {warning_text}", margin, y, page_w - 2 * margin, font="Helvetica-Bold", size=8, leading=10)
+    footer(cv, page_w, f"{proof_ref} - vendor qualification instructions - page 1 of 3")
+    cv.showPage()
+
+
+def page_vendor_alignment(
+    cv: canvas.Canvas,
+    design: dict[str, Any],
+    profile: dict[str, Any],
+    page_w: float,
+    page_h: float,
+) -> None:
+    proof_ref = proof_ref_for(design)
+    margin = float(profile["margin_left_in"]) * IN
+    header(cv, page_w, page_h, "registration target", f"{proof_ref} - 100% / Actual Size", margin)
+    die_w = profile_die_w(profile) * IN
+    die_h = profile_die_h(profile) * IN
+    cv.setStrokeColor(GRAY)
+    cv.setLineWidth(0.35)
+    for index in range(int(profile["stickers_per_sheet"])):
+        x, y_top = die_origin(index, profile, page_h)
+        cv.roundRect(x, y_top - die_h, die_w, die_h, 2.5, stroke=1, fill=0)
+
+    bbox = die_grid_bbox(profile, page_h)
+    corner_marks = (
+        (bbox["x_left"], bbox["y_bot"], 0.05 * IN, -0.13 * IN),
+        (bbox["x_right"], bbox["y_bot"], -0.72 * IN, -0.13 * IN),
+        (bbox["x_left"], bbox["y_top"], 0.05 * IN, 0.07 * IN),
+        (bbox["x_right"], bbox["y_top"], -0.72 * IN, 0.07 * IN),
+    )
+    for x, y, dx, dy in corner_marks:
+        draw_crosshair(cv, x, y)
+        draw_crosshair_label(cv, x, y, dx, dy)
+    center_x = (bbox["x_left"] + bbox["x_right"]) / 2.0
+    center_y = (bbox["y_top"] + bbox["y_bot"]) / 2.0
+    draw_crosshair(cv, center_x, center_y)
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 5.5)
+    cv.drawString(center_x + 0.06 * IN, center_y + 0.06 * IN, "CENTER")
+
+    calibration_y = calibration_y_in(profile) * IN
+    draw_calibration_bar(cv, 2.0 * IN, calibration_y)
+    draw_vertical_calibration_bar_in_margin(cv, (bbox["x_right"] + page_w) / 2.0, page_h / 2.0 - 0.5 * IN)
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica", 6.5)
+    cv.drawString(3.45 * IN, calibration_y + 0.02 * IN, "Registration reference - we measure print-to-cut offset from this page.")
+    footer(cv, page_w, f"{proof_ref} - registration target - page 2 of 3")
+    cv.showPage()
+
+
+def draw_gradient_bar(cv: canvas.Canvas, x: float, y: float, width: float, height: float, colors: list[tuple[int, int, int]]) -> None:
+    steps = 240
+    segment = width / steps
+    for index in range(steps):
+        position = index / (steps - 1)
+        scaled = position * (len(colors) - 1)
+        left_index = min(int(scaled), len(colors) - 2)
+        mix = scaled - left_index
+        left = colors[left_index]
+        right = colors[left_index + 1]
+        red = round(left[0] + (right[0] - left[0]) * mix)
+        green = round(left[1] + (right[1] - left[1]) * mix)
+        blue = round(left[2] + (right[2] - left[2]) * mix)
+        cv.setFillColor(HexColor(f"#{red:02X}{green:02X}{blue:02X}"))
+        cv.rect(x + index * segment, y, segment + 0.4, height, stroke=0, fill=1)
+    cv.setStrokeColor(GRAY)
+    cv.setLineWidth(0.4)
+    cv.rect(x, y, width, height, stroke=1, fill=0)
+
+
+def page_vendor_color_targets(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, Any], page_w: float, page_h: float) -> None:
+    proof_ref = proof_ref_for(design)
+    margin = 0.42 * IN
+    header(cv, page_w, page_h, "color + gradient target", f"{proof_ref} - standard production color management", margin)
+    patches = color_target_patches(constants)
+    layout = vendor_color_layout(page_w, page_h, len(patches))
+    for patch, boxes in zip(patches, layout):
+        x, y, width, height = boxes["patch"]
+        cv.setFillColor(HexColor(patch["hex"]))
+        cv.rect(x, y, width, height, stroke=0, fill=1)
+        cv.setStrokeColor(GRAY)
+        cv.setLineWidth(0.25)
+        cv.rect(x, y, width, height, stroke=1, fill=0)
+        cv.setFillColor(INK)
+        cv.setFont("Helvetica", 4.4)
+        cv.drawCentredString(x + width / 2.0, boxes["label"][1] + 1.5, f"{patch['number']:02d} {patch['hex']}")
+
+    ramp_y = 2.34 * IN
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 7)
+    cv.drawString(margin, ramp_y + 0.48 * IN, "10-step neutral gray ramp")
+    ramp_width = 0.56 * IN
+    ramp_gap = 0.15 * IN
+    for index in range(10):
+        value = round(index * 255 / 9)
+        x = margin + index * (ramp_width + ramp_gap)
+        cv.setFillColor(HexColor(f"#{value:02X}{value:02X}{value:02X}"))
+        cv.setStrokeColor(GRAY)
+        cv.setLineWidth(0.3)
+        cv.rect(x, ramp_y, ramp_width, 0.34 * IN, stroke=1, fill=1)
+        cv.setFillColor(INK)
+        cv.setFont("Helvetica", 4.5)
+        cv.drawCentredString(x + ramp_width / 2.0, ramp_y - 0.09 * IN, f"N{index + 1:02d}")
+
+    gradient_x = margin
+    gradient_width = page_w - 2 * margin
+    gradient_height = 0.28 * IN
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 7)
+    cv.drawString(gradient_x, 1.89 * IN, "Skin-tone gradient - light to deep")
+    skin_colors = [(250, 225, 205), (221, 169, 128), (160, 100, 67), (82, 45, 31)]
+    draw_gradient_bar(cv, gradient_x, 1.53 * IN, gradient_width, gradient_height, skin_colors)
+    cv.setFillColor(INK)
+    cv.drawString(gradient_x, 1.14 * IN, "Saturated hue gradient")
+    hue_colors = [tuple(round(channel * 255) for channel in colorsys.hsv_to_rgb(index / 12.0, 0.92, 0.95)) for index in range(13)]
+    draw_gradient_bar(cv, gradient_x, 0.78 * IN, gradient_width, gradient_height, hue_colors)
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica", 6.5)
+    cv.drawCentredString(page_w / 2.0, 0.48 * IN, "Measure patches with spectro; log against the target table.")
+    footer(cv, page_w, f"{proof_ref} - color + gradient target - page 3 of 3")
+    cv.showPage()
 
 
 def page_cover(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, Any], plan: dict[str, Any], warnings: list[str], page_w: float, page_h: float) -> None:
@@ -1040,6 +1349,141 @@ def page_sticker_sheets(
         cv.showPage()
 
 
+def page_operator_cover(
+    cv: canvas.Canvas,
+    design: dict[str, Any],
+    plan: dict[str, Any],
+    warnings: list[str],
+    page_w: float,
+    page_h: float,
+    bleed_variants: list[tuple[str, float]],
+) -> None:
+    proof_ref = proof_ref_for(design)
+    margin = 0.58 * IN
+    sheet_count = int(plan["printed_mixed_sheets"])
+    sheet_pages = sheet_count * len(bleed_variants)
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 24)
+    cv.drawString(margin, page_h - 0.80 * IN, "MosaPack Operator Pack")
+    cv.setFillColor(TEAL)
+    cv.setFont("Helvetica-Bold", 14)
+    cv.drawString(margin, page_h - 1.16 * IN, proof_ref)
+    cv.setFillColor(GRAY)
+    cv.setFont("Helvetica", 9)
+    cv.drawString(margin, page_h - 1.42 * IN, "Internal fulfillment document - do not send to print vendors")
+
+    rows = [
+        ("Project ID", str(design["project_id"])),
+        ("Grid", f"{design['grid']} x {design['grid']}"),
+        ("Finished size", f"{design['size_in']} in"),
+        ("Sheet profile", str(design["sheet_profile"])),
+        ("Placed stickers", str(plan["total_placed"])),
+        ("Spares", str(plan["total_spares"])),
+        ("Sheets per variant", str(sheet_count)),
+        ("Sticker-sheet pages in pack", str(sheet_pages)),
+    ]
+    y = page_h - 2.02 * IN
+    for label, value in rows:
+        cv.setFillColor(GRAY)
+        cv.setFont("Helvetica-Bold", 8.5)
+        cv.drawString(margin, y, label)
+        cv.setFillColor(INK)
+        cv.setFont("Helvetica", 9)
+        cv.drawString(margin + 1.75 * IN, y, value)
+        y -= 0.25 * IN
+
+    y -= 0.08 * IN
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 11)
+    cv.drawString(margin, y, "Pack contents")
+    y -= 0.26 * IN
+    cv.setFont("Helvetica", 9)
+    cv.drawString(margin, y, f"{sheet_count} complete sheet(s), including the spare section, for each bleed variant.")
+    y -= 0.22 * IN
+    if len(bleed_variants) > 1:
+        cv.setFillColor(WARN)
+        cv.setFont("Helvetica-Bold", 10)
+        cv.drawString(margin, y, "Print both variants.")
+        y -= 0.24 * IN
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica", 8.5)
+    for name, bleed in bleed_variants:
+        cv.drawString(margin + 0.18 * IN, y, f"Bleed Variant {name}: {bleed:.2f} in - {sheet_count} sheet page(s)")
+        y -= 0.20 * IN
+
+    if warnings:
+        y -= 0.12 * IN
+        cv.setFillColor(WARN)
+        cv.setFont("Helvetica-Bold", 8)
+        for warning in warnings[:5]:
+            y = draw_wrapped_text(cv, f"Warning: {warning}", margin, y, page_w - 2 * margin, font="Helvetica-Bold", size=8, leading=10)
+            y -= 0.07 * IN
+    footer(cv, page_w, f"{proof_ref} - operator cover")
+    cv.showPage()
+
+
+def page_operator_sticker_sheets(
+    cv: canvas.Canvas,
+    design: dict[str, Any],
+    plan: dict[str, Any],
+    profile: dict[str, Any],
+    page_w: float,
+    page_h: float,
+    bleed_in: float,
+    variant_name: str,
+) -> None:
+    proof_ref = proof_ref_for(design)
+    margin = float(profile["margin_left_in"]) * IN
+    die_w = profile_die_w(profile) * IN
+    die_h = profile_die_h(profile) * IN
+    bleed = bleed_in * IN
+    per_sheet = int(profile["stickers_per_sheet"])
+    items = plan["items"]
+    section_starts = {start: index + 1 for index, (start, _) in enumerate(plan["section_ranges"])}
+    spare_start = int(plan["total_placed"])
+    sheet_count = max(1, math.ceil(len(items) / per_sheet))
+    for sheet in range(sheet_count):
+        cv.setFillColor(INK)
+        cv.setFont("Helvetica-Bold", 9.2)
+        cv.drawString(
+            margin,
+            page_h - 0.21 * IN,
+            f"Sheet {sheet + 1} of {sheet_count} - Bleed Variant {variant_name} ({bleed_in:.2f} in)",
+        )
+        cv.setFillColor(GRAY)
+        cv.setFont("Helvetica", 6)
+        cv.drawRightString(page_w - margin, page_h - 0.21 * IN, proof_ref)
+
+        first_y_top = die_origin(0, profile, page_h)[1]
+        cv.setFillColor(INK)
+        cv.setFont("Helvetica", 5.3)
+        for col in range(int(profile["cols"])):
+            x, _ = die_origin(col, profile, page_h)
+            cv.drawCentredString(x + die_w / 2.0, first_y_top + 0.17 * IN, f"C{col + 1}")
+        for row in range(int(profile["rows"])):
+            _, y_top = die_origin(row * int(profile["cols"]), profile, page_h)
+            cv.drawRightString(margin - 0.06 * IN, y_top - die_h / 2.0 - 2, f"R{row + 1}")
+
+        for pos in range(per_sheet):
+            global_index = sheet * per_sheet + pos
+            if global_index >= len(items):
+                break
+            _, _, color_index = items[global_index]
+            x, y_top = die_origin(pos, profile, page_h)
+            color = design["palette"][color_index]
+            cv.setFillColor(HexColor(color["hex"]))
+            cv.roundRect(x - bleed, y_top - die_h - bleed, die_w + 2 * bleed, die_h + 2 * bleed, 4, stroke=0, fill=1)
+            if global_index in section_starts or global_index == spare_start:
+                label = f"SECTION {section_starts[global_index]}" if global_index in section_starts else "SPARES START"
+                cv.setFillColor(HexColor("#FFFFFF"))
+                cv.roundRect(x - 1, y_top + 0.02 * IN, cv.stringWidth(label, "Helvetica-Bold", 7) + 4, 9, 1, stroke=0, fill=1)
+                cv.setFillColor(INK)
+                cv.setFont("Helvetica-Bold", 7)
+                cv.drawString(x + 1, y_top + 0.045 * IN, label)
+        footer(cv, page_w, f"{proof_ref} - variant {variant_name} - sheet {sheet + 1}/{sheet_count}")
+        cv.showPage()
+
+
 def draw_grid_preview(cv: canvas.Canvas, design: dict[str, Any], base_index: int | None, x0: float, y0: float, size: float) -> None:
     grid = int(design["grid"])
     cell = size / grid
@@ -1054,6 +1498,85 @@ def draw_grid_preview(cv: canvas.Canvas, design: dict[str, Any], base_index: int
     cv.setStrokeColor(GRAY)
     cv.setLineWidth(0.5)
     cv.rect(x0, y0, size, size, stroke=1, fill=0)
+
+
+def operator_build_guide_layout(page_w: float, page_h: float) -> dict[str, tuple[float, float, float, float]]:
+    margin = 0.55 * IN
+    return {
+        "thumbnail": (margin, page_h - 4.02 * IN, 3.05 * IN, 3.05 * IN),
+        "section_map": (4.30 * IN, page_h - 3.85 * IN, 2.55 * IN, 2.55 * IN),
+        "legend": (margin, 1.05 * IN, page_w - 2 * margin, 5.35 * IN),
+    }
+
+
+def page_operator_build_guide(
+    cv: canvas.Canvas,
+    design: dict[str, Any],
+    plan: dict[str, Any],
+    page_w: float,
+    page_h: float,
+) -> None:
+    proof_ref = proof_ref_for(design)
+    layout = operator_build_guide_layout(page_w, page_h)
+    margin = 0.55 * IN
+    header(cv, page_w, page_h, "operator build guide", f"{proof_ref} - row-major, top-left origin", margin)
+
+    thumb_x, thumb_y, thumb_w, _ = layout["thumbnail"]
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 9)
+    cv.drawString(thumb_x, thumb_y + thumb_w + 0.10 * IN, "Mosaic reference")
+    draw_grid_preview(cv, design, plan["base_index"], thumb_x, thumb_y, thumb_w)
+
+    section_x, section_y, section_w, section_h = layout["section_map"]
+    section_size = int(plan["section_size"])
+    per_row = int(design["grid"]) // section_size
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 8.5)
+    cv.drawString(section_x, section_y + section_h + 0.10 * IN, f"Section map: {per_row} x {per_row}; each {section_size} x {section_size} tiles")
+    cell_w = section_w / per_row
+    cell_h = section_h / per_row
+    cv.setStrokeColor(GRAY)
+    cv.setLineWidth(0.8)
+    for index in range(per_row * per_row):
+        row, col = divmod(index, per_row)
+        x = section_x + col * cell_w
+        y = section_y + section_h - (row + 1) * cell_h
+        cv.rect(x, y, cell_w, cell_h, stroke=1, fill=0)
+        cv.setFillColor(INK)
+        cv.setFont("Helvetica-Bold", 14)
+        cv.drawCentredString(x + cell_w / 2.0, y + cell_h / 2.0 - 5, str(index + 1))
+
+    legend_x, legend_y, legend_w, legend_h = layout["legend"]
+    cv.setFillColor(LIGHT)
+    cv.roundRect(legend_x, legend_y, legend_w, legend_h, 4, stroke=0, fill=1)
+    cv.setFillColor(INK)
+    cv.setFont("Helvetica-Bold", 10)
+    cv.drawString(legend_x + 0.18 * IN, legend_y + legend_h - 0.28 * IN, "Color legend")
+    columns = 3
+    rows = 11
+    column_width = (legend_w - 0.36 * IN) / columns
+    row_height = 0.40 * IN
+    for index, color in enumerate(design["palette"][: columns * rows]):
+        col, row = divmod(index, rows)
+        x = legend_x + 0.18 * IN + col * column_width
+        y = legend_y + legend_h - 0.62 * IN - row * row_height
+        cv.setFillColor(HexColor(color["hex"]))
+        cv.roundRect(x, y, 0.25 * IN, 0.25 * IN, 2, stroke=0, fill=1)
+        cv.setStrokeColor(GRAY)
+        cv.roundRect(x, y, 0.25 * IN, 0.25 * IN, 2, stroke=1, fill=0)
+        cv.setFillColor(INK)
+        cv.setFont("Helvetica", 6.8)
+        count = int(plan["placed_counts"].get(color["index"], 0))
+        label = f"{color['index']}: {color['name']} ({count})"
+        cv.drawString(x + 0.33 * IN, y + 0.08 * IN, label[:34])
+
+    cv.setFillColor(GRAY)
+    cv.setFont("Helvetica", 7.5)
+    cv.drawString(margin, 0.72 * IN, "Build each numbered section row by row, left to right. Follow sequence and section markers on the sticker sheets.")
+    if design.get("black_base"):
+        cv.drawString(margin, 0.55 * IN, "Black-base cells remain on the map but are excluded from the sticker sequence.")
+    footer(cv, page_w, f"{proof_ref} - operator build guide")
+    cv.showPage()
 
 
 def page_build_guide(cv: canvas.Canvas, design: dict[str, Any], constants: dict[str, Any], plan: dict[str, Any], page_w: float, page_h: float) -> None:
@@ -1121,6 +1644,10 @@ def render_pdf(
     bleed_override: float | None = None,
     gate_a: bool = False,
     color_target_strip: bool = False,
+    vendor_pack: bool = False,
+    operator_pack: bool = False,
+    ship_to: str = "{ship_to}",
+    contact: str = "{contact}",
     fulfillment_mode: str = "printed_mixed",
     write_manifest_file: bool = True,
 ) -> dict[str, Any]:
@@ -1136,21 +1663,53 @@ def render_pdf(
     out = Path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     main_bleed = bleed_value(constants, bleed_override)
-    if gate_a:
+    if gate_a and not vendor_pack:
         bleed_values_used = [0.03, 0.05]
+    elif vendor_pack:
+        bleed_values_used = []
     else:
         bleed_values_used = [main_bleed]
     cv = canvas.Canvas(str(out), pagesize=(page_w, page_h))
-    cv.setTitle(f"MosaPack {proof_ref_for(design)} ({design['project_id']}) kit pack")
-    page_cover(cv, design, constants, plan, warnings, page_w, page_h)
-    page_alignment(cv, design, constants, profile, page_w, page_h, color_target_strip)
-    if gate_a:
-        page_sticker_sheets(cv, design, plan, profile, page_w, page_h, 0.03, sheet_limit=1, title_prefix="Gate A ")
-        page_sticker_sheets(cv, design, plan, profile, page_w, page_h, 0.05, sheet_limit=1, title_prefix="Gate A ")
+    measurement_log_path: Path | None = None
+    page_count = 0
+    if vendor_pack:
+        cv.setTitle(f"MosaPack {proof_ref_for(design)} vendor qualification pack")
+        page_vendor_cover(cv, design, profile, warnings, page_w, page_h, ship_to, contact)
+        page_vendor_alignment(cv, design, profile, page_w, page_h)
+        page_vendor_color_targets(cv, design, constants, page_w, page_h)
+        page_count = 3
+    elif operator_pack:
+        cv.setTitle(f"MosaPack {proof_ref_for(design)} operator pack")
+        variants = [("A", 0.03), ("B", 0.05)] if gate_a else [("A", main_bleed)]
+        page_operator_cover(cv, design, plan, warnings, page_w, page_h, variants)
+        for variant_name, variant_bleed in variants:
+            page_operator_sticker_sheets(
+                cv,
+                design,
+                plan,
+                profile,
+                page_w,
+                page_h,
+                variant_bleed,
+                variant_name,
+            )
+        page_operator_build_guide(cv, design, plan, page_w, page_h)
+        page_count = 2 + int(plan["printed_mixed_sheets"]) * len(variants)
     else:
-        page_sticker_sheets(cv, design, plan, profile, page_w, page_h, main_bleed)
-    page_build_guide(cv, design, constants, plan, page_w, page_h)
+        cv.setTitle(f"MosaPack {proof_ref_for(design)} ({design['project_id']}) kit pack")
+        page_cover(cv, design, constants, plan, warnings, page_w, page_h)
+        page_alignment(cv, design, constants, profile, page_w, page_h, color_target_strip)
+        if gate_a:
+            page_sticker_sheets(cv, design, plan, profile, page_w, page_h, 0.03, sheet_limit=1, title_prefix="Gate A ")
+            page_sticker_sheets(cv, design, plan, profile, page_w, page_h, 0.05, sheet_limit=1, title_prefix="Gate A ")
+        else:
+            page_sticker_sheets(cv, design, plan, profile, page_w, page_h, main_bleed)
+        page_build_guide(cv, design, constants, plan, page_w, page_h)
+        legacy_sheet_pages = 2 if gate_a else int(plan["printed_mixed_sheets"])
+        page_count = 3 + legacy_sheet_pages
     cv.save()
+    if vendor_pack:
+        measurement_log_path = write_measurement_log(constants, out)
     manifest = build_manifest(
         design,
         constants,
@@ -1169,6 +1728,14 @@ def render_pdf(
         mismatch_warnings,
     )
     manifest_path = write_manifest(manifest, out) if write_manifest_file else None
+    pack_mode = "vendor" if vendor_pack else "operator" if operator_pack else "legacy"
+    if pack_mode != "legacy":
+        manifest["pack_mode"] = pack_mode
+        manifest["page_count"] = page_count
+        if measurement_log_path:
+            manifest["measurement_log_csv"] = str(measurement_log_path)
+        if write_manifest_file:
+            manifest_path = write_manifest(manifest, out)
     return {
         "output": str(out),
         "manifest": str(manifest_path) if manifest_path else None,
@@ -1183,6 +1750,9 @@ def render_pdf(
         "spares": plan["total_spares"],
         "sheets": plan["printed_mixed_sheets"],
         "gate_a_mode": gate_a,
+        "pack_mode": pack_mode,
+        "page_count": page_count,
+        "measurement_log_csv": str(measurement_log_path) if measurement_log_path else None,
         "color_target_strip": color_target_strip,
         "fulfillment_mode": canonical_fulfillment_mode,
         "bleed_values_used": bleed_values_used,
@@ -1198,6 +1768,10 @@ def generate(
     bleed_override: float | None = None,
     gate_a: bool = False,
     color_target_strip: bool = False,
+    vendor_pack: bool = False,
+    operator_pack: bool = False,
+    ship_to: str = "{ship_to}",
+    contact: str = "{contact}",
     fulfillment_mode: str = "printed_mixed",
     write_manifest_file: bool = True,
 ) -> dict[str, Any]:
@@ -1215,6 +1789,10 @@ def generate(
         bleed_override=bleed_override,
         gate_a=gate_a,
         color_target_strip=color_target_strip,
+        vendor_pack=vendor_pack,
+        operator_pack=operator_pack,
+        ship_to=ship_to,
+        contact=contact,
         fulfillment_mode=fulfillment_mode,
         write_manifest_file=write_manifest_file,
     )
@@ -1228,6 +1806,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--bleed", type=float, default=None, help="Override bleed in inches for normal output")
     parser.add_argument("--gate-a", action="store_true", help="Generate Gate A validation PDF with sheet 1 at 0.03in and 0.05in bleed")
     parser.add_argument("--color-target-strip", action="store_true", help="Add Master-25 and full-gamut color targets to the alignment page")
+    pack_group = parser.add_mutually_exclusive_group()
+    pack_group.add_argument("--vendor-pack", action="store_true", help="Generate the 3-page vendor qualification pack and measurement CSV")
+    pack_group.add_argument("--operator-pack", action="store_true", help="Generate the internal operator pack with all planned sticker sheets")
+    parser.add_argument("--ship-to", default="{ship_to}", help="Vendor-pack shipping destination")
+    parser.add_argument("--contact", default="{contact}", help="Vendor-pack contact")
     parser.add_argument("--fulfillment", default="printed_mixed", choices=sorted(FULFILLMENT_ALIASES), help="Manifest-only fulfillment math mode")
     parser.add_argument("--no-manifest", action="store_true", help="Do not emit sidecar manifest JSON")
     return parser.parse_args(argv)
@@ -1243,6 +1826,10 @@ def main(argv: list[str] | None = None) -> int:
             bleed_override=args.bleed,
             gate_a=args.gate_a,
             color_target_strip=args.color_target_strip,
+            vendor_pack=args.vendor_pack,
+            operator_pack=args.operator_pack,
+            ship_to=args.ship_to,
+            contact=args.contact,
             fulfillment_mode=args.fulfillment,
             write_manifest_file=not args.no_manifest,
         )

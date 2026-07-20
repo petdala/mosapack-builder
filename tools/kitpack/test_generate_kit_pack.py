@@ -3,9 +3,11 @@
 
 from __future__ import annotations
 
+import csv
 import hashlib
 import importlib.util
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -152,6 +154,88 @@ class KitPackTests(unittest.TestCase):
         self.assertEqual(len(patches), 65)
         self.assertEqual(sum(patch["group"] == "master_25" for patch in patches), 25)
         self.assertTrue(all(KITPACK.HEX_COLOR_RE.match(patch["hex"]) for patch in patches))
+
+    def test_vendor_pack_has_three_pages_solid_targets_gradients_and_measurement_log(self) -> None:
+        from pypdf import PdfReader
+
+        design = self.adaptive_design()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            design_path = temp / "adaptive.json"
+            output_path = temp / "vendor-pack.pdf"
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            result = KITPACK.generate(
+                design_path,
+                output_path,
+                vendor_pack=True,
+                ship_to="MosaPack receiving placeholder",
+                contact="qualification@example.test",
+            )
+            reader = PdfReader(output_path)
+            self.assertEqual(len(reader.pages), 3)
+            self.assertEqual(result["pack_mode"], "vendor")
+            page_two = reader.pages[1].extract_text()
+            page_three = reader.pages[2].extract_text()
+            self.assertIn("Registration reference", page_two)
+            self.assertIn("CENTER", page_two)
+            self.assertNotIn("overlay the label sheet", page_two)
+            self.assertIn("10-step neutral gray ramp", page_three)
+            self.assertIn("Skin-tone gradient", page_three)
+            self.assertIn("Saturated hue gradient", page_three)
+            self.assertIn("Measure patches with spectro", page_three)
+
+            layout = KITPACK.vendor_color_layout(8.5 * KITPACK.IN, 11 * KITPACK.IN)
+            self.assertEqual(len(layout), 65)
+            for boxes in layout:
+                self.assertGreaterEqual(boxes["patch"][2] / KITPACK.IN, 0.6)
+                self.assertGreaterEqual(boxes["patch"][3] / KITPACK.IN, 0.6)
+                self.assertFalse(KITPACK.boxes_overlap(boxes["patch"], boxes["label"]))
+
+            csv_path = Path(result["measurement_log_csv"])
+            with csv_path.open(newline="", encoding="utf-8") as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(len(rows), 65)
+            self.assertEqual(rows[0]["patch_number"], "01")
+            self.assertEqual(rows[0]["target_hex"], "#1B1B1B")
+            expected_lab = KITPACK.rgb_to_lab(KITPACK.hex_to_rgb(rows[0]["target_hex"]))
+            self.assertAlmostEqual(float(rows[0]["target_L"]), expected_lab[0], places=4)
+            self.assertAlmostEqual(float(rows[0]["target_a"]), expected_lab[1], places=4)
+            self.assertAlmostEqual(float(rows[0]["target_b"]), expected_lab[2], places=4)
+            self.assertEqual(rows[0]["measured_L"], "")
+            self.assertEqual(rows[0]["delta_E00"], "")
+
+    def test_operator_build_guide_layout_boxes_are_disjoint(self) -> None:
+        layout = KITPACK.operator_build_guide_layout(8.5 * KITPACK.IN, 11 * KITPACK.IN)
+        names = list(layout)
+        for left_index, left_name in enumerate(names):
+            for right_name in names[left_index + 1:]:
+                self.assertFalse(
+                    KITPACK.boxes_overlap(layout[left_name], layout[right_name]),
+                    f"{left_name} overlaps {right_name}",
+                )
+
+    def test_operator_gate_a_pack_emits_all_sheets_and_bleed_variants(self) -> None:
+        from pypdf import PdfReader
+
+        design = self.adaptive_design()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            design_path = temp / "adaptive.json"
+            output_path = temp / "operator-pack.pdf"
+            design_path.write_text(json.dumps(design), encoding="utf-8")
+            result = KITPACK.generate(design_path, output_path, gate_a=True, operator_pack=True)
+            reader = PdfReader(output_path)
+            self.assertEqual(result["sheets"], 4)
+            self.assertEqual(result["page_count"], 10)
+            self.assertEqual(len(reader.pages), 10)
+            text = "\n".join(page.extract_text() or "" for page in reader.pages)
+            self.assertIn("Print both variants", text)
+            self.assertIn("Sheet 1 of 4 - Bleed Variant A (0.03 in)", text)
+            self.assertIn("Sheet 4 of 4 - Bleed Variant A (0.03 in)", text)
+            self.assertIn("Sheet 1 of 4 - Bleed Variant B (0.05 in)", text)
+            self.assertIn("Sheet 4 of 4 - Bleed Variant B (0.05 in)", text)
+            self.assertIn("SPARES START", text)
+            self.assertIn("Section map: 2 x 2; each 12 x 12 tiles", text)
 
 
 if __name__ == "__main__":
