@@ -84,11 +84,24 @@ class KitPackTests(unittest.TestCase):
 
         for sheet in plan["sheets"]:
             annotations = KITPACK.customer_sheet_annotation_boxes(sheet, plan, profile, page_w, page_h)
+            mid_banner_chips = [
+                annotation
+                for annotation in annotations
+                if annotation["kind"] == "banner_chip" and annotation.get("banner_row") is not None
+            ]
+            self.assertEqual(len(mid_banner_chips), max(0, len(sheet["segments"]) - 1))
             for annotation in annotations:
                 bbox = annotation["bbox"]
                 if annotation["kind"] in {"margin_chip", "spares_label"}:
                     grid_left = float(profile["margin_left_in"]) * KITPACK.IN
                     self.assertLessEqual(bbox[2] + 2, grid_left, f"{annotation['kind']} lacks 2pt margin clearance")
+                if annotation["kind"].startswith("banner") and annotation.get("banner_row") is not None:
+                    banner_row = int(annotation["banner_row"])
+                    _, row_top = KITPACK.die_origin(banner_row * int(profile["cols"]), profile, page_h)
+                    row_bottom = row_top - die_h
+                    self.assertGreaterEqual(bbox[1], row_bottom + 2, f"{annotation['kind']} is below its reserved row")
+                    self.assertLessEqual(bbox[3], row_top - 2, f"{annotation['kind']} is above its reserved row")
+                    continue
                 for die_rect in die_rects:
                     self.assertFalse(
                         intersects(bbox, die_rect),
@@ -110,6 +123,21 @@ class KitPackTests(unittest.TestCase):
                 self.assertIsNotNone(banner_row)
                 row_slots = sheet["slots"][banner_row * int(profile["cols"]):(banner_row + 1) * int(profile["cols"])]
                 self.assertTrue(all(slot is None for slot in row_slots))
+                previous_palette = sheet["segments"][segment_index - 1]["palette_index"]
+                previous_rows = {
+                    position // int(profile["cols"])
+                    for position, slot in enumerate(sheet["slots"])
+                    if slot and slot["palette_index"] == previous_palette
+                }
+                current_rows = {
+                    position // int(profile["cols"])
+                    for position, slot in enumerate(sheet["slots"])
+                    if slot and slot["palette_index"] == segment["palette_index"]
+                }
+                self.assertEqual(banner_row, max(previous_rows) + 1)
+                self.assertEqual(min(current_rows), banner_row + 1)
+                intervening_pitch = (min(current_rows) - max(previous_rows) - 1) * KITPACK.profile_pitch_y(profile) * KITPACK.IN
+                self.assertAlmostEqual(intervening_pitch, KITPACK.profile_pitch_y(profile) * KITPACK.IN, delta=1)
 
     def test_sl680_geometry_extremes(self) -> None:
         profile = self.constants["sheet_profiles"]["sl680_0375"]

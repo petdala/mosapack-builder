@@ -2401,12 +2401,12 @@ def customer_banner_geometry(
         banner_y = y_top + 0.055 * IN
         chip_h = 0.18 * IN
     else:
-        chip_h = 0.17 * IN
-        gap_h = (profile_pitch_y(profile) - profile_die_h(profile)) * IN
-        if gap_h - chip_h < 4:
-            raise ValueError("customer banner gap cannot provide 2pt die clearance")
-        # Center ink in the reserved row's upper gap; all physical die faces remain blank.
-        banner_y = y_top + (gap_h - chip_h) / 2.0
+        chip_h = 0.15 * IN
+        die_h = profile_die_h(profile) * IN
+        if die_h - chip_h < 4:
+            raise ValueError("customer banner row cannot provide 2pt vertical clearance")
+        # The row is sacrificial: center the banner inside it so no extra gap band is introduced.
+        banner_y = y_top - die_h + (die_h - chip_h) / 2.0
     chip_bbox = (x, banner_y, x + 0.28 * IN, banner_y + chip_h)
     label = customer_banner_label(color, segment)
     label_x = x + 0.34 * IN
@@ -2476,8 +2476,12 @@ def customer_sheet_annotation_boxes(
     for segment in sheet["segments"]:
         color = colors_by_index[segment["palette_index"]]
         geometry = customer_banner_geometry(segment, color, profile, page_h)
-        annotations.append({"kind": "banner_chip", "bbox": geometry["chip_bbox"]})
-        annotations.append({"kind": "banner_label", "bbox": geometry["label_bbox"]})
+        annotations.append(
+            {"kind": "banner_chip", "bbox": geometry["chip_bbox"], "banner_row": segment.get("banner_row")}
+        )
+        annotations.append(
+            {"kind": "banner_label", "bbox": geometry["label_bbox"], "banner_row": segment.get("banner_row")}
+        )
 
     colors = customer_plan["colors"]
     checks_per_row = math.ceil(len(colors) / 2) if len(colors) > 24 else len(colors)
