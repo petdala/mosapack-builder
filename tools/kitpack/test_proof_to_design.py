@@ -70,6 +70,18 @@ class ProofToDesignTests(unittest.TestCase):
             self.assertTrue(customer_path.exists())
             self.assertEqual(result["palette_mode"], "adaptive")
 
+    def test_auto_resolution_geometry_flows_into_design_v12(self) -> None:
+        payload = self.fixture("sample-fixed-proof-payload.json")
+        payload["grid_size"] = "48x48"
+        payload["cell_size_in"] = 0.375
+        payload["finished_size_in"] = 19.2
+        payload["tile_map"] = [index % len(payload["palette"]) for index in range(48 * 48)]
+        design = BRIDGE.convert_payload(payload, self.constants)
+        self.assertEqual(design["grid"], 48)
+        self.assertEqual(design["cell_size_in"], 0.375)
+        self.assertEqual(design["finished_size_in"], 19.2)
+        self.assertNotIn("size_in", design)
+
     def test_corrupt_payloads_fail_with_actionable_errors(self) -> None:
         base = self.fixture("sample-fixed-proof-payload.json")
 

@@ -20,6 +20,21 @@ import { createAdaptiveMosaicPreview } from '@/lib/adaptivePalette'
 import type { AdaptiveMosaicPreview, PaletteMode } from '@/lib/adaptivePalette'
 import { CURATED_VARIANTS, curatedVariantStyle } from '@/lib/magicResults'
 import { renderPhysicalTiles } from '@/lib/tileRenderer'
+import {
+  edgeBlendStrength,
+  featureAwareDownscale,
+  GALLERY_TIER,
+  createQualityAdaptiveMosaicPreview,
+  isQualityPipelineEnabled,
+  qualityPaletteTiers,
+  qualityTierPrice,
+  QUALITY_BOARD_PITCH_IN,
+  QUALITY_CELL_SIZE_IN,
+  selectQualityGeometry,
+  subjectCoverage,
+  suppressIsolatedTiles,
+} from '@/lib/qualityPipeline'
+import { renderQualityTiles } from '@/lib/qualityRenderer'
 
 type Stage = 'upload' | 'optimize' | 'preview' | 'done'
 const GRID_FOR_SIZE: Record<number, number> = { 6: 1, 12: 2, 18: 3, 24: 4 }
@@ -65,8 +80,13 @@ function clearDraft() {
 }
 
 export default function App() {
+  const [qualityEnabled] = useState(() => isQualityPipelineEnabled())
   const [paletteMode] = useState<PaletteMode>(() => (
-    new URLSearchParams(window.location.search).get('paletteMode') === 'adaptive' ? 'adaptive' : 'fixed'
+    new URLSearchParams(window.location.search).get('paletteMode') === 'fixed'
+      ? 'fixed'
+      : new URLSearchParams(window.location.search).get('paletteMode') === 'adaptive' || isQualityPipelineEnabled()
+        ? 'adaptive'
+        : 'fixed'
   ))
   const [classicBannerVisible, setClassicBannerVisible] = useState(() => new URLSearchParams(window.location.search).has('classic'))
   const [stage, setStage] = useState<Stage>('upload')
@@ -78,7 +98,7 @@ export default function App() {
   const [tune, setTune] = useState<FineTune>({ brightness: 0, contrast: 0, background: 0 })
   const [format, setFormat] = useState<string>(FORMATS[0].id)
   const [sizeIn, setSizeIn] = useState<number>(12)
-  const [tierId, setTierId] = useState<string>('balanced')
+  const [tierId, setTierId] = useState<string>(() => isQualityPipelineEnabled() ? GALLERY_TIER.id : 'balanced')
   const [photoDataUrl, setPhotoDataUrl] = useState<string>('')
   const [resumeDraft, setResumeDraft] = useState<BuilderDraft | null>(null)
   const undoStack = useRef<UndoSnapshot[]>([])
@@ -151,10 +171,29 @@ export default function App() {
   const optimizedSrc = useMemo(() => optimizeResult?.canvas.toDataURL('image/jpeg', 0.9) ?? '', [optimizeResult])
 
   const style = STYLES.find((s) => s.id === styleId) ?? STYLES[0]
-  const panelGrid = GRID_FOR_SIZE[sizeIn] ?? 2
-  const gridSize = panelGrid * PANEL_SIZE_TILES
-  const paletteCount = TIERS.find((t) => t.id === tierId)?.colors ?? 12
-  const price = kitPrice(sizeIn, tierId)
+  const qualityGeometry = useMemo(() => selectQualityGeometry({
+    preferredSizeIn: sizeIn,
+    sourceWidth: sourceCanvas?.width ?? 640,
+    sourceHeight: sourceCanvas?.height ?? 640,
+    faces: optimizeResult?.report.faces ?? 0,
+    subjectCoverage: subjectCoverage(optimizeApplied ? optimizeResult?.subjectMask : undefined),
+  }), [sizeIn, sourceCanvas, optimizeResult, optimizeApplied])
+  const basePanelGrid = GRID_FOR_SIZE[sizeIn] ?? 2
+  const gridSize = qualityEnabled ? qualityGeometry.gridSize : basePanelGrid * PANEL_SIZE_TILES
+  const panelGrid = qualityEnabled ? gridSize / PANEL_SIZE_TILES : basePanelGrid
+  const paletteTiers = useMemo(() => qualityPaletteTiers(
+    TIERS.filter((tier) => PRICES[sizeIn]?.[tier.id] != null),
+    qualityEnabled && qualityGeometry.galleryEligible,
+    paletteMode === 'adaptive',
+  ), [sizeIn, qualityEnabled, qualityGeometry.galleryEligible, paletteMode])
+  const paletteCount = paletteTiers.find((tier) => tier.id === tierId)?.colors ?? 12
+  const fixedPaletteCount = Math.min(PALETTE.length, paletteCount)
+  const price = qualityTierPrice(sizeIn, tierId, kitPrice(sizeIn, tierId))
+  const pipelineSource = useMemo(() => (
+    qualityEnabled && sourceCanvas
+      ? featureAwareDownscale(sourceCanvas, gridSize, optimizeApplied ? optimizeResult?.subjectMask : undefined)
+      : sourceCanvas
+  ), [qualityEnabled, sourceCanvas, gridSize, optimizeApplied, optimizeResult])
   const adaptiveReadyForVariants = paletteMode !== 'adaptive' || adaptivePreview !== null
   const proofRequestEnabled = paletteMode === 'fixed'
   const customerPreviewThumb = useMemo(() => {
@@ -163,10 +202,16 @@ export default function App() {
       ? adaptivePreview.palette.colors
       : PALETTE.slice(0, paletteCount)
     if (!customerMosaic) return ''
-    return renderPhysicalTiles(customerMosaic, customerPalette, {
-      tilePx: Math.max(8, Math.floor(672 / customerMosaic.gridSize)),
-    }).toDataURL('image/png')
-  }, [paletteMode, adaptivePreview, mosaic, paletteCount])
+    const tilePx = Math.max(8, Math.floor(672 / customerMosaic.gridSize))
+    return (qualityEnabled
+      ? renderQualityTiles(customerMosaic, customerPalette, {
+          tilePx,
+          subjectMask: optimizeApplied ? optimizeResult?.subjectMask : undefined,
+          edgeBlend: edgeBlendStrength(styleId),
+        }).canvas
+      : renderPhysicalTiles(customerMosaic, customerPalette, { tilePx })
+    ).toDataURL('image/png')
+  }, [paletteMode, adaptivePreview, mosaic, paletteCount, qualityEnabled, optimizeApplied, optimizeResult, styleId])
 
   useEffect(() => {
     if (!optimizationInput || (stage !== 'optimize' && stage !== 'preview') || !optimizeApplied) return
@@ -188,8 +233,8 @@ export default function App() {
   }, [optimizationInput, sizeIn, optimizeControls, optimizeApplied, stage])
 
   useEffect(() => {
-    if (PRICES[sizeIn]?.[tierId] == null) setTierId('balanced')
-  }, [sizeIn, tierId])
+    if (!paletteTiers.some((tier) => tier.id === tierId)) setTierId('balanced')
+  }, [paletteTiers, tierId])
 
   const pushUndo = useCallback(() => {
     if (!crop) return
@@ -275,22 +320,23 @@ export default function App() {
   // main mosaic render — deferred a tick so the UI never blocks
   const renderSeq = useRef(0)
   useEffect(() => {
-    if (!sourceCanvas) return
+    if (!pipelineSource) return
     const seq = ++renderSeq.current
     setRendering(true)
     const t = setTimeout(() => {
       if (seq !== renderSeq.current) return
-      const m = renderMosaic(sourceCanvas, gridSize, style, tune, sourceSal, Math.max(10, Math.round(672 / gridSize)), paletteCount)
+      const rendered = renderMosaic(pipelineSource, gridSize, style, tune, sourceSal, Math.max(10, Math.round(672 / gridSize)), fixedPaletteCount)
+      const m = qualityEnabled ? suppressIsolatedTiles(rendered, PALETTE.slice(0, fixedPaletteCount)) : rendered
       if (seq !== renderSeq.current) return
       setMosaic(m)
       setRendering(false)
-      track('preview_rendered', { style: style.id, grid: gridSize })
+      track('preview_rendered', { style: style.id, grid: gridSize, quality_pipeline: qualityEnabled })
     }, 30)
     return () => clearTimeout(t)
-  }, [sourceCanvas, gridSize, style, tune, sourceSal, paletteCount])
+  }, [pipelineSource, gridSize, style, tune, sourceSal, fixedPaletteCount, qualityEnabled])
 
   useEffect(() => {
-    if (paletteMode !== 'adaptive' || !sourceCanvas || stage !== 'preview') {
+    if (paletteMode !== 'adaptive' || !pipelineSource || stage !== 'preview') {
       setAdaptivePreview(null)
       setAdaptiveRendering(false)
       setAdaptivePreviewFailed(false)
@@ -301,8 +347,8 @@ export default function App() {
     setAdaptivePreviewFailed(false)
     const timeout = setTimeout(() => {
       try {
-        const preview = createAdaptiveMosaicPreview(
-          sourceCanvas,
+        const preview = (qualityEnabled ? createQualityAdaptiveMosaicPreview : createAdaptiveMosaicPreview)(
+          pipelineSource,
           gridSize,
           style,
           tune,
@@ -312,6 +358,9 @@ export default function App() {
           Boolean(optimizeResult?.report.skinRgb),
           optimizeApplied ? optimizeResult?.subjectMask : undefined,
         )
+        if (qualityEnabled) {
+          preview.mosaic = suppressIsolatedTiles(preview.mosaic, preview.palette.colors)
+        }
         if (!cancelled) setAdaptivePreview(preview)
       } catch (error) {
         console.warn('Adaptive palette preview unavailable; keeping fixed preview.', error)
@@ -327,14 +376,15 @@ export default function App() {
       cancelled = true
       clearTimeout(timeout)
     }
-  }, [paletteMode, sourceCanvas, stage, gridSize, style, tune, sourceSal, paletteCount, optimizeApplied, optimizeResult])
+  }, [paletteMode, pipelineSource, stage, gridSize, style, tune, sourceSal, paletteCount, optimizeApplied, optimizeResult, qualityEnabled])
 
   // Curated finished looks render sequentially to keep mobile interaction responsive.
   useEffect(() => {
-    if (!sourceCanvas || stage !== 'preview' || !adaptiveReadyForVariants) return
+    if (!pipelineSource || stage !== 'preview' || !adaptiveReadyForVariants) return
     const thumbs: Record<string, string> = {}
     const thumbnailGridSize = Math.min(20, gridSize)
     const thumbnailTilePx = Math.max(6, Math.floor(240 / thumbnailGridSize))
+    const thumbnailPaletteCount = qualityEnabled ? Math.min(12, paletteCount) : paletteCount
     let cancelled = false
     const run = (i: number) => {
       if (cancelled || i >= CURATED_VARIANTS.length) return
@@ -342,54 +392,73 @@ export default function App() {
       const variantStyle = curatedVariantStyle(variant.id)
       try {
         if (paletteMode === 'adaptive') {
-          const preview = createAdaptiveMosaicPreview(
-            sourceCanvas,
+          const preview = (qualityEnabled ? createQualityAdaptiveMosaicPreview : createAdaptiveMosaicPreview)(
+            pipelineSource,
             thumbnailGridSize,
             variantStyle,
             { brightness: 0, contrast: 0, background: 0 },
             sourceSal,
             thumbnailTilePx,
-            paletteCount,
+            thumbnailPaletteCount,
             Boolean(optimizeResult?.report.skinRgb),
             optimizeApplied ? optimizeResult?.subjectMask : undefined,
           )
-          thumbs[variant.id] = renderPhysicalTiles(preview.mosaic, preview.palette.colors, {
-            tilePx: thumbnailTilePx,
-          }).toDataURL('image/png')
+          const variantMosaic = qualityEnabled
+            ? suppressIsolatedTiles(preview.mosaic, preview.palette.colors)
+            : preview.mosaic
+          thumbs[variant.id] = (qualityEnabled
+            ? renderQualityTiles(variantMosaic, preview.palette.colors, {
+                tilePx: thumbnailTilePx,
+                subjectMask: optimizeApplied ? optimizeResult?.subjectMask : undefined,
+                edgeBlend: edgeBlendStrength(variant.id),
+              }).canvas
+            : renderPhysicalTiles(variantMosaic, preview.palette.colors, { tilePx: thumbnailTilePx })
+          ).toDataURL('image/png')
         } else {
-          const fixed = renderMosaic(
-            sourceCanvas,
+          const rendered = renderMosaic(
+            pipelineSource,
             thumbnailGridSize,
             variantStyle,
             { brightness: 0, contrast: 0, background: 0 },
             sourceSal,
             thumbnailTilePx,
-            paletteCount,
+            thumbnailPaletteCount,
           )
-          thumbs[variant.id] = renderPhysicalTiles(fixed, PALETTE.slice(0, paletteCount), {
-            tilePx: thumbnailTilePx,
-          }).toDataURL('image/png')
+          const fixed = qualityEnabled ? suppressIsolatedTiles(rendered, PALETTE.slice(0, thumbnailPaletteCount)) : rendered
+          thumbs[variant.id] = (qualityEnabled
+            ? renderQualityTiles(fixed, PALETTE.slice(0, thumbnailPaletteCount), {
+                tilePx: thumbnailTilePx,
+                subjectMask: optimizeApplied ? optimizeResult?.subjectMask : undefined,
+                edgeBlend: edgeBlendStrength(variant.id),
+              }).canvas
+            : renderPhysicalTiles(fixed, PALETTE.slice(0, thumbnailPaletteCount), { tilePx: thumbnailTilePx })
+          ).toDataURL('image/png')
         }
       } catch {
         const fixed = renderMosaic(
-          sourceCanvas,
+          pipelineSource,
           thumbnailGridSize,
           variantStyle,
           { brightness: 0, contrast: 0, background: 0 },
           sourceSal,
           thumbnailTilePx,
-          paletteCount,
+          thumbnailPaletteCount,
         )
-        thumbs[variant.id] = renderPhysicalTiles(fixed, PALETTE.slice(0, paletteCount), {
-          tilePx: thumbnailTilePx,
-        }).toDataURL('image/png')
+        thumbs[variant.id] = (qualityEnabled
+          ? renderQualityTiles(fixed, PALETTE.slice(0, thumbnailPaletteCount), {
+              tilePx: thumbnailTilePx,
+              subjectMask: optimizeApplied ? optimizeResult?.subjectMask : undefined,
+              edgeBlend: edgeBlendStrength(variant.id),
+            }).canvas
+          : renderPhysicalTiles(fixed, PALETTE.slice(0, thumbnailPaletteCount), { tilePx: thumbnailTilePx })
+        ).toDataURL('image/png')
       }
       setStyleThumbs({ ...thumbs })
       setTimeout(() => run(i + 1), 16)
     }
     const start = setTimeout(() => run(0), 120)
     return () => { cancelled = true; clearTimeout(start) }
-  }, [sourceCanvas, sourceSal, gridSize, paletteCount, paletteMode, optimizeApplied, optimizeResult, stage, adaptiveReadyForVariants])
+  }, [pipelineSource, sourceSal, gridSize, paletteCount, paletteMode, optimizeApplied, optimizeResult, stage, adaptiveReadyForVariants, qualityEnabled])
 
   const onPhoto = useCallback(async (src: string) => {
     try {
@@ -485,9 +554,15 @@ export default function App() {
     const proofMosaic = mosaic
     const proofPalette = PALETTE.slice(0, paletteCount)
     const mosaicSrc = proofMosaic.canvas.toDataURL('image/png')
-    const proofPreviewSrc = renderPhysicalTiles(proofMosaic, proofPalette, {
-      tilePx: Math.max(8, Math.floor(672 / proofMosaic.gridSize)),
-    }).toDataURL('image/png')
+    const proofTilePx = Math.max(8, Math.floor(672 / proofMosaic.gridSize))
+    const proofPreviewSrc = (qualityEnabled
+      ? renderQualityTiles(proofMosaic, proofPalette, {
+          tilePx: proofTilePx,
+          subjectMask: optimizeApplied ? optimizeResult?.subjectMask : undefined,
+          edgeBlend: edgeBlendStrength(styleId),
+        }).canvas
+      : renderPhysicalTiles(proofMosaic, proofPalette, { tilePx: proofTilePx })
+    ).toDataURL('image/png')
     const res = await submitProofRequest({
       name, email,
       photoCategory: category,
@@ -501,6 +576,8 @@ export default function App() {
       paletteColors: paletteCount,
       quotedPriceUsd: price,
       gridSize,
+      cellSizeIn: QUALITY_CELL_SIZE_IN,
+      finishedSizeIn: Number((gridSize * QUALITY_BOARD_PITCH_IN).toFixed(2)),
       panelGrid,
       panelSizeTiles: PANEL_SIZE_TILES,
       fineTune: tune,
@@ -648,6 +725,10 @@ export default function App() {
             adaptiveRendering={adaptiveRendering}
             adaptiveFailed={adaptivePreviewFailed}
             paletteMode={paletteMode}
+            qualityEnabled={qualityEnabled}
+            qualityGeometry={qualityGeometry}
+            subjectMask={optimizeApplied ? optimizeResult?.subjectMask : undefined}
+            paletteTiers={paletteTiers}
             proofRequestEnabled={proofRequestEnabled}
             styleThumbs={styleThumbs}
             styleId={styleId}

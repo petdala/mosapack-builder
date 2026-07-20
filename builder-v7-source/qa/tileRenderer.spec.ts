@@ -155,6 +155,8 @@ test('fixed customer preview and submitted proof use the same tile map', async (
   const successPreview = page.getByRole('img', { name: 'Your mosaic rendered as physical tiles' })
   await expect(successPreview).toHaveAttribute('src', heroSrc!)
   expect(submitted).not.toBeNull()
+  expect(submitted?.cell_size_in).toBe(0.375)
+  expect(submitted?.finished_size_in).toBe(12.8)
 
   const correspondence = await page.evaluate(async ({ payload, displayedSrc }) => {
     const load = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {

@@ -136,14 +136,26 @@ def convert_payload(
         saved_palette = read_saved_palette(payload.get("palette"), "palette")
         palette_id, palette = configured_palette_match(saved_palette, constants)
     cell_map = validate_cell_map(payload.get("tile_map"), grid, len(palette))
+    profile_cell_size = kitpack.profile_die_w(profile)
+    expected_finished_size = round(grid * float(constants["board_pitch_in"]), 4)
+    cell_size_in = float(payload.get("cell_size_in", profile_cell_size))
+    finished_size_in = float(payload.get("finished_size_in", expected_finished_size))
+    if abs(cell_size_in - profile_cell_size) > 0.001:
+        raise ValueError(
+            f"cell_size_in {cell_size_in} does not match sheet profile die {profile_cell_size}"
+        )
+    if abs(finished_size_in - expected_finished_size) > 0.05:
+        raise ValueError(
+            f"finished_size_in {finished_size_in} must equal grid x board pitch ({expected_finished_size})"
+        )
 
     design: dict[str, Any] = {
         "schema_version": 1.2,
         "project_id": project_id,
         "proof_ref": payload.get("proof_ref") or kitpack.proof_ref_for({"project_id": project_id}),
         "grid": grid,
-        "cell_size_in": kitpack.profile_die_w(profile),
-        "finished_size_in": round(grid * float(constants["board_pitch_in"]), 4),
+        "cell_size_in": cell_size_in,
+        "finished_size_in": finished_size_in,
         "sheet_profile": profile_id,
         "palette_id": palette_id,
         "palette_mode": palette_mode,

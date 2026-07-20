@@ -23,6 +23,9 @@ export interface ProofRequest {
   paletteColors: number
   quotedPriceUsd: number
   gridSize: number
+  /** Canonical design v1.2 geometry; independent of the deprecated nominal size. */
+  cellSizeIn: number
+  finishedSizeIn: number
   panelGrid: number
   panelSizeTiles: number
   fineTune: { brightness: number; contrast: number; background: number }
@@ -76,6 +79,8 @@ export async function submitProofRequest(p: ProofRequest): Promise<{ ok: boolean
     request_type: 'custom_proof',
     rights_notice_shown: true,
     grid_size: `${p.gridSize}x${p.gridSize}`,
+    cell_size_in: p.cellSizeIn,
+    finished_size_in: p.finishedSizeIn,
     panel_grid: p.panelGrid,
     panel_size_tiles: p.panelSizeTiles,
     preview_shape: 'mosaic',
