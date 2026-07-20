@@ -8,13 +8,14 @@ export interface QualityRenderOptions {
   grout?: GroutTone
   subjectMask?: ImageData
   edgeBlend?: number
+  fulfillmentMode?: 'singles' | 'hybrid'
 }
 
 export interface QualityRenderResult {
   canvas: HTMLCanvasElement
   hybrid: HybridPlan
   edgeBlend: number
-  physicalOutput: 'printed-blend-tiles-required'
+  physicalOutput: 'single-stickers' | 'printed-blend-tiles-required'
 }
 
 const GROUT: Record<GroutTone, string> = { grey: '#D7D9D8', warm: '#EEE8DC' }
@@ -101,6 +102,16 @@ export function renderQualityTiles(
   const tilePx = Math.max(6, Math.round(options.tilePx ?? Math.max(8, Math.floor(672 / mosaic.gridSize))))
   const edgeBlend = Math.max(0, Math.min(0.4, options.edgeBlend ?? 0.3))
   const hybrid = planHybridTiles(mosaic, options.subjectMask)
+  const renderedTiles: HybridTile[] = options.fulfillmentMode === 'hybrid'
+    ? hybrid.tiles
+    : mosaic.grid.map((paletteIndex, index) => ({
+        x: index % mosaic.gridSize,
+        y: Math.floor(index / mosaic.gridSize),
+        width: 1,
+        height: 1,
+        paletteIndex,
+        merged: false,
+      }))
   const canvas = document.createElement('canvas')
   canvas.width = mosaic.gridSize * tilePx
   canvas.height = mosaic.gridSize * tilePx
@@ -110,7 +121,7 @@ export function renderQualityTiles(
   const gap = Math.max(2, Math.round(tilePx * 0.14))
   const inset = gap / 2
 
-  for (const tile of hybrid.tiles) {
+  for (const tile of renderedTiles) {
     const color = palette[tile.paletteIndex]
     if (!color) throw new Error(`Hybrid tile references missing palette index ${tile.paletteIndex}.`)
     const left = tile.x * tilePx + inset
@@ -143,5 +154,10 @@ export function renderQualityTiles(
     context.restore()
   }
 
-  return { canvas, hybrid, edgeBlend, physicalOutput: 'printed-blend-tiles-required' }
+  return {
+    canvas,
+    hybrid,
+    edgeBlend,
+    physicalOutput: options.fulfillmentMode === 'hybrid' ? 'printed-blend-tiles-required' : 'single-stickers',
+  }
 }

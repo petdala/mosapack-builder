@@ -151,5 +151,5 @@ test('near-monochrome input returns an exact palette and completes preview rende
   await expect(page.getByText('Updating…')).toHaveCount(0, { timeout: 30_000 })
   await expect(page.locator('[data-palette-mode="adaptive"]')).toBeVisible()
   await expect(page.getByTestId('adaptive-palette-comparison')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Get my free proof' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Get my free proof' }).first()).toBeVisible()
 })

@@ -41,12 +41,12 @@ def slug(value: str, fallback: str) -> str:
     return normalized or fallback
 
 
-def read_saved_palette(value: Any, field_name: str) -> list[dict[str, str]]:
+def read_saved_palette(value: Any, field_name: str) -> list[dict[str, Any]]:
     if isinstance(value, dict) and isinstance(value.get("colors"), list):
         value = value["colors"]
     if not isinstance(value, list) or not value:
         raise ValueError(f"{field_name} must be a non-empty palette array")
-    colors: list[dict[str, str]] = []
+    colors: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
     for index, entry in enumerate(value):
         if isinstance(entry, dict):
@@ -64,7 +64,14 @@ def read_saved_palette(value: Any, field_name: str) -> list[dict[str, str]]:
         if color_id in seen_ids:
             color_id = f"{color_id}_{index + 1:02d}"
         seen_ids.add(color_id)
-        colors.append({"id": color_id, "name": name, "hex": hex_value})
+        color: dict[str, Any] = {"id": color_id, "name": name, "hex": hex_value}
+        if isinstance(entry, dict):
+            for component in ("L", "a", "b"):
+                if isinstance(entry.get(component), (int, float)):
+                    color[component] = float(entry[component])
+            if isinstance(entry.get("role"), str):
+                color["role"] = entry["role"]
+        colors.append(color)
     return colors
 
 
@@ -171,7 +178,13 @@ def convert_payload(
         },
     }
     if palette_mode == "adaptive":
-        design["gamut_profile_id"] = str(constants["adaptive_palette"]["gamut_profile_id"])
+        design["gamut_profile_id"] = str(
+            payload.get("gamut_profile_id") or constants["adaptive_palette"]["gamut_profile_id"]
+        )
+        if payload.get("palette_seed") is not None:
+            design["palette_seed"] = str(payload["palette_seed"])
+    if payload.get("fulfillment_tile_mode") is not None:
+        design["fulfillment_tile_mode"] = str(payload["fulfillment_tile_mode"])
     if payload.get("preferred_size_in") is not None:
         design["preferred_size_in"] = payload["preferred_size_in"]
     if payload.get("preferred_size_label") is not None:

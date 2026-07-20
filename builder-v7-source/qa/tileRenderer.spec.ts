@@ -102,7 +102,7 @@ test('selecting a curated variant updates the fixed hero and framed view', async
   await expect(page.getByTestId('framed-mockup')).toBeVisible()
 })
 
-test('fixed customer preview and submitted proof use the same tile map', async ({ page }) => {
+test('fixed escape hatch preview and submitted proof use the same tile map', async ({ page }) => {
   let submitted: Record<string, unknown> | null = null
   await page.route('**/.netlify/functions/save-project', async (route) => {
     submitted = route.request().postDataJSON() as Record<string, unknown>
@@ -112,7 +112,7 @@ test('fixed customer preview and submitted proof use the same tile map', async (
       body: JSON.stringify({ project_id: 'mp7_consistency', proof_ref: 'MP-CONSISTENCY' }),
     })
   })
-  await page.goto('/')
+  await page.goto('/?paletteMode=fixed')
 
   const imageDataUrl = await page.evaluate(() => {
     const canvas = document.createElement('canvas')
@@ -156,7 +156,9 @@ test('fixed customer preview and submitted proof use the same tile map', async (
   await expect(successPreview).toHaveAttribute('src', heroSrc!)
   expect(submitted).not.toBeNull()
   expect(submitted?.cell_size_in).toBe(0.375)
-  expect(submitted?.finished_size_in).toBe(12.8)
+  expect(submitted?.finished_size_in).toBe(19.2)
+  expect(submitted?.palette_mode).toBe('fixed')
+  expect(submitted?.adaptive_palette).toBeUndefined()
 
   const correspondence = await page.evaluate(async ({ payload, displayedSrc }) => {
     const load = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
@@ -207,4 +209,82 @@ test('fixed customer preview and submitted proof use the same tile map', async (
     expect(sample.displayed).toEqual(sample.expected)
     expect(sample.stored).toEqual(sample.expected)
   }
+})
+
+test('default adaptive singles design is displayed, priced, and stored identically on mobile', async ({ page }) => {
+  let submitted: Record<string, unknown> | null = null
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.route('**/.netlify/functions/save-project', async (route) => {
+    submitted = route.request().postDataJSON() as Record<string, unknown>
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ project_id: 'mp7_adaptive_default', proof_ref: 'MP-ADAPTIVE' }),
+    })
+  })
+  await page.goto('/')
+  const imageDataUrl = await page.evaluate(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 768
+    canvas.height = 768
+    const context = canvas.getContext('2d')!
+    const gradient = context.createLinearGradient(0, 0, 768, 768)
+    gradient.addColorStop(0, '#0BA7A5')
+    gradient.addColorStop(0.35, '#F2B495')
+    gradient.addColorStop(0.7, '#BD2D6F')
+    gradient.addColorStop(1, '#1A263E')
+    context.fillStyle = gradient
+    context.fillRect(0, 0, 768, 768)
+    context.fillStyle = '#E7C6B1'
+    context.fillRect(220, 130, 330, 430)
+    return canvas.toDataURL('image/png')
+  })
+  await page.setInputFiles('input[type="file"]', {
+    name: 'adaptive-default.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(imageDataUrl.split(',')[1], 'base64'),
+  })
+  await expect(page.getByRole('heading', { name: 'Your photo is ready to build' })).toBeVisible({ timeout: 30_000 })
+  await page.getByRole('button', { name: 'Use original' }).click()
+
+  const preview = page.locator('[data-palette-mode="adaptive"]')
+  await expect(preview).toBeVisible({ timeout: 90_000 })
+  await expect(preview).toHaveAttribute('data-grid-size', '48')
+  await expect(preview).toHaveAttribute('data-palette-count', '52')
+  const scope = page.getByTestId('actual-size-price')
+  await expect(scope).toHaveAttribute('data-finished-size-in', '19.2')
+  await expect(scope).toHaveAttribute('data-sticker-count', '2304')
+  await expect(scope).toHaveAttribute('data-build-minutes', '231')
+  await expect(scope).toContainText('19.2″ × 19.2″ finished board')
+  await expect(scope).toContainText('2,304 individual stickers')
+  await expect(scope).toContainText('$119.00')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
+
+  const hero = page.getByTestId('real-tile-hero')
+  const heroSrc = await hero.getAttribute('src')
+  expect(heroSrc).toMatch(/^data:image\/png;base64,/)
+  await page.getByRole('button', { name: 'Get my free proof' }).first().click()
+  await expect(page.getByRole('img', { name: 'Your mosaic preview' })).toHaveAttribute('src', heroSrc!)
+  await expect(page.getByText('19.2″ × 19.2″', { exact: true })).toBeVisible()
+  await expect(page.getByText('2,304 stickers · about 3 hr 51 min', { exact: true })).toBeVisible()
+  await page.getByLabel('Name').fill('Adaptive Default')
+  await page.getByLabel('Email').fill('adaptive@example.com')
+  await page.getByRole('button', { name: 'Get my free proof' }).last().click()
+
+  await expect(page.getByRole('heading', { name: 'Your mosaic is with our team' })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByRole('img', { name: 'Your mosaic rendered as physical tiles' })).toHaveAttribute('src', heroSrc!)
+  expect(submitted).not.toBeNull()
+  const payload = submitted!
+  expect(payload.palette_mode).toBe('adaptive')
+  expect(payload.fulfillment_tile_mode).toBe('singles_v1')
+  expect(payload.gamut_profile_id).toBe('srgb-print-safe-v1')
+  expect(payload.palette_seed).toMatch(/^[0-9a-f]{8}$/)
+  expect(payload.adaptive_palette).toHaveLength(52)
+  expect(payload.grid_size).toBe('48x48')
+  expect(payload.cell_size_in).toBe(0.375)
+  expect(payload.finished_size_in).toBe(19.2)
+  expect(payload.quoted_price_usd).toBe(119)
+  expect(payload.preview_image_data_url).toBe(heroSrc)
+  expect(payload.tile_map).toHaveLength(48 * 48)
+  expect(Object.values(payload.color_counts as Record<string, number>).reduce((sum, count) => sum + count, 0)).toBe(48 * 48)
 })

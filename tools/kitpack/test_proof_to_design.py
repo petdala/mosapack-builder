@@ -55,11 +55,19 @@ class ProofToDesignTests(unittest.TestCase):
 
     def test_adaptive_payload_uses_adaptive_palette_and_renders(self) -> None:
         payload = self.fixture("sample-adaptive-proof-payload.json")
+        payload["palette_seed"] = "4fa81c20"
+        payload["gamut_profile_id"] = "srgb-print-safe-v1"
+        payload["fulfillment_tile_mode"] = "singles_v1"
+        payload["adaptive_palette"][0].update({"L": 9.26, "a": 0.0, "b": 0.0, "role": "anchor-neutral"})
         design = BRIDGE.convert_payload(payload, self.constants)
         self.assertEqual(design["palette_id"], "adaptive")
         self.assertEqual(design["palette_mode"], "adaptive")
         self.assertEqual(len(design["palette"]), len(payload["adaptive_palette"]))
         self.assertEqual(design["gamut_profile_id"], self.constants["adaptive_palette"]["gamut_profile_id"])
+        self.assertEqual(design["palette_seed"], "4fa81c20")
+        self.assertEqual(design["fulfillment_tile_mode"], "singles_v1")
+        self.assertEqual(design["palette"][0]["role"], "anchor-neutral")
+        self.assertEqual(len(design["cell_map"]), design["grid"] ** 2)
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp = Path(temp_dir)

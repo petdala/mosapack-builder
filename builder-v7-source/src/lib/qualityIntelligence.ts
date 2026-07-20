@@ -96,7 +96,7 @@ const RECIPES: Record<AutoPhotoCategory, CategoryRecipe> = {
 
 export function isQualityIntelligenceEnabled(search = window.location.search): boolean {
   const params = new URLSearchParams(search)
-  return params.get('qualityPipeline') === '1' && params.get(QUALITY_INTELLIGENCE_FLAG) === '1'
+  return params.get('qualityPipeline') !== '0' && params.get(QUALITY_INTELLIGENCE_FLAG) !== '0'
 }
 
 export function recipeForCategory(category: AutoPhotoCategory): CategoryRecipe {

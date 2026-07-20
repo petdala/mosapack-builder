@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { track } from '@/lib/api'
+import { formatBuildTime } from '@/lib/qualityPipeline'
 
 interface Summary {
   thumb: string
   category: string
   formatLabel: string
   sizeLabel: string
+  finishedSizeLabel: string
+  stickerCount: number
+  buildMinutes: number
   styleLabel: string
 }
 
@@ -51,11 +55,16 @@ export function RequestDialog({ open, onOpenChange, summary, submitting, serverE
         </DialogHeader>
 
         <div className="flex items-center gap-3 rounded-lg bg-neutral-50 p-3">
-          <img src={summary.thumb} alt="Your mosaic preview" className="h-16 w-16 rounded-md" style={{ imageRendering: 'pixelated' }} />
+          {summary.thumb ? (
+            <img src={summary.thumb} alt="Your mosaic preview" className="h-16 w-16 rounded-md" style={{ imageRendering: 'pixelated' }} />
+          ) : (
+            <div className="h-16 w-16 rounded-md bg-neutral-200" aria-hidden="true" />
+          )}
           <dl className="grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[13px]">
             <dt className="text-neutral-500">Style</dt><dd className="font-semibold text-ink">{summary.styleLabel}</dd>
             <dt className="text-neutral-500">Format</dt><dd className="font-semibold text-ink">{summary.formatLabel}</dd>
-            <dt className="text-neutral-500">Size</dt><dd className="font-semibold text-ink">{summary.sizeLabel}</dd>
+            <dt className="text-neutral-500">Board</dt><dd className="font-semibold text-ink">{summary.finishedSizeLabel}</dd>
+            <dt className="text-neutral-500">Build</dt><dd className="font-semibold text-ink">{summary.stickerCount.toLocaleString()} stickers · {formatBuildTime(summary.buildMinutes)}</dd>
             <dt className="text-neutral-500">Photo</dt><dd className="font-semibold text-ink">{summary.category}</dd>
           </dl>
         </div>

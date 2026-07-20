@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('hybrid plans cover every grid cell exactly once', async ({ page }) => {
   await page.goto('/')
   const results = await page.evaluate(async () => {
-    const { planHybridTiles } = await import('/src/lib/qualityPipeline.ts')
+    const { expandHybridPlanToSingles, planHybridTiles } = await import('/src/lib/qualityPipeline.ts')
 
     const fixtures = [
       {
@@ -44,6 +44,7 @@ test('hybrid plans cover every grid cell exactly once', async ({ page }) => {
 
     return fixtures.map((fixture) => {
       const plan = planHybridTiles({ grid: fixture.grid, gridSize: fixture.gridSize }, fixture.mask)
+      const expanded = expandHybridPlanToSingles({ grid: fixture.grid, gridSize: fixture.gridSize }, fixture.mask)
       const coverage = new Uint16Array(fixture.gridSize * fixture.gridSize)
       let area = 0
       let outOfBounds = 0
@@ -70,6 +71,8 @@ test('hybrid plans cover every grid cell exactly once', async ({ page }) => {
         outOfBounds,
         tileCount: plan.tileCount,
         mergedBlocks: plan.mergedBlocks,
+        expandedLength: expanded.tileMap.length,
+        expandedMatches: expanded.tileMap.every((value, index) => value === fixture.grid[index]),
       }
     })
   })
@@ -80,6 +83,8 @@ test('hybrid plans cover every grid cell exactly once', async ({ page }) => {
     expect(result.overlaps, result.name).toBe(0)
     expect(result.outOfBounds, result.name).toBe(0)
     expect(result.tileCount, result.name).toBe(result.expectedArea - 3 * result.mergedBlocks)
+    expect(result.expandedLength, result.name).toBe(result.expectedArea)
+    expect(result.expandedMatches, result.name).toBe(true)
   }
 })
 
@@ -205,11 +210,40 @@ test('quality renderer preserves tile centers and reports exact hybrid count', a
   ])
   expect(result.tileCount).toBe(4)
   expect(result.edgeBlend).toBe(0.3)
-  expect(result.physicalOutput).toBe('printed-blend-tiles-required')
+  expect(result.physicalOutput).toBe('single-stickers')
 })
 
-test('flagged portrait preview auto-selects adaptive Gallery-52 at 48 grid', async ({ page }) => {
-  await page.goto('/?qualityPipeline=1')
+test('customer renderer keeps grout seams inside visually mergeable 2x2 blocks', async ({ page }) => {
+  await page.goto('/')
+  const result = await page.evaluate(async () => {
+    const { renderQualityTiles } = await import('/src/lib/qualityRenderer.ts')
+    const mask = new ImageData(2, 2)
+    for (let index = 0; index < mask.data.length; index += 4) mask.data[index + 3] = 255
+    const rendered = renderQualityTiles(
+      { grid: [0, 0, 0, 0], gridSize: 2 },
+      [{ hex: '#C40000' }],
+      { tilePx: 32, subjectMask: mask, fulfillmentMode: 'singles' },
+    )
+    const context = rendered.canvas.getContext('2d')!
+    const pixel = (x: number, y: number) => Array.from(context.getImageData(x, y, 1, 1).data).slice(0, 3)
+    return {
+      mergedBlocks: rendered.hybrid.mergedBlocks,
+      physicalOutput: rendered.physicalOutput,
+      tileCenter: pixel(16, 16),
+      internalVerticalSeam: pixel(32, 16),
+      internalHorizontalSeam: pixel(16, 32),
+    }
+  })
+
+  expect(result.mergedBlocks).toBe(1)
+  expect(result.physicalOutput).toBe('single-stickers')
+  expect(result.tileCenter).toEqual([0xC4, 0x00, 0x00])
+  expect(result.internalVerticalSeam).not.toEqual(result.tileCenter)
+  expect(result.internalHorizontalSeam).not.toEqual(result.tileCenter)
+})
+
+test('default portrait preview auto-selects adaptive Gallery-52 at 48 grid', async ({ page }) => {
+  await page.goto('/')
   const imageDataUrl = await page.evaluate(() => {
     const canvas = document.createElement('canvas')
     canvas.width = 768
@@ -242,5 +276,5 @@ test('flagged portrait preview auto-selects adaptive Gallery-52 at 48 grid', asy
   await expect(preview).toHaveAttribute('data-hybrid-tile-count', /\d+/, { timeout: 60_000 })
   await expect(page.locator('[data-palette-mode="adaptive"]')).toBeVisible()
   await expect(page.getByText('Gallery · 52')).toBeVisible({ timeout: 60_000 })
-  await expect(page.getByText('Internal adaptive preview · proof request unavailable')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Get my free proof' }).first()).toBeVisible()
 })

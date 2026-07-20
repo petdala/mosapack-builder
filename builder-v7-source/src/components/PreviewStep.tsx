@@ -8,7 +8,7 @@ import type { OptimizeControls } from './OptimizeStep'
 import { CURATED_VARIANTS } from '@/lib/magicResults'
 import { renderFramedMockup, renderPhysicalTiles } from '@/lib/tileRenderer'
 import type { GroutTone } from '@/lib/tileRenderer'
-import { edgeBlendStrength } from '@/lib/qualityPipeline'
+import { edgeBlendStrength, formatBuildTime } from '@/lib/qualityPipeline'
 import type { QualityGeometry, QualityPaletteTier } from '@/lib/qualityPipeline'
 import { renderQualityTiles } from '@/lib/qualityRenderer'
 import type { IntelligenceResult } from '@/lib/qualityIntelligence'
@@ -39,6 +39,9 @@ interface Props {
   adaptiveRendering: boolean
   adaptiveFailed: boolean
   paletteMode: PaletteMode
+  customerPreviewSrc: string
+  grout: GroutTone
+  onGrout: (grout: GroutTone) => void
   qualityEnabled: boolean
   qualityIntelligence?: IntelligenceResult | null
   qualityGeometry: QualityGeometry
@@ -59,6 +62,9 @@ interface Props {
   tierId: string
   onTier: (t: string) => void
   price: number
+  finishedSizeIn: number
+  stickerCount: number
+  buildMinutes: number
   panelGrid: number
   onAdjustCrop: () => void
   optimizeControls: OptimizeControls
@@ -114,7 +120,6 @@ function StepperControl({ label, hint, value, onChange }: { label: string; hint:
 
 export function PreviewStep(p: Props) {
   const [view, setView] = useState<'tiles' | 'wall' | 'photo'>('tiles')
-  const [grout, setGrout] = useState<GroutTone>('grey')
   const [tuneOpen, setTuneOpen] = useState(false)
   const availableTiers = p.paletteTiers
   const panelCount = p.panelGrid * p.panelGrid
@@ -126,21 +131,27 @@ export function PreviewStep(p: Props) {
   const customerPalette = p.paletteMode === 'adaptive' && p.adaptivePreview
     ? p.adaptivePreview.palette.colors
     : fixedPalette
-  const qualityRender = useMemo(() => customerMosaic && p.qualityEnabled
-    ? renderQualityTiles(customerMosaic, customerPalette, {
-      grout,
-      tilePx: Math.max(8, Math.floor(672 / customerMosaic.gridSize)),
-      subjectMask: p.subjectMask,
-      edgeBlend: edgeBlendStrength(p.styleId),
-    })
-    : null, [customerMosaic, customerPalette, grout, p.qualityEnabled, p.subjectMask, p.styleId])
+  const qualityRender = useMemo(() => {
+    if (!customerMosaic || !p.qualityEnabled) return null
+    try {
+      return renderQualityTiles(customerMosaic, customerPalette, {
+        grout: p.grout,
+        tilePx: Math.max(8, Math.floor(672 / customerMosaic.gridSize)),
+        subjectMask: p.subjectMask,
+        edgeBlend: edgeBlendStrength(p.styleId),
+        fulfillmentMode: 'singles',
+      })
+    } catch {
+      return null
+    }
+  }, [customerMosaic, customerPalette, p.grout, p.qualityEnabled, p.subjectMask, p.styleId])
   const tileCanvas = useMemo(() => customerMosaic
     ? qualityRender?.canvas ?? renderPhysicalTiles(customerMosaic, customerPalette, {
-      grout,
+      grout: p.grout,
       tilePx: Math.max(8, Math.floor(672 / customerMosaic.gridSize)),
     })
-    : null, [customerMosaic, customerPalette, grout, qualityRender])
-  const tileSrc = useMemo(() => tileCanvas?.toDataURL('image/png') ?? '', [tileCanvas])
+    : null, [customerMosaic, customerPalette, p.grout, qualityRender])
+  const tileSrc = p.customerPreviewSrc || tileCanvas?.toDataURL('image/png') || ''
   const framedSrc = useMemo(() => tileCanvas ? renderFramedMockup(tileCanvas).toDataURL('image/png') : '', [tileCanvas])
 
   const swatchStrip = (colors: readonly { hex: string }[], label: string) => (
@@ -245,10 +256,10 @@ export function PreviewStep(p: Props) {
                 <button
                   key={id}
                   type="button"
-                  aria-pressed={grout === id}
-                  onClick={() => setGrout(id)}
+                  aria-pressed={p.grout === id}
+                  onClick={() => p.onGrout(id)}
                   className={`flex min-h-[40px] items-center gap-2 rounded-md border px-3 text-xs font-semibold ${
-                    grout === id ? 'border-brand bg-brand-pale text-brand-deep' : 'border-neutral-300 bg-white text-neutral-600'
+                    p.grout === id ? 'border-brand bg-brand-pale text-brand-deep' : 'border-neutral-300 bg-white text-neutral-600'
                   }`}
                 >
                   <span className="h-4 w-4 border border-black/10" style={{ backgroundColor: color }} aria-hidden="true" />
@@ -257,7 +268,7 @@ export function PreviewStep(p: Props) {
               ))}
             </div>
             <span className="text-xs text-neutral-500">
-              {customerMosaic.gridSize}×{customerMosaic.gridSize} grid · {qualityRender?.hybrid.tileCount ?? customerMosaic.grid.length} tiles · {Object.keys(customerMosaic.counts).length} colors
+              {customerMosaic.gridSize}×{customerMosaic.gridSize} grid · {p.stickerCount.toLocaleString()} stickers · {Object.keys(customerMosaic.counts).length} colors
             </span>
           </div>
         )}
@@ -453,17 +464,27 @@ export function PreviewStep(p: Props) {
 
         </div>
 
-        {/* LivePriceBar — price reacts to size + tier; recorded in the proof payload */}
-        <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3" aria-live="polite">
-          <span className="text-xs leading-5 text-neutral-500">
-            <span className="block text-sm font-bold text-ink">{p.sizeIn}″ Sticker kit</span>
-            {p.mosaic ? `${p.mosaic.gridSize * p.mosaic.gridSize} grid cells` : '—'} · {p.paletteTiers.find((t) => t.id === p.tierId)?.colors} colors
-            <span className="block">{panelMetaCopy}</span>
-          </span>
+        {/* The physical scope is shown before proof request: actual geometry, labor, and price. */}
+        <div
+          className="mt-4 border-2 border-brand bg-white px-4 py-4"
+          aria-live="polite"
+          data-testid="actual-size-price"
+          data-finished-size-in={p.finishedSizeIn}
+          data-sticker-count={p.stickerCount}
+          data-build-minutes={p.buildMinutes}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <span className="text-xs leading-5 text-neutral-600">
+              <span className="block text-base font-extrabold text-ink">{p.finishedSizeIn}″ × {p.finishedSizeIn}″ finished board</span>
+              <span className="block font-semibold text-ink">{p.stickerCount.toLocaleString()} individual stickers</span>
+              <span className="block">Estimated build time: {formatBuildTime(p.buildMinutes)}</span>
+              <span className="block">{panelMetaCopy}</span>
+            </span>
           <span className="text-right">
             <span className="block text-2xl font-extrabold tracking-tight tabular-nums">${p.price}.00</span>
             <span className="block text-[11px] font-semibold text-brand-dark">free proof first — pay only if you love it</span>
           </span>
+          </div>
         </div>
 
         {/* one action color for the entire proof chain (audit V2): pop pink */}
@@ -481,7 +502,7 @@ export function PreviewStep(p: Props) {
             </>
           ) : (
             <p className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-center text-xs font-semibold text-neutral-600">
-              Internal adaptive preview · proof request unavailable
+              Finishing the colors chosen for your photo…
             </p>
           )}
         </div>
