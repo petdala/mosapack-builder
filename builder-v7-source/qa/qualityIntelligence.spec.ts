@@ -95,8 +95,9 @@ test('category recipes, uncertainty fallback, and face-grid alignment stay deter
       kidsRecipe: recipeForCategory('baby-kids'),
       alignment: first,
       deterministic: JSON.stringify(first) === JSON.stringify(second),
-      defaultOff: isQualityIntelligenceEnabled('?qualityPipeline=1'),
-      enabled: isQualityIntelligenceEnabled('?qualityPipeline=1&qualityIntelligence=1'),
+      defaultOn: isQualityIntelligenceEnabled(''),
+      pipelineOptOut: isQualityIntelligenceEnabled('?qualityPipeline=0'),
+      intelligenceOptOut: isQualityIntelligenceEnabled('?qualityIntelligence=0'),
     }
   })
 
@@ -111,8 +112,9 @@ test('category recipes, uncertainty fallback, and face-grid alignment stay deter
   expect(result.memorialRecipe.background).toBe(0)
   expect(result.alignment.scoreAfter).toBeGreaterThanOrEqual(result.alignment.scoreBefore)
   expect(result.deterministic).toBe(true)
-  expect(result.defaultOff).toBe(false)
-  expect(result.enabled).toBe(true)
+  expect(result.defaultOn).toBe(true)
+  expect(result.pipelineOptOut).toBe(false)
+  expect(result.intelligenceOptOut).toBe(false)
 })
 
 test('smart background is gated by scene busyness and remains deterministic', async ({ page }) => {

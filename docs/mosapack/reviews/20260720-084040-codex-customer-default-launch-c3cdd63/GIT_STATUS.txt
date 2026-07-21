@@ -1,0 +1,10 @@
+Status before report generation
+
+?? .claude/
+?? .playwright-cli/
+?? _to_delete/
+?? docs/mosapack/HANDOFF-addendum-1.md
+?? output/
+?? tools/kitpack/__pycache__/
+
+Report files are generated after this status snapshot.

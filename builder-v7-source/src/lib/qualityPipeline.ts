@@ -8,7 +8,8 @@ import {
 } from './adaptivePalette'
 import type { AdaptiveMosaicPreview, AdaptivePaletteColor } from './adaptivePalette'
 import { hexToRgb, rgbToLab } from './color'
-import { PALETTE } from './palette'
+import { PALETTE, PRICES } from './palette'
+import { customer_pack as customerPackConstants } from '../../../config/production-constants.json'
 
 export const QUALITY_PIPELINE_FLAG = 'qualityPipeline'
 export const QUALITY_CELL_SIZE_IN = 0.375
@@ -61,7 +62,7 @@ export const GALLERY_TIER: QualityPaletteTier = {
 }
 
 export function isQualityPipelineEnabled(search = window.location.search): boolean {
-  return new URLSearchParams(search).get(QUALITY_PIPELINE_FLAG) === '1'
+  return new URLSearchParams(search).get(QUALITY_PIPELINE_FLAG) !== '0'
 }
 
 export function subjectCoverage(mask?: ImageData): number {
@@ -102,11 +103,30 @@ export function qualityPaletteTiers(
   return galleryEligible && adaptive ? [...baseTiers, GALLERY_TIER] : [...baseTiers]
 }
 
-export function qualityTierPrice(preferredSizeIn: number, tierId: string, fallback: number): number {
+export function qualityTierPrice(finishedSizeIn: number, tierId: string, fallback: number): number {
   if (tierId !== GALLERY_TIER.id) return fallback
-  if (preferredSizeIn >= 24) return 149
-  if (preferredSizeIn >= 18) return 119
+  if (finishedSizeIn >= 24) return 149
+  if (finishedSizeIn >= 18) return 119
   return 89
+}
+
+export function actualSizeTierPrice(finishedSizeIn: number, tierId: string, fallback: number): number {
+  if (tierId === GALLERY_TIER.id) return qualityTierPrice(finishedSizeIn, tierId, fallback)
+  const size = [6, 12, 18, 24].find((candidate) => candidate >= finishedSizeIn) ?? 24
+  return PRICES[size]?.[tierId] ?? fallback
+}
+
+export const CUSTOMER_SECONDS_PER_STICKER = customerPackConstants.seconds_per_sticker
+
+export function estimateBuildMinutes(stickerCount: number): number {
+  return Math.max(1, Math.ceil(stickerCount * CUSTOMER_SECONDS_PER_STICKER / 60))
+}
+
+export function formatBuildTime(minutes: number): string {
+  if (minutes < 60) return `about ${minutes} minutes`
+  const hours = Math.floor(minutes / 60)
+  const remainder = minutes % 60
+  return remainder ? `about ${hours} hr ${remainder} min` : `about ${hours} hr`
 }
 
 function canvasFromPixels(width: number, height: number, pixels: Uint8ClampedArray): HTMLCanvasElement {
@@ -309,6 +329,27 @@ export function planHybridTiles(
     uniformTileCount: mosaic.grid.length,
     mergedBlocks,
   }
+}
+
+/** Fulfillment v1 expands every visual hybrid block back to individual sticker cells. */
+export function expandHybridPlanToSingles(
+  mosaic: Pick<MosaicResult, 'grid' | 'gridSize'>,
+  mask?: ImageData,
+): { tileMap: number[]; hybrid: HybridPlan } {
+  const hybrid = planHybridTiles(mosaic, mask)
+  const tileMap = Array.from({ length: mosaic.gridSize * mosaic.gridSize }, () => -1)
+  for (const tile of hybrid.tiles) {
+    for (let dy = 0; dy < tile.height; dy++) {
+      for (let dx = 0; dx < tile.width; dx++) {
+        const index = (tile.y + dy) * mosaic.gridSize + tile.x + dx
+        if (tileMap[index] !== -1) throw new Error(`Hybrid plan overlaps cell ${index}.`)
+        tileMap[index] = tile.paletteIndex
+      }
+    }
+  }
+  const gap = tileMap.indexOf(-1)
+  if (gap !== -1) throw new Error(`Hybrid plan leaves cell ${gap} uncovered.`)
+  return { tileMap, hybrid }
 }
 
 export function edgeBlendStrength(styleId: string): number {

@@ -1,5 +1,7 @@
 // Funnel analytics (audit §8) + proof-request submission (production contract preserved).
 import type { IssueReport } from '@/lib/optimize'
+import type { AdaptivePaletteColor, PaletteMode } from '@/lib/adaptivePalette'
+import type { GroutTone } from '@/lib/tileRenderer'
 
 declare global {
   interface Window { gtag?: (...args: unknown[]) => void }
@@ -35,6 +37,12 @@ export interface ProofRequest {
   /** Per-cell palette indices, row-major — the manufacturing map the backend expects. */
   tileMap: number[]
   palette: { name: string; hex: string }[]
+  paletteMode: PaletteMode
+  adaptivePalette?: AdaptivePaletteColor[]
+  paletteSeed?: string
+  gamutProfileId?: string
+  fulfillmentTileMode: 'singles_v1'
+  groutTone: GroutTone
   optimizeApplied: boolean
   optimizeFixes: string[]
   bgMode: string
@@ -89,6 +97,14 @@ export async function submitProofRequest(p: ProofRequest): Promise<{ ok: boolean
     color_counts: p.colorCounts,
     tile_map: p.tileMap,
     palette: p.palette,
+    palette_mode: p.paletteMode,
+    ...(p.paletteMode === 'adaptive' ? {
+      adaptive_palette: p.adaptivePalette,
+      palette_seed: p.paletteSeed,
+      gamut_profile_id: p.gamutProfileId,
+    } : {}),
+    fulfillment_tile_mode: p.fulfillmentTileMode,
+    grout_tone: p.groutTone,
     optimize_applied: p.optimizeApplied,
     optimize_fixes: p.optimizeFixes,
     bg_mode: p.bgMode,
