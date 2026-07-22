@@ -287,17 +287,34 @@ function enforceConstraints(
     0,
   ]))
   let separationIndex = 0
+  const evaluationIndices: number[] = []
+  for (let i = 0; i < labs.length; i += evaluationStride) evaluationIndices.push(i)
+  const candDist = pool.map((candidate) => Float64Array.from(
+    evaluationIndices,
+    (labIndex) => deltaE00(labs[labIndex], candidate),
+  ))
+  const current = Float64Array.from(evaluationIndices, (labIndex) => {
+    let nearest = Infinity
+    for (const color of chosen) nearest = Math.min(nearest, deltaE00(labs[labIndex], color))
+    return nearest
+  })
+  const candChosenMin = Float64Array.from(pool, (candidate) => {
+    let nearest = Infinity
+    for (const color of chosen) nearest = Math.min(nearest, deltaE00(color, candidate))
+    return nearest
+  })
+  const alive = new Uint8Array(pool.length)
+  alive.fill(1)
   while (chosen.length < count) {
     let bestIndex = -1
     let bestGain = -Infinity
     for (let candidateIndex = 0; candidateIndex < pool.length; candidateIndex++) {
-      const candidate = pool[candidateIndex]
-      if (chosen.some((color) => deltaE00(color, candidate) < separationFloors[separationIndex])) continue
+      if (!alive[candidateIndex]) continue
+      if (candChosenMin[candidateIndex] < separationFloors[separationIndex]) continue
       let gain = 0
-      for (let i = 0; i < labs.length; i += evaluationStride) {
-        let current = Infinity
-        for (const color of chosen) current = Math.min(current, deltaE00(labs[i], color))
-        gain += weights[i] * Math.max(0, current - deltaE00(labs[i], candidate))
+      for (let evalIndex = 0; evalIndex < evaluationIndices.length; evalIndex++) {
+        const labIndex = evaluationIndices[evalIndex]
+        gain += weights[labIndex] * Math.max(0, current[evalIndex] - candDist[candidateIndex][evalIndex])
       }
       if (gain > bestGain + 1e-9) { bestGain = gain; bestIndex = candidateIndex }
     }
@@ -306,8 +323,19 @@ function enforceConstraints(
       if (separationIndex < separationFloors.length) continue
       throw new Error(`Unable to produce ${count} colors after relaxing palette separation.`)
     }
-    chosen.push(pool[bestIndex])
-    pool.splice(bestIndex, 1)
+    const picked = pool[bestIndex]
+    chosen.push(picked)
+    alive[bestIndex] = 0
+    for (let evalIndex = 0; evalIndex < evaluationIndices.length; evalIndex++) {
+      current[evalIndex] = Math.min(current[evalIndex], candDist[bestIndex][evalIndex])
+    }
+    for (let candidateIndex = 0; candidateIndex < pool.length; candidateIndex++) {
+      if (!alive[candidateIndex]) continue
+      candChosenMin[candidateIndex] = Math.min(
+        candChosenMin[candidateIndex],
+        deltaE00(picked, pool[candidateIndex]),
+      )
+    }
   }
   return chosen
 }
