@@ -814,9 +814,39 @@ function confidenceAwareErode(values: Uint8ClampedArray, width: number, height: 
   return eroded
 }
 
-function flattenBackground(image: ImageData, hardMask: Uint8ClampedArray) {
-  for (let i = 0; i < hardMask.length; i++) {
-    if (hardMask[i] > 128) continue
+function exteriorConnectedBackground(values: Uint8ClampedArray, width: number, height: number): Uint8Array {
+  const exterior = new Uint8Array(values.length)
+  const queue = new Int32Array(values.length)
+  let read = 0
+  let write = 0
+  const enqueue = (index: number) => {
+    if (exterior[index] || values[index] > 128) return
+    exterior[index] = 1
+    queue[write++] = index
+  }
+  for (let x = 0; x < width; x++) {
+    enqueue(x)
+    enqueue((height - 1) * width + x)
+  }
+  for (let y = 1; y < height - 1; y++) {
+    enqueue(y * width)
+    enqueue(y * width + width - 1)
+  }
+  while (read < write) {
+    const index = queue[read++]
+    const x = index % width
+    const y = Math.floor(index / width)
+    if (x > 0) enqueue(index - 1)
+    if (x + 1 < width) enqueue(index + 1)
+    if (y > 0) enqueue(index - width)
+    if (y + 1 < height) enqueue(index + width)
+  }
+  return exterior
+}
+
+function flattenBackground(image: ImageData, exteriorBackground: Uint8Array) {
+  for (let i = 0; i < exteriorBackground.length; i++) {
+    if (!exteriorBackground[i]) continue
     const offset = i * 4
     image.data[offset] = FLAT_BACKGROUND[0]
     image.data[offset + 1] = FLAT_BACKGROUND[1]
@@ -992,8 +1022,9 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
   const processingMask = cleanedValues
   const processingMaskImage = valuesToImageData(processingMask, source.width, source.height)
   const sourceHardMask = confidenceAwareErode(processingMask, source.width, source.height)
+  const sourceExteriorBackground = exteriorConnectedBackground(sourceHardMask, source.width, source.height)
   correctTone(sourcePixels, processingMask, analysis.face, report.greenCast)
-  if (bgMode === 'flatten') flattenBackground(sourcePixels, sourceHardMask)
+  if (bgMode === 'flatten') flattenBackground(sourcePixels, sourceExteriorBackground)
   sourceContext.putImageData(sourcePixels, 0, 0)
 
   const output = makeCanvas(outputSize, outputSize)
