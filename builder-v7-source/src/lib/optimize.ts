@@ -483,7 +483,13 @@ function clampChannel(value: number): number {
   return Math.max(0, Math.min(255, Math.round(value)))
 }
 
-function correctTone(image: ImageData, softMask: Uint8ClampedArray, face: FaceBox | null, greenCast: boolean) {
+function highlightProtectedGain(gain: number, sourceLuma: number): number {
+  if (gain <= 1 || sourceLuma <= 200) return gain
+  if (sourceLuma >= 245) return 1
+  return 1 + (gain - 1) * (245 - sourceLuma) / 45
+}
+
+function correctTone(image: ImageData, softMask: Uint8ClampedArray, face: FaceBox | null, greenCast: boolean): boolean {
   const { data, width, height } = image
   const isSubject = (index: number) => softMask[index] > 127
   const inFace = (x: number, y: number) => !face || (x >= face.x && x <= face.x + face.width && y >= face.y && y <= face.y + face.height)
@@ -538,7 +544,7 @@ function correctTone(image: ImageData, softMask: Uint8ClampedArray, face: FaceBo
     }
   }
 
-  let faceLuma = 1
+  let toneLuma = 1
   if (face) {
     let sum = 0
     let pixels = 0
@@ -553,17 +559,35 @@ function correctTone(image: ImageData, softMask: Uint8ClampedArray, face: FaceBo
         pixels++
       }
     }
-    if (pixels) faceLuma = sum / pixels
+    if (pixels) toneLuma = sum / pixels
+  } else {
+    let sum = 0
+    let pixels = 0
+    for (let i = 0; i < width * height; i++) {
+      if (!isSubject(i)) continue
+      const offset = i * 4
+      sum += (0.299 * data[offset] + 0.587 * data[offset + 1] + 0.114 * data[offset + 2]) / 255
+      pixels++
+    }
+    if (pixels) toneLuma = sum / pixels
   }
-  const gamma = faceLuma < 0.42 ? 0.68 : 0.8
-  for (let i = 0; i < width * height; i++) {
-    if (!isSubject(i)) continue
-    const offset = i * 4
-    const luma = Math.max(0.001, (0.299 * data[offset] + 0.587 * data[offset + 1] + 0.114 * data[offset + 2]) / 255)
-    const gain = Math.pow(luma, gamma) / luma
-    data[offset] = clampChannel(data[offset] * gain)
-    data[offset + 1] = clampChannel(data[offset + 1] * gain)
-    data[offset + 2] = clampChannel(data[offset + 2] * gain)
+  const gamma = toneLuma <= 0.35
+    ? 0.72
+    : toneLuma >= 0.55
+      ? 1
+      : 0.72 + (toneLuma - 0.35) / 0.2 * 0.28
+  const gammaApplied = gamma < 1
+  if (gammaApplied) {
+    for (let i = 0; i < width * height; i++) {
+      if (!isSubject(i)) continue
+      const offset = i * 4
+      const sourceLuma = 0.299 * data[offset] + 0.587 * data[offset + 1] + 0.114 * data[offset + 2]
+      const normalizedLuma = Math.max(0.001, sourceLuma / 255)
+      const gain = highlightProtectedGain(Math.pow(normalizedLuma, gamma) / normalizedLuma, sourceLuma)
+      data[offset] = clampChannel(data[offset] * gain)
+      data[offset + 1] = clampChannel(data[offset + 1] * gain)
+      data[offset + 2] = clampChannel(data[offset + 2] * gain)
+    }
   }
 
   for (let i = 0; i < width * height; i++) {
@@ -579,6 +603,7 @@ function correctTone(image: ImageData, softMask: Uint8ClampedArray, face: FaceBo
     }
   }
 
+  let skinGainApplied = false
   if (face) {
     const pad = face.height * 0.18
     const fx0 = Math.max(0, face.x - pad)
@@ -603,38 +628,45 @@ function correctTone(image: ImageData, softMask: Uint8ClampedArray, face: FaceBo
     }
     if (skinPixels > 150) {
       const mean = skinLuma / skinPixels
-      const targetGain = mean < 185 ? Math.min(1.3, 185 / Math.max(30, mean)) : 1
-      const rawWeights = new Uint8ClampedArray(width * height)
-      for (let y = Math.floor(fy0); y < Math.ceil(fy1); y++) {
-        for (let x = Math.floor(fx0); x < Math.ceil(fx1); x++) {
-          const index = y * width + x
-          if (!isSubject(index)) continue
-          const offset = index * 4
-          if (!isSkinCandidate(data[offset], data[offset + 1], data[offset + 2])) continue
-          const edgeX = Math.min((x - fx0) / Math.max(1, pad), (fx1 - x) / Math.max(1, pad), 1)
-          const edgeY = Math.min((y - fy0) / Math.max(1, pad), (fy1 - y) / Math.max(1, pad), 1)
-          rawWeights[index] = Math.round(255 * Math.max(0, Math.min(edgeX, edgeY)))
+      const targetGain = mean < 160 ? Math.min(1.15, 168 / Math.max(30, mean)) : 1
+      if (targetGain > 1) {
+        skinGainApplied = true
+        const rawWeights = new Uint8ClampedArray(width * height)
+        for (let y = Math.floor(fy0); y < Math.ceil(fy1); y++) {
+          for (let x = Math.floor(fx0); x < Math.ceil(fx1); x++) {
+            const index = y * width + x
+            if (!isSubject(index)) continue
+            const offset = index * 4
+            if (!isSkinCandidate(data[offset], data[offset + 1], data[offset + 2])) continue
+            const edgeX = Math.min((x - fx0) / Math.max(1, pad), (fx1 - x) / Math.max(1, pad), 1)
+            const edgeY = Math.min((y - fy0) / Math.max(1, pad), (fy1 - y) / Math.max(1, pad), 1)
+            rawWeights[index] = Math.round(255 * Math.max(0, Math.min(edgeX, edgeY)))
+          }
         }
-      }
-      const gainRadius = Math.max(12, Math.min(48, Math.round(face.width * 0.2)))
-      const smoothWeights = boxBlur(boxBlur(rawWeights, width, height, gainRadius), width, height, gainRadius)
-      for (let y = Math.floor(fy0); y < Math.ceil(fy1); y++) {
-        for (let x = Math.floor(fx0); x < Math.ceil(fx1); x++) {
-          const index = y * width + x
-          if (!isSubject(index)) continue
-          const offset = index * 4
-          const r = data[offset]
-          const g = data[offset + 1]
-          const b = data[offset + 2]
-          const weight = smoothWeights[index] / 255
-          const gain = 1 + (targetGain - 1) * weight
-          data[offset] = clampChannel(r * gain)
-          data[offset + 1] = clampChannel(g * (1 + (targetGain * 0.985 - 1) * weight))
-          data[offset + 2] = clampChannel(b * (1 + (targetGain * 0.94 - 1) * weight))
+        const gainRadius = Math.max(12, Math.min(48, Math.round(face.width * 0.2)))
+        const smoothWeights = boxBlur(boxBlur(rawWeights, width, height, gainRadius), width, height, gainRadius)
+        for (let y = Math.floor(fy0); y < Math.ceil(fy1); y++) {
+          for (let x = Math.floor(fx0); x < Math.ceil(fx1); x++) {
+            const index = y * width + x
+            if (!isSubject(index)) continue
+            const offset = index * 4
+            const r = data[offset]
+            const g = data[offset + 1]
+            const b = data[offset + 2]
+            const sourceLuma = 0.299 * r + 0.587 * g + 0.114 * b
+            const weight = smoothWeights[index] / 255
+            const redGain = highlightProtectedGain(1 + (targetGain - 1) * weight, sourceLuma)
+            const greenGain = highlightProtectedGain(1 + (targetGain * 0.985 - 1) * weight, sourceLuma)
+            const blueGain = highlightProtectedGain(1 + (targetGain * 0.94 - 1) * weight, sourceLuma)
+            data[offset] = clampChannel(r * redGain)
+            data[offset + 1] = clampChannel(g * greenGain)
+            data[offset + 2] = clampChannel(b * blueGain)
+          }
         }
       }
     }
   }
+  return gammaApplied || skinGainApplied
 }
 
 function adjustContrast(image: ImageData, brightness: number) {
@@ -1023,7 +1055,7 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
   const processingMaskImage = valuesToImageData(processingMask, source.width, source.height)
   const sourceHardMask = confidenceAwareErode(processingMask, source.width, source.height)
   const sourceExteriorBackground = exteriorConnectedBackground(sourceHardMask, source.width, source.height)
-  correctTone(sourcePixels, processingMask, analysis.face, report.greenCast)
+  const toneBrightened = correctTone(sourcePixels, processingMask, analysis.face, report.greenCast)
   if (bgMode === 'flatten') flattenBackground(sourcePixels, sourceExteriorBackground)
   sourceContext.putImageData(sourcePixels, 0, 0)
 
@@ -1059,7 +1091,7 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
 
   const appliedFixes: string[] = []
   if (report.skinRgb) appliedFixes.push('balanced skin tones')
-  if (report.backlit || (report.faceLuma != null && report.faceLuma < 185)) appliedFixes.push('brightened the face')
+  if (toneBrightened) appliedFixes.push('brightened the face')
   if (report.lowContrast) appliedFixes.push('improved contrast')
   if (bgMode === 'flatten') appliedFixes.push('calmed the background')
   if (crop.side < Math.min(source.width, source.height) * 0.96) appliedFixes.push('cropped in closer')
