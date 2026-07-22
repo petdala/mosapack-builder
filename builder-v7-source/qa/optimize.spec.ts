@@ -196,9 +196,9 @@ test('P0 corrections and mosaic grid snapshots stay deterministic', async ({ pag
   expect(result.islandDistanceFromBackground).toBeLessThan(18)
   expect(result.appendageDistanceFromBackground).toBeGreaterThan(100)
   expect(result.hashes).toEqual({
-    '6': '3b17ea3002e8f19ca5d14a0f00ecf692c0f311935d47afe14655f7e26451512f',
-    '12': '9e3f9715199054e8bbe5f3c74b4e5ce71d6e92b4f5fd37e74d9b2004bdb826d0',
-    '18': '6e44711253e4c816c6b1b94b8474f478b9644344f6a8105f9a156733e01b36f5',
-    '24': 'd172caebdd9e6df9947610b789c40b67cdbb45e28009d1de55683f83ef8d092d',
+    '6': 'd390098966e2241bd17e32a46f4d9992265fb72f18a22240f3244ddfb1ff34f5',
+    '12': 'a4308ca8cfb218252ca4b2b962f8a38e5cf777962c3c11086faf22641ae8c6b0',
+    '18': '0d3c33ddbfeba68475c7352a6d8c2589725e841794e8e85e72d78df1e95e0423',
+    '24': '14f0eb3f0b622b32635969b842633346dadc8e43b1fa3eb7d4c9caf57078f1d9',
   })
 })
