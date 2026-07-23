@@ -57,7 +57,7 @@ const DEFAULT_GAMUT_PROFILE_ID = 'srgb-print-safe-v1'
 const DEFAULT_MIN_SEPARATION = 8
 const NEUTRAL_HEX = ['#1B1B1B', '#F4F4F4', '#7A838C'] as const
 const SKIN_FALLBACK_HEX = ['#CC8E68', '#E7C6B1'] as const
-const FIXED_MASTER_HEX = [
+export const FIXED_MASTER_HEX = [
   '#1B1B1B', '#F4F4F4', '#BFC5CA', '#7A838C', '#D9C49F',
   '#E7C6B1', '#7B3F00', '#1653A4', '#CC8E68', '#C40000',
   '#F1D54E', '#589E61', '#DBE1E6', '#9CA3A8', '#4E2D1B',
