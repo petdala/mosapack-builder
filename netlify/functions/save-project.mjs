@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { getStore } from '@netlify/blobs';
+import { buildCustomerEmail, buildOperatorEmail, resolveProofEmailConfig } from './lib/proof-emails.mjs';
 
 const SAVE_VERSION = 'b2-v1';
 const V7_SAVE_VERSION = 'v7'; // builder-v7 proof_request.v1 payload
@@ -8,6 +9,8 @@ const ASSET_STORE = 'mosapack-project-assets';
 const MAX_DATA_URL_BYTES = 3 * 1024 * 1024;
 const MAX_TOTAL_JSON_BYTES = 6 * 1024 * 1024;
 const ALLOWED_IMAGE_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const RESEND_EMAILS_URL = 'https://api.resend.com/emails';
+const PROOF_EMAIL_FROM = 'MosaPack <hello@mosapack.com>';
 
 function json(status, body) {
   return new Response(JSON.stringify(body), {
@@ -95,6 +98,39 @@ function parseDataUrl(dataUrl, label) {
 
 function arrayBufferFromBuffer(buffer) {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+}
+
+async function sendProofEmail(apiKey, email, replyTo) {
+  const response = await fetch(RESEND_EMAILS_URL, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: PROOF_EMAIL_FROM,
+      reply_to: replyTo,
+      ...email
+    })
+  });
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Resend returned ${response.status}: ${detail.slice(0, 500)}`);
+  }
+}
+
+async function trySendProofEmail(label, apiKey, storedProject, buildEmail, emailConfig) {
+  try {
+    await sendProofEmail(apiKey, buildEmail(storedProject, emailConfig), emailConfig.replyTo);
+    return true;
+  } catch (error) {
+    console.error('proof-email failed', {
+      email: label,
+      project_id: storedProject.project_id,
+      message: error instanceof Error ? error.message : String(error)
+    });
+    return false;
+  }
 }
 
 export default async function handler(request) {
@@ -236,10 +272,23 @@ export default async function handler(request) {
     return json(500, { ok: false, error: 'Unable to save project.' });
   }
 
+  const emails = { operator: false, customer: false };
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (resendApiKey) {
+    const emailConfig = resolveProofEmailConfig(process.env);
+    [emails.operator, emails.customer] = await Promise.all([
+      trySendProofEmail('operator', resendApiKey, storedProject, buildOperatorEmail, emailConfig),
+      trySendProofEmail('customer', resendApiKey, storedProject, buildCustomerEmail, emailConfig)
+    ]);
+  } else {
+    console.info('proof-email skipped', { project_id: projectId, reason: 'RESEND_API_KEY is not set' });
+  }
+
   return json(200, {
     ok: true,
     project_id: projectId,
     saved_at: savedAt,
-    save_version: String(payload.save_version)
+    save_version: String(payload.save_version),
+    emails
   });
 }
