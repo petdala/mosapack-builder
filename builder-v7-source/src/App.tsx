@@ -15,9 +15,9 @@ import {
 } from '@/lib/mosaic'
 import { track, submitProofRequest } from '@/lib/api'
 import { PALETTE, TIERS, PRICES, PANEL_SIZE_TILES, kitPrice } from '@/lib/palette'
-import { optimizeForBuild, OptimizeResult } from '@/lib/optimize'
-import { createAdaptiveMosaicPreview } from '@/lib/adaptivePalette'
+import { optimizeForBuild, OptimizeResult, preloadVision } from '@/lib/optimize'
 import type { AdaptiveMosaicPreview, PaletteMode } from '@/lib/adaptivePalette'
+import { createAdaptiveMosaicPreviewWorker } from '@/lib/adaptivePreviewWorker'
 import { CURATED_VARIANTS, curatedVariantStyle } from '@/lib/magicResults'
 import { renderPhysicalTiles } from '@/lib/tileRenderer'
 import type { GroutTone } from '@/lib/tileRenderer'
@@ -28,7 +28,6 @@ import {
   expandHybridPlanToSingles,
   featureAwareDownscale,
   GALLERY_TIER,
-  createQualityAdaptiveMosaicPreview,
   isQualityPipelineEnabled,
   qualityPaletteTiers,
   QUALITY_BOARD_PITCH_IN,
@@ -41,9 +40,14 @@ import { renderQualityTiles } from '@/lib/qualityRenderer'
 import { applyQualityIntelligence, isQualityIntelligenceEnabled } from '@/lib/qualityIntelligence'
 
 type Stage = 'upload' | 'optimize' | 'preview' | 'done'
+type GenerationStage = 'reading' | 'matching' | 'placing' | null
 const GRID_FOR_SIZE: Record<number, number> = { 6: 1, 12: 2, 18: 3, 24: 4 }
 const DRAFT_KEY = 'mosapack.builder.draft.v1'
 const MAX_DRAFT_PHOTO_BYTES = 2 * 1024 * 1024
+
+function nextPaint(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()))
+}
 
 interface BuilderDraft {
   crop: CropState
@@ -114,12 +118,14 @@ export default function App() {
   const [adaptivePreview, setAdaptivePreview] = useState<AdaptiveMosaicPreview | null>(null)
   const [adaptiveRendering, setAdaptiveRendering] = useState(false)
   const [adaptivePreviewFailed, setAdaptivePreviewFailed] = useState(false)
+  const [generationStage, setGenerationStage] = useState<GenerationStage>(null)
   const [optimizeResult, setOptimizeResult] = useState<OptimizeResult | null>(null)
   const [optimizeLoading, setOptimizeLoading] = useState(false)
   const [optimizeError, setOptimizeError] = useState<string | null>(null)
   const [optimizeApplied, setOptimizeApplied] = useState(true)
   const [optimizeControls, setOptimizeControls] = useState<OptimizeControls>({ bgMode: 'flatten', brightness: 0, zoom: 0 })
   const optimizeSeq = useRef(0)
+  const lastOptimizeKey = useRef<string | null>(null)
   const [styleThumbs, setStyleThumbs] = useState<Record<string, string>>({})
   const [cropOpen, setCropOpen] = useState(false)
   const [reqOpen, setReqOpen] = useState(false)
@@ -141,6 +147,9 @@ export default function App() {
   useEffect(() => {
     track('builder_view')
     setResumeDraft(readDraft())
+    void preloadVision().catch((error) => {
+      console.warn('Vision preload unavailable; models will load when the photo is processed.', error)
+    })
   }, [])
 
   useEffect(() => {
@@ -269,20 +278,26 @@ export default function App() {
 
   useEffect(() => {
     if (!optimizationInput || (stage !== 'optimize' && stage !== 'preview') || !optimizeApplied) return
+    const key = `${sizeIn}|${optimizeControls.bgMode}|${optimizeControls.brightness}|${optimizeControls.zoom}`
+    if (optimizeResult && lastOptimizeKey.current === key) return
     const seq = ++optimizeSeq.current
     setOptimizeLoading(true)
+    setGenerationStage('reading')
     setOptimizeError(null)
     optimizeForBuild(optimizationInput, sizeIn, optimizeControls)
       .then((result) => {
         if (seq !== optimizeSeq.current) return
         setOptimizeResult(result)
+        lastOptimizeKey.current = key
         setOptimizeLoading(false)
+        setGenerationStage(null)
         track('photo_optimized', { size_in: sizeIn, bg_mode: result.bgMode, fixes: result.appliedFixes.length })
       })
       .catch(() => {
         if (seq !== optimizeSeq.current) return
         setOptimizeError('optimize_failed')
         setOptimizeLoading(false)
+        setGenerationStage(null)
       })
   }, [optimizationInput, sizeIn, optimizeControls, optimizeApplied, stage])
 
@@ -388,10 +403,15 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [undoLast])
 
-  // main mosaic render — deferred a tick so the UI never blocks
+  // Fixed rendering stays available for the internal fixed path and adaptive fallback.
   const renderSeq = useRef(0)
   useEffect(() => {
     if (!pipelineSource) return
+    if (paletteMode === 'adaptive' && !adaptivePreviewFailed) {
+      setMosaic(null)
+      setRendering(false)
+      return
+    }
     const seq = ++renderSeq.current
     setRendering(true)
     const t = setTimeout(() => {
@@ -404,7 +424,7 @@ export default function App() {
       track('preview_rendered', { style: style.id, grid: gridSize, quality_pipeline: qualityEnabled })
     }, 30)
     return () => clearTimeout(t)
-  }, [pipelineSource, gridSize, style, tune, sourceSal, fixedPaletteCount, qualityEnabled])
+  }, [pipelineSource, gridSize, style, tune, sourceSal, fixedPaletteCount, qualityEnabled, paletteMode, adaptivePreviewFailed])
 
   useEffect(() => {
     if (paletteMode !== 'adaptive' || !pipelineSource || stage !== 'preview') {
@@ -416,19 +436,28 @@ export default function App() {
     let cancelled = false
     setAdaptiveRendering(true)
     setAdaptivePreviewFailed(false)
-    const timeout = setTimeout(() => {
+    setGenerationStage('matching')
+    const timeout = setTimeout(async () => {
       try {
-        const preview = (qualityEnabled ? createQualityAdaptiveMosaicPreview : createAdaptiveMosaicPreview)(
-          pipelineSource,
+        await nextPaint()
+        if (cancelled) return
+        const preview = await createAdaptiveMosaicPreviewWorker({
+          source: pipelineSource,
           gridSize,
           style,
           tune,
-          sourceSal,
-          Math.max(10, Math.round(672 / gridSize)),
+          saliency: sourceSal,
+          tilePx: Math.max(10, Math.round(672 / gridSize)),
           paletteCount,
-          Boolean(optimizeResult?.report.skinRgb),
-          adaptiveWeightMask,
-        )
+          includeSkinAnchors: Boolean(optimizeResult?.report.skinRgb),
+          subjectMask: adaptiveWeightMask,
+          fixedPalette: PALETTE,
+          quality: qualityEnabled,
+        })
+        if (cancelled) return
+        setGenerationStage('placing')
+        await nextPaint()
+        if (cancelled) return
         if (qualityEnabled) {
           preview.mosaic = suppressIsolatedTiles(preview.mosaic, preview.palette.colors)
         }
@@ -440,7 +469,10 @@ export default function App() {
           setAdaptivePreviewFailed(true)
         }
       } finally {
-        if (!cancelled) setAdaptiveRendering(false)
+        if (!cancelled) {
+          setAdaptiveRendering(false)
+          setGenerationStage(null)
+        }
       }
     }, 40)
     return () => {
@@ -457,23 +489,25 @@ export default function App() {
     const thumbnailTilePx = Math.max(6, Math.floor(240 / thumbnailGridSize))
     const thumbnailPaletteCount = qualityEnabled ? Math.min(12, paletteCount) : paletteCount
     let cancelled = false
-    const run = (i: number) => {
+    const run = async (i: number) => {
       if (cancelled || i >= CURATED_VARIANTS.length) return
       const variant = CURATED_VARIANTS[i]
       const variantStyle = curatedVariantStyle(variant.id)
       try {
         if (paletteMode === 'adaptive') {
-          const preview = (qualityEnabled ? createQualityAdaptiveMosaicPreview : createAdaptiveMosaicPreview)(
-            pipelineSource,
-            thumbnailGridSize,
-            variantStyle,
-            { brightness: 0, contrast: 0, background: 0 },
-            sourceSal,
-            thumbnailTilePx,
-            thumbnailPaletteCount,
-            Boolean(optimizeResult?.report.skinRgb),
-            adaptiveWeightMask,
-          )
+          const preview = await createAdaptiveMosaicPreviewWorker({
+            source: pipelineSource,
+            gridSize: thumbnailGridSize,
+            style: variantStyle,
+            tune: { brightness: 0, contrast: 0, background: 0 },
+            saliency: sourceSal,
+            tilePx: thumbnailTilePx,
+            paletteCount: thumbnailPaletteCount,
+            includeSkinAnchors: Boolean(optimizeResult?.report.skinRgb),
+            subjectMask: adaptiveWeightMask,
+            fixedPalette: PALETTE,
+            quality: qualityEnabled,
+          })
           const variantMosaic = qualityEnabled
             ? suppressIsolatedTiles(preview.mosaic, preview.palette.colors)
             : preview.mosaic
@@ -527,10 +561,11 @@ export default function App() {
           : renderPhysicalTiles(fixed, PALETTE.slice(0, thumbnailPaletteCount), { tilePx: thumbnailTilePx })
         ).toDataURL('image/png')
       }
+      if (cancelled) return
       setStyleThumbs({ ...thumbs })
-      setTimeout(() => run(i + 1), 16)
+      setTimeout(() => { void run(i + 1) }, 16)
     }
-    const start = setTimeout(() => run(0), 120)
+    const start = setTimeout(() => { void run(0) }, 120)
     return () => { cancelled = true; clearTimeout(start) }
   }, [pipelineSource, sourceSal, gridSize, paletteCount, paletteMode, optimizeApplied, optimizeResult, stage, adaptiveReadyForVariants, qualityEnabled, adaptiveWeightMask])
 
@@ -547,6 +582,7 @@ export default function App() {
       setAdaptivePreview(null)
       setStyleThumbs({})
       setOptimizeResult(null)
+      lastOptimizeKey.current = null
       setOptimizeError(null)
       setOptimizeApplied(true)
       setOptimizeControls({ bgMode: 'flatten', brightness: 0, zoom: 0 })
@@ -577,6 +613,7 @@ export default function App() {
       setAdaptivePreview(null)
       setStyleThumbs({})
       setOptimizeResult(null)
+      lastOptimizeKey.current = null
       setOptimizeError(null)
       setOptimizeApplied(true)
       setOptimizeControls({ bgMode: 'flatten', brightness: 0, zoom: 0 })
@@ -606,6 +643,7 @@ export default function App() {
 
   const useOriginal = () => {
     optimizeSeq.current++
+    lastOptimizeKey.current = null
     setOptimizeLoading(false)
     setOptimizeApplied(false)
     setOptimizeError(null)
@@ -696,6 +734,7 @@ export default function App() {
     setStage('upload')
     setImg(null); setCrop(null); setMosaic(null); setAdaptivePreview(null); setStyleThumbs({})
     optimizeSeq.current++
+    lastOptimizeKey.current = null
     setOptimizeResult(null); setOptimizeLoading(false); setOptimizeError(null); setOptimizeApplied(true)
     setOptimizeControls({ bgMode: 'flatten', brightness: 0, zoom: 0 })
     setPhotoDataUrl('')
@@ -799,6 +838,7 @@ export default function App() {
             adaptivePreview={adaptivePreview}
             adaptiveRendering={adaptiveRendering}
             adaptiveFailed={adaptivePreviewFailed}
+            generationStage={generationStage}
             paletteMode={approvedPaletteMode}
             customerPreviewSrc={customerPreviewThumb}
             grout={grout}
