@@ -88,6 +88,15 @@ let visionPromise: Promise<{
   faceDetector: import('@mediapipe/tasks-vision').FaceDetector
 }> | null = null
 const analysisCache = new WeakMap<object, Promise<{ mask: ImageData; face: FaceBox | null; faces: number; faceAnalysis: FaceAnalysis }>>()
+const optimizeCache = new WeakMap<object, Map<string, Promise<OptimizeResult>>>()
+const objectIds = new WeakMap<object, number>()
+let nextObjectId = 1
+
+declare global {
+  interface Window {
+    __MOSAPACK_OPTIMIZE_PIXEL_PASSES__?: number
+  }
+}
 
 function sourceSize(source: OptimizeSource): { width: number; height: number } {
   if (source instanceof HTMLImageElement) {
@@ -133,6 +142,16 @@ async function loadVision() {
     })()
   }
   return visionPromise
+}
+
+/** Starts the local vision runtime and model downloads before a photo is selected. */
+export function preloadVision(): Promise<void> {
+  return loadVision()
+    .then(() => undefined)
+    .catch((error) => {
+      visionPromise = null
+      throw error
+    })
 }
 
 function valuesToImageData(values: Uint8ClampedArray, width: number, height: number): ImageData {
@@ -991,7 +1010,10 @@ function issueFlags(report: IssueReport, sizeIn: number): string[] {
   return flags
 }
 
-export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, opts: OptimizeOptions = {}): Promise<OptimizeResult> {
+async function runOptimizeForBuild(bitmap: OptimizeSource, sizeIn: number, opts: OptimizeOptions): Promise<OptimizeResult> {
+  if (typeof window !== 'undefined') {
+    window.__MOSAPACK_OPTIMIZE_PIXEL_PASSES__ = (window.__MOSAPACK_OPTIMIZE_PIXEL_PASSES__ ?? 0) + 1
+  }
   const source = drawWorkingCopy(bitmap)
   const bgMode = opts.bgMode ?? 'flatten'
   const brightness = opts.brightness ?? 0
@@ -1106,4 +1128,46 @@ export async function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, o
     bgMode,
     faceAnalysis: outputFaceAnalysis,
   }
+}
+
+export function optimizeForBuild(bitmap: OptimizeSource, sizeIn: number, opts: OptimizeOptions = {}): Promise<OptimizeResult> {
+  let sourceCache = optimizeCache.get(bitmap)
+  if (!sourceCache) {
+    sourceCache = new Map()
+    optimizeCache.set(bitmap, sourceCache)
+  }
+  const key = [
+    sizeIn,
+    opts.bgMode ?? 'flatten',
+    opts.brightness ?? 0,
+    opts.zoom ?? 0,
+    opts.analysisOverride
+      ? [
+          (() => {
+            let id = objectIds.get(opts.analysisOverride!.mask)
+            if (!id) {
+              id = nextObjectId++
+              objectIds.set(opts.analysisOverride!.mask, id)
+            }
+            return id
+          })(),
+          opts.analysisOverride.faces ?? '',
+          opts.analysisOverride.face
+            ? [
+                opts.analysisOverride.face.x,
+                opts.analysisOverride.face.y,
+                opts.analysisOverride.face.width,
+                opts.analysisOverride.face.height,
+              ].join(',')
+            : 'none',
+        ].join(':')
+      : 'vision',
+  ].join('|')
+  let cached = sourceCache.get(key)
+  if (!cached) {
+    cached = runOptimizeForBuild(bitmap, sizeIn, opts)
+    sourceCache.set(key, cached)
+    cached.catch(() => sourceCache?.delete(key))
+  }
+  return cached
 }

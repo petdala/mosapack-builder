@@ -38,6 +38,7 @@ interface Props {
   adaptivePreview: AdaptiveMosaicPreview | null
   adaptiveRendering: boolean
   adaptiveFailed: boolean
+  generationStage: 'reading' | 'matching' | 'placing' | null
   paletteMode: PaletteMode
   customerPreviewSrc: string
   grout: GroutTone
@@ -153,6 +154,13 @@ export function PreviewStep(p: Props) {
     : null, [customerMosaic, customerPalette, p.grout, qualityRender])
   const tileSrc = p.customerPreviewSrc || tileCanvas?.toDataURL('image/png') || ''
   const framedSrc = useMemo(() => tileCanvas ? renderFramedMockup(tileCanvas).toDataURL('image/png') : '', [tileCanvas])
+  const generationCopy = p.generationStage === 'reading'
+    ? 'Reading your photo…'
+    : p.generationStage === 'matching'
+      ? `Matching ${p.paletteTiers.find((tier) => tier.id === p.tierId)?.colors || customerPalette.length || 12} colors…`
+      : p.generationStage === 'placing'
+        ? `Placing ${p.stickerCount.toLocaleString()} tiles…`
+        : 'Updating…'
 
   const swatchStrip = (colors: readonly { hex: string }[], label: string) => (
     <div className="mt-2" aria-label={label}>
@@ -232,15 +240,24 @@ export function PreviewStep(p: Props) {
             />
           ) : view === 'photo' ? (
             <img src={p.photoSrc} alt="Your cropped photo" className="block w-full" />
+          ) : p.photoSrc ? (
+            <img
+              src={p.photoSrc}
+              alt=""
+              aria-hidden="true"
+              className="block aspect-square w-full object-cover opacity-45"
+              data-testid="progressive-photo"
+            />
           ) : (
             <div className="flex aspect-square items-center justify-center text-sm text-neutral-500">
               Building your tile preview…
             </div>
           )}
           {(p.rendering || p.adaptiveRendering) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/60" aria-live="polite">
-              <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-neutral-700 shadow">
-                Updating…
+            <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-white/30" aria-live="polite">
+              <div className="absolute inset-y-0 -left-1/2 w-1/2 animate-[pulse_1.2s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/45 to-transparent" aria-hidden="true" />
+              <span className="relative rounded-full bg-white px-4 py-2 text-sm font-semibold text-neutral-700 shadow">
+                {generationCopy}
               </span>
             </div>
           )}
@@ -296,7 +313,7 @@ export function PreviewStep(p: Props) {
                 {p.styleThumbs[variant.id] ? (
                   <img src={p.styleThumbs[variant.id]} alt="" aria-hidden="true" className="aspect-square w-full" />
                 ) : (
-                  <div className="aspect-square w-full bg-neutral-100" aria-hidden="true" />
+                  <div className="aspect-square w-full animate-pulse bg-neutral-100" aria-hidden="true" />
                 )}
                 <span className="mt-1.5 block truncate text-[11px] font-bold leading-tight text-ink sm:text-xs">{variant.label}</span>
                 <span className="mt-0.5 hidden text-[10px] leading-tight text-neutral-500 sm:block">{variant.note}</span>

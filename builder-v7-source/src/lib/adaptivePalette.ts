@@ -1,7 +1,6 @@
 import { deltaE00, hexToRgb, rgbToLab } from './color'
 import type { Lab, RGB } from './color'
 import type { FineTune, MosaicResult, Saliency, StylePreset } from './mosaic'
-import { PALETTE } from './palette'
 
 export type AdaptivePaletteRole = 'anchor-neutral' | 'anchor-skin' | 'derived'
 export type PaletteMode = 'fixed' | 'adaptive'
@@ -58,6 +57,13 @@ const DEFAULT_GAMUT_PROFILE_ID = 'srgb-print-safe-v1'
 const DEFAULT_MIN_SEPARATION = 8
 const NEUTRAL_HEX = ['#1B1B1B', '#F4F4F4', '#7A838C'] as const
 const SKIN_FALLBACK_HEX = ['#CC8E68', '#E7C6B1'] as const
+const FIXED_MASTER_HEX = [
+  '#1B1B1B', '#F4F4F4', '#BFC5CA', '#7A838C', '#D9C49F',
+  '#E7C6B1', '#7B3F00', '#1653A4', '#CC8E68', '#C40000',
+  '#F1D54E', '#589E61', '#DBE1E6', '#9CA3A8', '#4E2D1B',
+  '#E58E2A', '#2B5B3D', '#7EAED6', '#4A4E52', '#C2B280',
+  '#8B0000', '#FF0000', '#75B844', '#8DA59B', '#B3277E',
+] as const
 
 function fnv1a(values: Iterable<number>): number {
   let hash = 0x811c9dc5
@@ -539,19 +545,31 @@ function twoNearestPaletteIndices(lab: Lab, palette: readonly AdaptivePaletteCol
   return [first, second, firstDistance / (firstDistance + secondDistance + 1e-9)]
 }
 
+/** Pure deterministic grid assignment shared by the main thread and palette worker. */
+export function mapAdaptiveGridIndices(
+  labs: readonly Lab[],
+  weights: ArrayLike<number>,
+  palette: readonly AdaptivePaletteColor[],
+): number[] {
+  let randomState = 12345
+  const random = () => ((randomState = (randomState * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
+  return labs.map((lab, index) => {
+    const subjectWeight = Math.max(0, Math.min(1, (weights[index] - 1) / 0.75))
+    if (subjectWeight <= 0.45) return nearestPaletteIndex(lab, palette)
+    const [first, second, secondWeight] = twoNearestPaletteIndices(lab, palette)
+    return secondWeight > 0.42 && random() < secondWeight * 0.55 ? second : first
+  })
+}
+
 export function renderAdaptiveGrid(
   sample: AdaptiveGridSample,
   palette: AdaptivePaletteResult,
   tilePx: number,
+  suppliedGrid?: ArrayLike<number>,
 ): MosaicResult {
-  let randomState = 12345
-  const random = () => ((randomState = (randomState * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
-  const grid = sample.labTiles.map((lab, index) => {
-    const subjectWeight = Math.max(0, Math.min(1, (sample.weights[index] - 1) / 0.75))
-    if (subjectWeight <= 0.45) return nearestPaletteIndex(lab, palette.colors)
-    const [first, second, secondWeight] = twoNearestPaletteIndices(lab, palette.colors)
-    return secondWeight > 0.42 && random() < secondWeight * 0.55 ? second : first
-  })
+  const grid = suppliedGrid
+    ? Array.from(suppliedGrid)
+    : mapAdaptiveGridIndices(sample.labTiles, sample.weights, palette.colors)
   const counts: Record<string, number> = {}
   for (const index of grid) {
     const key = palette.colors[index].hex
@@ -600,13 +618,14 @@ export function createAdaptiveMosaicPreview(
   paletteCount: number,
   includeSkinAnchors: boolean,
   subjectMask?: ImageData,
+  fixedPalette: readonly { hex: string }[] = FIXED_MASTER_HEX.map((hex) => ({ hex })),
 ): AdaptiveMosaicPreview {
   const sample = sampleAdaptiveGrid(source, gridSize, style, tune, saliency, subjectMask)
   const palette = generateAdaptivePalette(sample.labTiles, sample.weights, paletteCount, {
     seed: sample.seed,
     skinMask: includeSkinAnchors ? sample.skinMask : undefined,
   })
-  const fixedColors: AdaptivePaletteColor[] = PALETTE.slice(0, paletteCount).map((color, index) => ({
+  const fixedColors: AdaptivePaletteColor[] = fixedPalette.slice(0, paletteCount).map((color, index) => ({
     ...rgbToLab(hexToRgb(color.hex)),
     hex: color.hex,
     role: index < 3 ? 'anchor-neutral' : 'derived',
