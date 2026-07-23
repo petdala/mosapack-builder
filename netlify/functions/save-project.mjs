@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { getStore } from '@netlify/blobs';
-import { buildCustomerEmail, buildOperatorEmail } from './lib/proof-emails.mjs';
+import { buildCustomerEmail, buildOperatorEmail, resolveProofEmailConfig } from './lib/proof-emails.mjs';
 
 const SAVE_VERSION = 'b2-v1';
 const V7_SAVE_VERSION = 'v7'; // builder-v7 proof_request.v1 payload
@@ -11,7 +11,6 @@ const MAX_TOTAL_JSON_BYTES = 6 * 1024 * 1024;
 const ALLOWED_IMAGE_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const RESEND_EMAILS_URL = 'https://api.resend.com/emails';
 const PROOF_EMAIL_FROM = 'MosaPack <hello@mosapack.com>';
-const PROOF_EMAIL_REPLY_TO = 'hello@mosapack.com';
 
 function json(status, body) {
   return new Response(JSON.stringify(body), {
@@ -101,7 +100,7 @@ function arrayBufferFromBuffer(buffer) {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 }
 
-async function sendProofEmail(apiKey, email) {
+async function sendProofEmail(apiKey, email, replyTo) {
   const response = await fetch(RESEND_EMAILS_URL, {
     method: 'POST',
     headers: {
@@ -110,7 +109,7 @@ async function sendProofEmail(apiKey, email) {
     },
     body: JSON.stringify({
       from: PROOF_EMAIL_FROM,
-      reply_to: PROOF_EMAIL_REPLY_TO,
+      reply_to: replyTo,
       ...email
     })
   });
@@ -120,9 +119,9 @@ async function sendProofEmail(apiKey, email) {
   }
 }
 
-async function trySendProofEmail(label, apiKey, storedProject, buildEmail) {
+async function trySendProofEmail(label, apiKey, storedProject, buildEmail, emailConfig) {
   try {
-    await sendProofEmail(apiKey, buildEmail(storedProject));
+    await sendProofEmail(apiKey, buildEmail(storedProject, emailConfig), emailConfig.replyTo);
     return true;
   } catch (error) {
     console.error('proof-email failed', {
@@ -276,9 +275,10 @@ export default async function handler(request) {
   const emails = { operator: false, customer: false };
   const resendApiKey = process.env.RESEND_API_KEY;
   if (resendApiKey) {
+    const emailConfig = resolveProofEmailConfig(process.env);
     [emails.operator, emails.customer] = await Promise.all([
-      trySendProofEmail('operator', resendApiKey, storedProject, buildOperatorEmail),
-      trySendProofEmail('customer', resendApiKey, storedProject, buildCustomerEmail)
+      trySendProofEmail('operator', resendApiKey, storedProject, buildOperatorEmail, emailConfig),
+      trySendProofEmail('customer', resendApiKey, storedProject, buildCustomerEmail, emailConfig)
     ]);
   } else {
     console.info('proof-email skipped', { project_id: projectId, reason: 'RESEND_API_KEY is not set' });

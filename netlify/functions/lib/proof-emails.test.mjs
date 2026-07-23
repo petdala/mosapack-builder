@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildCustomerEmail, buildOperatorEmail } from './proof-emails.mjs';
+import { buildCustomerEmail, buildOperatorEmail, resolveProofEmailConfig } from './proof-emails.mjs';
 
 const representativeProject = {
   project_id: 'project-123',
@@ -67,4 +67,25 @@ test('both builders return non-empty text and HTML parts', () => {
     assert.ok(email.text.trim());
     assert.ok(email.html.trim());
   }
+});
+
+test('environment overrides configure the operator recipient and reply-to', () => {
+  const config = resolveProofEmailConfig({
+    PROOF_OPERATOR_EMAIL: ' proofs@ops.example ',
+    PROOF_REPLY_TO: ' support@example.com '
+  });
+  const operator = buildOperatorEmail(representativeProject, config);
+  const customer = buildCustomerEmail(representativeProject, config);
+
+  assert.deepEqual(config, {
+    operatorEmail: 'proofs@ops.example',
+    replyTo: 'support@example.com'
+  });
+  assert.equal(operator.to, 'proofs@ops.example');
+  assert.match(customer.text, /support@example\.com/);
+  assert.match(customer.html, /mailto:support@example\.com/);
+  assert.deepEqual(resolveProofEmailConfig({ PROOF_OPERATOR_EMAIL: ' ', PROOF_REPLY_TO: '' }), {
+    operatorEmail: 'hello@mosapack.com',
+    replyTo: 'hello@mosapack.com'
+  });
 });

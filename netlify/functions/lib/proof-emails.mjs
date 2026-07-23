@@ -1,4 +1,16 @@
-const OPERATOR_EMAIL = 'hello@mosapack.com';
+const DEFAULT_OPERATOR_EMAIL = 'hello@mosapack.com';
+const DEFAULT_REPLY_TO = 'hello@mosapack.com';
+
+function configuredEmail(value, fallback) {
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
+export function resolveProofEmailConfig(env = {}) {
+  return {
+    operatorEmail: configuredEmail(env.PROOF_OPERATOR_EMAIL, DEFAULT_OPERATOR_EMAIL),
+    replyTo: configuredEmail(env.PROOF_REPLY_TO, DEFAULT_REPLY_TO)
+  };
+}
 
 function textValue(value, fallback = 'Not provided') {
   if (value === null || value === undefined || value === '') return fallback;
@@ -61,7 +73,7 @@ function operatorRows(project) {
   ];
 }
 
-export function buildOperatorEmail(storedProject = {}) {
+export function buildOperatorEmail(storedProject = {}, config = resolveProofEmailConfig()) {
   const proofRef = textValue(storedProject.proof_ref, 'Reference pending');
   const category = textValue(storedProject.photo_category, 'Category not provided');
   const size = formatInches(storedProject.finished_size_in);
@@ -77,14 +89,14 @@ export function buildOperatorEmail(storedProject = {}) {
     .join('');
 
   return {
-    to: OPERATOR_EMAIL,
+    to: config.operatorEmail,
     subject: `New proof request ${proofRef} — ${category} · ${size} · ${price}`,
     text,
     html: `<h1>New MosaPack proof request ${escapeHtml(proofRef)}</h1><table>${htmlRows}</table>`
   };
 }
 
-export function buildCustomerEmail(storedProject = {}) {
+export function buildCustomerEmail(storedProject = {}, config = resolveProofEmailConfig()) {
   const proofRef = textValue(storedProject.proof_ref, 'Reference pending');
   const name = textValue(storedProject.name, '');
   const greeting = name ? `Hi ${name},` : 'Hi,';
@@ -96,7 +108,7 @@ export function buildCustomerEmail(storedProject = {}) {
     'A person is checking your design, and your proof will arrive by email within 1 business day.',
     'Nothing is made or charged today.',
     '',
-    'Questions? Reply to this email or contact hello@mosapack.com.',
+    `Questions? Reply to this email or contact ${config.replyTo}.`,
     '',
     'MosaPack'
   ].join('\n');
@@ -105,7 +117,7 @@ export function buildCustomerEmail(storedProject = {}) {
     `<p>We received your MosaPack design. Your reference is <strong>${escapeHtml(proofRef)}</strong>.</p>`,
     '<p>A person is checking your design, and your proof will arrive by email within 1 business day.</p>',
     '<p>Nothing is made or charged today.</p>',
-    '<p>Questions? Reply to this email or contact <a href="mailto:hello@mosapack.com">hello@mosapack.com</a>.</p>',
+    `<p>Questions? Reply to this email or contact <a href="mailto:${escapeHtml(config.replyTo)}">${escapeHtml(config.replyTo)}</a>.</p>`,
     '<p>MosaPack</p>'
   ].join('');
 
