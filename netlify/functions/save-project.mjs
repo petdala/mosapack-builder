@@ -119,9 +119,9 @@ async function sendProofEmail(apiKey, email, replyTo) {
   }
 }
 
-async function trySendProofEmail(label, apiKey, storedProject, buildEmail, emailConfig) {
+async function trySendProofEmail(label, apiKey, storedProject, buildEmail, emailConfig, image) {
   try {
-    await sendProofEmail(apiKey, buildEmail(storedProject, emailConfig), emailConfig.replyTo);
+    await sendProofEmail(apiKey, buildEmail(storedProject, emailConfig, image), emailConfig.replyTo);
     return true;
   } catch (error) {
     console.error('proof-email failed', {
@@ -276,9 +276,13 @@ export default async function handler(request) {
   const resendApiKey = process.env.RESEND_API_KEY;
   if (resendApiKey) {
     const emailConfig = resolveProofEmailConfig(process.env);
+    const emailPreview = {
+      mime: previewImage.mime,
+      base64: previewImage.buffer.toString('base64')
+    };
     [emails.operator, emails.customer] = await Promise.all([
-      trySendProofEmail('operator', resendApiKey, storedProject, buildOperatorEmail, emailConfig),
-      trySendProofEmail('customer', resendApiKey, storedProject, buildCustomerEmail, emailConfig)
+      trySendProofEmail('operator', resendApiKey, storedProject, buildOperatorEmail, emailConfig, emailPreview),
+      trySendProofEmail('customer', resendApiKey, storedProject, buildCustomerEmail, emailConfig, emailPreview)
     ]);
   } else {
     console.info('proof-email skipped', { project_id: projectId, reason: 'RESEND_API_KEY is not set' });

@@ -26,21 +26,33 @@ const representativeProject = {
   }
 };
 
+const previewImage = {
+  mime: 'image/png',
+  base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB'
+};
+
 test('proof email builders include the representative v7 request details', () => {
   const operator = buildOperatorEmail(representativeProject);
   const customer = buildCustomerEmail(representativeProject);
 
   assert.equal(operator.to, 'hello@mosapack.com');
   assert.equal(operator.subject, 'New proof request MP-ABCD — baby-kids · 19.2″ · $119');
-  for (const value of ['MP-ABCD', '$119', '19.2″', '2304']) {
+  for (const value of ['$119', '19.2″', '2304']) {
     assert.match(operator.text, new RegExp(value.replace('$', '\\$')));
     assert.match(operator.html, new RegExp(value.replace('$', '\\$')));
   }
+  for (const header of ['Customer', 'Design', 'Order']) {
+    assert.match(operator.text, new RegExp(header));
+    assert.match(operator.html, new RegExp(`<h2>${header}</h2>`));
+  }
+  assert.equal(operator.text.split('\n')[0], '19.2″ · 2304 stickers · $119');
+  assert.match(operator.html, /<strong>19\.2″ · 2304 stickers · \$119<\/strong>/);
   assert.equal(customer.to, 'sam@example.com');
-  assert.match(customer.subject, /MP-ABCD/);
-  assert.match(customer.text, /within 1 business day/);
+  assert.equal(customer.subject, 'Your mosaic is being checked — ref MP-ABCD');
+  assert.match(customer.text, /within 1 business day/i);
   assert.match(customer.text, /MP-ABCD/);
-  assert.doesNotMatch(`${customer.subject} ${customer.text} ${customer.html}`, /LEGO|brick/i);
+  assert.match(customer.text, /Nothing is made and nothing is charged until you say so\./);
+  assert.doesNotMatch(`${operator.subject} ${operator.text} ${operator.html} ${customer.subject} ${customer.text} ${customer.html}`, /LEGO|brick/i);
 });
 
 test('missing optional values degrade without null or undefined output', () => {
@@ -60,6 +72,7 @@ test('missing optional values degrade without null or undefined output', () => {
     const output = `${email.to} ${email.subject} ${email.text} ${email.html}`;
     assert.doesNotMatch(output, /\b(?:null|undefined)\b/);
   }
+  assert.match(buildOperatorEmail(sparseProject).text, /Optimize fixes: None/);
 });
 
 test('both builders return non-empty text and HTML parts', () => {
@@ -82,10 +95,43 @@ test('environment overrides configure the operator recipient and reply-to', () =
     replyTo: 'support@example.com'
   });
   assert.equal(operator.to, 'proofs@ops.example');
-  assert.match(customer.text, /support@example\.com/);
   assert.match(customer.html, /mailto:support@example\.com/);
   assert.deepEqual(resolveProofEmailConfig({ PROOF_OPERATOR_EMAIL: ' ', PROOF_REPLY_TO: '' }), {
     operatorEmail: 'hello@mosapack.com',
     replyTo: 'hello@mosapack.com'
   });
+});
+
+test('preview images are inline attachments with an attachment fallback', () => {
+  for (const email of [
+    buildOperatorEmail(representativeProject, resolveProofEmailConfig(), previewImage),
+    buildCustomerEmail(representativeProject, resolveProofEmailConfig(), previewImage)
+  ]) {
+    assert.deepEqual(email.attachments, [{
+      content: previewImage.base64,
+      filename: 'mosaic-MP-ABCD.png',
+      content_id: 'mosaic-preview',
+      content_type: 'image/png'
+    }]);
+    assert.match(email.html, /src="cid:mosaic-preview"/);
+  }
+
+  for (const email of [buildOperatorEmail(representativeProject), buildCustomerEmail(representativeProject)]) {
+    assert.equal('attachments' in email, false);
+    assert.doesNotMatch(email.html, /cid:mosaic-preview/);
+  }
+});
+
+test('customer copy falls back to a nameless greeting and escapes interpolations', () => {
+  const customer = buildCustomerEmail({
+    ...representativeProject,
+    name: '<Sam>',
+    proof_ref: 'MP-<&>'
+  });
+  const nameless = buildCustomerEmail({ ...representativeProject, name: '' });
+
+  assert.match(customer.text, /^Hi <Sam>,/);
+  assert.match(customer.html, /Hi &lt;Sam&gt;,/);
+  assert.doesNotMatch(customer.html, /MP-<&>/);
+  assert.match(nameless.text, /^Hi,/);
 });
